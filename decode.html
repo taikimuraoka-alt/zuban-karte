@@ -1,0 +1,7 @@
+<!doctype html><html><head><meta charset="utf-8"><title>QR decode</title>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+</head><body>
+<img id="i1" src="chk1.png?v=1"><img id="i2" src="chk2.png?v=1">
+<script>
+window.dec = function(img){ const c=document.createElement("canvas"); c.width=img.naturalWidth; c.height=img.naturalHeight; const g=c.getContext("2d"); g.drawImage(img,0,0); const d=g.getImageData(0,0,c.width,c.height); const r=jsQR(d.data,c.width,c.height,{inversionAttempts:"dontInvert"}); return r?r.data:null; };
+</script></body></html>
