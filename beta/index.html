@@ -202,7 +202,7 @@ const T = {
     addIssue:"＋ 問題・不良を記録", addAction:"＋ 対策・処置を記録", addMemo:"＋ メモ・注意点を書く",
     types:{issue:"問題・不良",action:"対策・処置",memo:"作業メモ・注意点"},
     status:{"未対応":"未対応","対策中":"対策中","完了":"完了","調査中":"調査中","量産":"量産","サンプル":"サンプル","見積中":"見積中"},
-    find:"製品を探す", fCust:"会社", fProc:"処理", fMat:"素材", fMask:"マスキング", fStat:"状態", maskYes:"あり", maskNo:"なし", clear:"条件を消す", nHit:n=>`${n} 製品`, unknownMat:"未記入",
+    finishSpec:"図面の表面処理の指示", find:"製品を探す", fCust:"会社", fProc:"処理", fMat:"素材", fMask:"マスキング", fStat:"状態", maskYes:"あり", maskNo:"なし", clear:"条件を消す", nHit:n=>`${n} 製品`, unknownMat:"未記入",
     addProduct:"＋ 製品を登録", editProduct:"基本情報を直す", pfTitleNew:"製品を登録", pfTitleEdit:"基本情報を直す", pfId:"図番（必須）", pfName:"品名（必須）", pfCust:"会社（必須）", pfNewCust:"新しい会社名", pfOtherCust:"（新しい会社）", pfModel:"モデル・シリーズ", pfOld:"旧図番",
     pfProc:"処理", pfColor:"色", pfFinish:"仕上（図面の書き方）", pfMat:"材質", pfThick:"膜厚", pfMask:"マスキング（例 なし／M3×4）", pfArea:"面積 mm²", pfStatus:"状態", pfPath:"図面の保管場所（パス）", pfNote:"価格はここでは変えられません（事務所で更新します）。",
     needId:"図番を入れてください。", dupId:"この図番はもう登録されています。", needName:"品名を入れてください。", needCust:"会社を選ぶか、新しい会社名を入れてください。", noChange:"変更がありません。", pSaved:"保存しました。ほかの人の画面には 1〜2 分で出ます。",
@@ -231,7 +231,7 @@ const T = {
     addIssue:"＋ บันทึกปัญหา/ของเสีย", addAction:"＋ บันทึกการแก้ไข", addMemo:"＋ เขียนบันทึก/ข้อควรระวัง",
     types:{issue:"ปัญหา/ของเสีย",action:"การแก้ไข",memo:"บันทึกงาน/ข้อควรระวัง"},
     status:{"未対応":"ยังไม่ดำเนินการ","対策中":"กำลังแก้ไข","完了":"เสร็จสิ้น","調査中":"กำลังตรวจสอบ","量産":"ผลิตจริง","サンプル":"ตัวอย่าง","見積中":"กำลังเสนอราคา"},
-    find:"ค้นหาสินค้า", fCust:"บริษัท", fProc:"การชุบ", fMat:"วัสดุ", fMask:"มาสกิ้ง", fStat:"สถานะ", maskYes:"มี", maskNo:"ไม่มี", clear:"ล้างเงื่อนไข", nHit:n=>`${n} รายการ`, unknownMat:"ไม่ระบุ",
+    finishSpec:"ข้อกำหนดการชุบตามแบบ", find:"ค้นหาสินค้า", fCust:"บริษัท", fProc:"การชุบ", fMat:"วัสดุ", fMask:"มาสกิ้ง", fStat:"สถานะ", maskYes:"มี", maskNo:"ไม่มี", clear:"ล้างเงื่อนไข", nHit:n=>`${n} รายการ`, unknownMat:"ไม่ระบุ",
     addProduct:"＋ ลงทะเบียนสินค้า", editProduct:"แก้ไขข้อมูลพื้นฐาน", pfTitleNew:"ลงทะเบียนสินค้า", pfTitleEdit:"แก้ไขข้อมูลพื้นฐาน", pfId:"เลขแบบ (จำเป็น)", pfName:"ชื่อชิ้นงาน (จำเป็น)", pfCust:"บริษัท (จำเป็น)", pfNewCust:"ชื่อบริษัทใหม่", pfOtherCust:"(บริษัทใหม่)", pfModel:"รุ่น・ซีรีส์", pfOld:"เลขแบบเดิม",
     pfProc:"การชุบ", pfColor:"สี", pfFinish:"ผิวเคลือบ (ตามแบบ)", pfMat:"วัสดุ", pfThick:"ความหนาฟิล์ม", pfMask:"มาสกิ้ง (เช่น ไม่มี / M3×4)", pfArea:"พื้นที่ผิว mm²", pfStatus:"สถานะ", pfPath:"ที่เก็บไฟล์แบบ (พาธ)", pfNote:"ราคาแก้ไขที่นี่ไม่ได้ (สำนักงานเป็นผู้แก้ไข)",
     needId:"กรุณาใส่เลขแบบ", dupId:"เลขแบบนี้ลงทะเบียนแล้ว", needName:"กรุณาใส่ชื่อชิ้นงาน", needCust:"กรุณาเลือกบริษัท หรือใส่ชื่อบริษัทใหม่", noChange:"ไม่มีการเปลี่ยนแปลง", pSaved:"บันทึกแล้ว คนอื่นจะเห็นภายใน 1-2 นาที",
@@ -316,7 +316,10 @@ function normalize(src){
   C.sort((a,b)=>nOf(b.id)-nOf(a.id));
   CUSTOMERS = C; PRODUCTS = P; ISSUES = I; EVENTS = E.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   byP = Object.fromEntries(P.map(p=>[p.id,p])); byC = Object.fromEntries(C.map(c=>[c.id,c])); byI = Object.fromEntries(I.map(i=>[i.id,i]));
-  for(const p of P) p.issueIds = [...(p.issueIds||[])];
+  for(const p of P){
+    p.issueIds = [...(p.issueIds||[])];
+    if(p.drawingFile && !(p.docs||[]).some(d=>d.path===p.drawingFile)) p.docs = [{title:"図面 PDF", path:p.drawingFile}, ...(p.docs||[])];
+  }
   for(const i of I) for(const pid of (i.products||[])) if(byP[pid] && !byP[pid].issueIds.includes(i.id)) byP[pid].issueIds.push(i.id);
 }
 const rebuild = () => { if(DATA) normalize(DATA); };
@@ -777,6 +780,7 @@ function renderProduct(p){
   const formFor = kinds => (FORM && FORM.pid===p.id && !FORM.parent && !FORM.pickProduct && kinds.includes(FORM.type)) ? formHTML() : (EDIT ? addButtons(kinds) : "");
   const panels = {
     info: () => `${(PFORM && !PFORM.isNew && PFORM.pid===p.id) ? productFormHTML() : (EDIT ? `<div class="addbar"><button type="button" class="btn small ghost" id="editProd">${esc(t("editProduct"))}</button></div>` : "")}
+      ${p.finishSpec?`<h3 style="margin-top:0">${esc(t("finishSpec"))}</h3><p class="note">${esc(p.finishSpec)}</p>`:""}
       ${JA() ? (p.price ? priceBlock(p) : quoteBlock(p)) : ""}
       ${(JA() && (p.notes||[]).length)?`<h3>${esc(t("notes"))}</h3><ul class="bul">${p.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul>`:""}
       ${(p.similar||[]).length?`<h3>${esc(t("similar"))}</h3><ul class="list">${p.similar.map(s=>byP[s[0]]?productItem(byP[s[0]]).replace("</a></li>", `<div class="meta">${esc(JA()?s[1]:(s[2]||s[1]))}</div></a></li>`):"").join("")}</ul>`:""}
