@@ -205,7 +205,7 @@ const T = {
     scanCard:"AIで読む写真", sendScan:"＋ 写真を送る", scanKind:"写真の種類", kinds:{drawing:"図面",defect:"不良の写真・不良票",label:"現品票・ラベル",inspection:"検査表・記録用紙"}, scanPending:"取り込み待ち", scanDone:"取込済",
     scanHint:"送った写真は、管理者が「取り込んで」と頼んだときに Claude が読んで、製品・問題・受入・検査の記録にします。", scanMemo:"メモ（分かれば：何の写真か、気になる点）", scanNeedPhoto:"写真を1枚以上選んでください。", fromScan:"写真から作成", results:"この写真から作った記録", noScan:"取り込み待ちの写真はありません。",
     status:{"未対応":"未対応","対策中":"対策中","完了":"完了","調査中":"調査中","量産":"量産","サンプル":"サンプル","見積中":"見積中"},
-    finishSpec:"図面の表面処理の指示", find:"製品を探す", fCust:"会社", fProc:"処理", fMat:"素材", fMask:"マスキング", fStat:"状態", maskYes:"あり", maskNo:"なし", clear:"条件を消す", nHit:n=>`${n} 製品`, unknownMat:"未記入",
+    finishSpec:"図面の表面処理の指示", pfSize:"寸法", find:"製品を探す", fCust:"会社", fProc:"処理", fMat:"素材", fMask:"マスキング", fStat:"状態", maskYes:"あり", maskNo:"なし", clear:"条件を消す", nHit:n=>`${n} 製品`, unknownMat:"未記入",
     addProduct:"＋ 製品を登録", editProduct:"基本情報を直す", pfTitleNew:"製品を登録", pfTitleEdit:"基本情報を直す", pfId:"図番（必須）", pfName:"品名（必須）", pfCust:"会社（必須）", pfNewCust:"新しい会社名", pfOtherCust:"（新しい会社）", pfModel:"モデル・シリーズ", pfOld:"旧図番",
     pfProc:"処理", pfColor:"色", pfFinish:"仕上（図面の書き方）", pfMat:"材質", pfThick:"膜厚", pfMask:"マスキング（例 なし／M3×4）", pfArea:"面積 mm²", pfStatus:"状態", pfPath:"図面の保管場所（パス）", pfNote:"価格はここでは変えられません（事務所で更新します）。",
     needId:"図番を入れてください。", dupId:"この図番はもう登録されています。", needName:"品名を入れてください。", needCust:"会社を選ぶか、新しい会社名を入れてください。", noChange:"変更がありません。", pSaved:"保存しました。ほかの人の画面には 1〜2 分で出ます。",
@@ -236,7 +236,7 @@ const T = {
     scanCard:"รูปให้ AI อ่าน", sendScan:"＋ ส่งรูป", scanKind:"ประเภทรูป", kinds:{drawing:"แบบ (Drawing)",defect:"รูปของเสีย・ใบแจ้งของเสีย",label:"ป้ายสินค้า・ฉลาก",inspection:"ตารางตรวจสอบ・ใบบันทึก"}, scanPending:"รอนำเข้า", scanDone:"นำเข้าแล้ว",
     scanHint:"รูปที่ส่งมา Claude จะอ่านและสร้างเป็นบันทึกสินค้า・ปัญหา・รับเข้า・ตรวจสอบ เมื่อผู้ดูแลสั่งให้นำเข้า", scanMemo:"หมายเหตุ (ถ้าทราบ: รูปอะไร จุดที่สงสัย)", scanNeedPhoto:"กรุณาเลือกรูปอย่างน้อย 1 รูป", fromScan:"สร้างจากรูป", results:"บันทึกที่สร้างจากรูปนี้", noScan:"ไม่มีรูปที่รอนำเข้า",
     status:{"未対応":"ยังไม่ดำเนินการ","対策中":"กำลังแก้ไข","完了":"เสร็จสิ้น","調査中":"กำลังตรวจสอบ","量産":"ผลิตจริง","サンプル":"ตัวอย่าง","見積中":"กำลังเสนอราคา"},
-    finishSpec:"ข้อกำหนดการชุบตามแบบ", find:"ค้นหาสินค้า", fCust:"บริษัท", fProc:"การชุบ", fMat:"วัสดุ", fMask:"มาสกิ้ง", fStat:"สถานะ", maskYes:"มี", maskNo:"ไม่มี", clear:"ล้างเงื่อนไข", nHit:n=>`${n} รายการ`, unknownMat:"ไม่ระบุ",
+    finishSpec:"ข้อกำหนดการชุบตามแบบ", pfSize:"ขนาด", find:"ค้นหาสินค้า", fCust:"บริษัท", fProc:"การชุบ", fMat:"วัสดุ", fMask:"มาสกิ้ง", fStat:"สถานะ", maskYes:"มี", maskNo:"ไม่มี", clear:"ล้างเงื่อนไข", nHit:n=>`${n} รายการ`, unknownMat:"ไม่ระบุ",
     addProduct:"＋ ลงทะเบียนสินค้า", editProduct:"แก้ไขข้อมูลพื้นฐาน", pfTitleNew:"ลงทะเบียนสินค้า", pfTitleEdit:"แก้ไขข้อมูลพื้นฐาน", pfId:"เลขแบบ (จำเป็น)", pfName:"ชื่อชิ้นงาน (จำเป็น)", pfCust:"บริษัท (จำเป็น)", pfNewCust:"ชื่อบริษัทใหม่", pfOtherCust:"(บริษัทใหม่)", pfModel:"รุ่น・ซีรีส์", pfOld:"เลขแบบเดิม",
     pfProc:"การชุบ", pfColor:"สี", pfFinish:"ผิวเคลือบ (ตามแบบ)", pfMat:"วัสดุ", pfThick:"ความหนาฟิล์ม", pfMask:"มาสกิ้ง (เช่น ไม่มี / M3×4)", pfArea:"พื้นที่ผิว mm²", pfStatus:"สถานะ", pfPath:"ที่เก็บไฟล์แบบ (พาธ)", pfNote:"ราคาแก้ไขที่นี่ไม่ได้ (สำนักงานเป็นผู้แก้ไข)",
     needId:"กรุณาใส่เลขแบบ", dupId:"เลขแบบนี้ลงทะเบียนแล้ว", needName:"กรุณาใส่ชื่อชิ้นงาน", needCust:"กรุณาเลือกบริษัท หรือใส่ชื่อบริษัทใหม่", noChange:"ไม่มีการเปลี่ยนแปลง", pSaved:"บันทึกแล้ว คนอื่นจะเห็นภายใน 1-2 นาที",
@@ -869,12 +869,12 @@ function renderProduct(p){
   if(ep) ep.addEventListener("click", ()=>{ PFORM = {isNew:false, pid:p.id, data:{...p, drawingPath:((p.docs||[])[0]||{}).path||""}}; renderProduct(p); });
   wireProductForm(); wireForm(); wireEntries(main); wireCopy(main);
 }
-const PF_LABEL = {name:"pfName", customer:"pfCust", model:"pfModel", oldNo:"pfOld", process:"pfProc", color:"pfColor", finish:"pfFinish", material:"pfMat", thickness:"pfThick", masking:"pfMask", area_mm2:"pfArea", status:"pfStatus", drawingPath:"pfPath"};
+const PF_LABEL = {name:"pfName", customer:"pfCust", model:"pfModel", oldNo:"pfOld", process:"pfProc", color:"pfColor", finish:"pfFinish", material:"pfMat", thickness:"pfThick", masking:"pfMask", area_mm2:"pfArea", status:"pfStatus", drawingPath:"pfPath", price:"priceT", size:"pfSize", finishSpec:"finishSpec"};
 function changeLogHTML(pid){
   const l = (FIELD.productLog||[]).filter(x=>x.product===pid).sort(byNew);
   if(!l.length) return "";
   const v = x => x==null || x==="" ? "—" : esc(x);
-  return `<h3>${esc(t("changeLog"))}</h3><ul class="list">${l.map(x=>`<li style="padding:8px 2px"><div class="meta">${fmtAt(x.at)} ・ ${esc(x.author)}${x.action==="add"?` ・ ${esc(t("addedField"))}`:""}</div>${Object.entries(x.changes||{}).map(([k,[a,b]])=>`<div style="font-size:13.5px">${esc(String(t(PF_LABEL[k]||k)).replace(/（.*?）|\(.*?\)/g,""))}：${x.action==="add"?"":`${v(a)} → `}${v(b)}</div>`).join("")}</li>`).join("")}</ul>`;
+  return `<h3>${esc(t("changeLog"))}</h3><ul class="list">${l.map(x=>`<li style="padding:8px 2px"><div class="meta">${fmtAt(x.at)} ・ ${esc(x.author)}${x.action==="add"?` ・ ${esc(t("addedField"))}`:""}</div>${Object.entries(x.changes||{}).filter(([k])=>JA() || k!=="price").map(([k,[a,b]])=>`<div style="font-size:13.5px">${esc(String(t(PF_LABEL[k]||k)).replace(/（.*?）|\(.*?\)/g,""))}：${x.action==="add"?"":`${v(a)} → `}${v(b)}</div>`).join("")}</li>`).join("")}</ul>`;
 }
 async function loadFlowDocs(){
   if(FLOWDOCS) return FLOWDOCS;
