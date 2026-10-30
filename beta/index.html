@@ -73,6 +73,7 @@ main{padding-top:14px}
 h2{font-size:16px;margin:0 0 8px;text-wrap:balance}
 h3{font-size:13px;margin:16px 0 6px;color:var(--muted);letter-spacing:.04em;font-weight:500}
 .kv{display:grid;grid-template-columns:minmax(90px,32%) 1fr;gap:6px 12px;font-size:14.5px;margin:0}
+.kv a{color:var(--accent)}
 .kv dt{color:var(--muted)}.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .price{font-family:var(--mono);font-size:28px;font-weight:600;color:var(--accent)}
@@ -124,6 +125,16 @@ td.num,th.num{text-align:right}
 .entry .head .tag{margin-left:0}
 .entry .txt{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 0;font-size:15px}
 .entry .prod{font-family:var(--mono);font-size:13px;color:var(--accent);text-decoration:none}
+.entry .more{margin-left:auto;font-size:13px;color:var(--accent);text-decoration:none;white-space:nowrap}
+.entry .etitle{font-weight:500;margin-top:6px}
+.txtlink{color:inherit;text-decoration:none}
+.txtlink:hover{text-decoration:underline}
+.bimgs{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.bimgs img{width:100%;border-radius:8px;border:1px solid var(--line);display:block}
+.bimgs .wait{font-size:13px;color:var(--muted);background:var(--soft);border-radius:8px;padding:18px;text-align:center}
+.statusbox{display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;align-items:end;margin-top:10px}
+.statusbox .field{margin-bottom:0}
+@media (max-width:520px){ .statusbox{grid-template-columns:1fr} }
 .photos{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .photos .ph{width:88px;height:88px;border-radius:6px;border:1px solid var(--line);background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);overflow:hidden;padding:0;cursor:pointer}
 .photos .ph img{width:100%;height:100%;object-fit:cover;display:block}
@@ -163,7 +174,7 @@ let PW = null, DATA = null, FIELD = {entries:[]}, FLOWDOCS = null, FLOW_LOADING 
 let CUSTOMERS = [], PRODUCTS = [], ISSUES = [], EVENTS = [], FLOWSTEPS = [], CAUTIONS = [];
 let byP = {}, byC = {}, byI = {};
 let LANG = "ja"; try{ LANG = localStorage.getItem("karte.lang") || "ja" }catch(e){}
-let TAB = "info"; let MODEL = "*"; let FORM = null; let OPEN_PHOTO = null;
+let TAB = "info"; let MODEL = "*"; let FORM = null; let FLASH = "";
 const main = document.getElementById("main");
 const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt = n => typeof n==="number" ? n.toLocaleString("ja-JP",{maximumFractionDigits:2}) : esc(n);
@@ -188,7 +199,9 @@ const T = {
     issueMaster:"登録済みの問題", fieldRec:"現場の記録", cautions:"この仕上げで注意する点", noIssue:"記録はありません。",
     addIssue:"＋ 問題・不良を記録", addAction:"＋ 対策・処置を記録", addMemo:"＋ メモ・注意点を書く",
     types:{issue:"問題・不良",action:"対策・処置",memo:"作業メモ・注意点"},
-    status:{"対策中":"対策中","完了":"完了","調査中":"調査中","量産":"量産","サンプル":"サンプル","見積中":"見積中"},
+    status:{"未対応":"未対応","対策中":"対策中","完了":"完了","調査中":"調査中","量産":"量産","サンプル":"サンプル","見積中":"見積中"},
+    fTitle:"件名（短く）", fStatus:"状態", fProduct:"対象の製品", chooseProduct:"製品を選んでください", needProduct:"対象の製品を選んでください。", registerIssue:"＋ 問題を登録", more:"詳しく見る →", fieldTag:"現場",
+    changeStatus:"状態を変える", statusNote:"ひとこと（任意）", statusSame:"今と同じ状態です。", statusSaved:"状態を変えました。ほかの人の画面には 1〜2 分で出ます。", statusHistory:"状態の履歴", noHistory:"まだ変更はありません。", linked:"この問題への対策・記録", product:"製品", author:"記録した人", createdAt:"登録日時", parentIssue:"どの問題への記録か", detail:"記録の詳細",
     symptom:"症状", cause:"原因", action:"対策", date:"日付", related:"対象の製品", docs:"資料",
     received:"入手日", rev:"リビジョン", areaF:"面積式", pdf:"図面 PDF", copy:"パスをコピー", copied:"コピーしました", selected:"選択しました", noDocs:"登録された資料はありません。",
     edit:"編集", editing:n=>`編集中：${n}`, editTitle:"編集モード", editMsg:"記録を書き込むには、編集パスワードと名前を入れてください。", editPw:"編集パスワード", yourName:"名前（記録に残ります）", remember:"この端末で覚える", start:"始める", cancel:"やめる", editEnd:"編集を終える", notReady:"編集の準備がまだできていません（管理者が鍵を設定します）。", editWrong:"編集パスワードが違います。", tokenBad:"書き込みの鍵が使えません（期限切れの可能性）。管理者に連絡してください。",
@@ -210,7 +223,9 @@ const T = {
     issueMaster:"ปัญหาที่ลงทะเบียนไว้", fieldRec:"บันทึกจากหน้างาน", cautions:"ข้อควรระวังสำหรับผิวเคลือบนี้", noIssue:"ยังไม่มีบันทึก",
     addIssue:"＋ บันทึกปัญหา/ของเสีย", addAction:"＋ บันทึกการแก้ไข", addMemo:"＋ เขียนบันทึก/ข้อควรระวัง",
     types:{issue:"ปัญหา/ของเสีย",action:"การแก้ไข",memo:"บันทึกงาน/ข้อควรระวัง"},
-    status:{"対策中":"กำลังแก้ไข","完了":"เสร็จสิ้น","調査中":"กำลังตรวจสอบ","量産":"ผลิตจริง","サンプル":"ตัวอย่าง","見積中":"กำลังเสนอราคา"},
+    status:{"未対応":"ยังไม่ดำเนินการ","対策中":"กำลังแก้ไข","完了":"เสร็จสิ้น","調査中":"กำลังตรวจสอบ","量産":"ผลิตจริง","サンプル":"ตัวอย่าง","見積中":"กำลังเสนอราคา"},
+    fTitle:"หัวข้อ (สั้นๆ)", fStatus:"สถานะ", fProduct:"สินค้าที่เกี่ยวข้อง", chooseProduct:"เลือกสินค้า", needProduct:"กรุณาเลือกสินค้า", registerIssue:"＋ ลงทะเบียนปัญหา", more:"ดูรายละเอียด →", fieldTag:"หน้างาน",
+    changeStatus:"เปลี่ยนสถานะ", statusNote:"หมายเหตุ (ไม่บังคับ)", statusSame:"สถานะเหมือนเดิม", statusSaved:"เปลี่ยนสถานะแล้ว คนอื่นจะเห็นภายใน 1-2 นาที", statusHistory:"ประวัติสถานะ", noHistory:"ยังไม่มีการเปลี่ยนแปลง", linked:"การแก้ไข・บันทึกของปัญหานี้", product:"สินค้า", author:"ผู้บันทึก", createdAt:"วันเวลาที่บันทึก", parentIssue:"บันทึกของปัญหา", detail:"รายละเอียดบันทึก",
     symptom:"อาการ", cause:"สาเหตุ", action:"การแก้ไข", date:"วันที่", related:"สินค้าที่เกี่ยวข้อง", docs:"เอกสาร",
     received:"วันที่รับ", rev:"Revision", areaF:"สูตรพื้นที่", pdf:"ไฟล์แบบ PDF", copy:"คัดลอกพาธ", copied:"คัดลอกแล้ว", selected:"เลือกแล้ว", noDocs:"ไม่มีเอกสาร",
     edit:"แก้ไข", editing:n=>`กำลังแก้ไข: ${n}`, editTitle:"โหมดแก้ไข", editMsg:"ใส่รหัสผ่านสำหรับแก้ไขและชื่อของคุณ เพื่อบันทึกข้อมูล", editPw:"รหัสผ่านสำหรับแก้ไข", yourName:"ชื่อ (จะแสดงในบันทึก)", remember:"จำไว้ในเครื่องนี้", start:"เริ่ม", cancel:"ยกเลิก", editEnd:"ออกจากโหมดแก้ไข", notReady:"ยังไม่พร้อมสำหรับการแก้ไข (ผู้ดูแลกำลังตั้งค่า)", editWrong:"รหัสผ่านสำหรับแก้ไขไม่ถูกต้อง", tokenBad:"กุญแจสำหรับบันทึกใช้ไม่ได้ (อาจหมดอายุ) กรุณาติดต่อผู้ดูแล",
@@ -286,8 +301,20 @@ async function loadField(){
   try{ const e = await fetchEnc(CONF.field, true); FIELD = e ? await decryptJSON(e, PW) : {entries:[]}; }catch(err){ FIELD = FIELD || {entries:[]}; }
   if(!FIELD.entries) FIELD.entries = [];
 }
-const entriesFor = pid => FIELD.entries.filter(e=>e.product===pid).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
-const openIssues = cid => ISSUES.filter(i => i.status!=="完了" && (!cid || i.customer===cid));
+const byNew = (a,b) => String(b.createdAt||b.at).localeCompare(String(a.createdAt||a.at));
+const entriesFor = pid => FIELD.entries.filter(e=>e.product===pid).sort(byNew);
+const entryById = id => FIELD.entries.find(e=>e.id===id);
+/* Status: master issues keep their own status; changes are appended to FIELD.statusLog (target "i:<id>" or "e:<entryId>") and the latest one wins. */
+const STATUSES = ["未対応","調査中","対策中","完了"];
+const logFor = key => (FIELD.statusLog||[]).filter(x=>x.target===key).sort((a,b)=>String(a.at).localeCompare(String(b.at)));
+const issueStatus = i => { const l = logFor("i:"+i.id); return l.length ? l[l.length-1].to : i.status; };
+const entryStatus = e => e.type==="issue" ? (e.status||"未対応") : null;
+const statusOf = key => key.startsWith("i:") ? issueStatus(byI[key.slice(2)]) : entryStatus(entryById(key.slice(2)) || {});
+const openIssues = cid => ISSUES.filter(i => issueStatus(i)!=="完了" && (!cid || i.customer===cid));
+const fieldIssues = cid => FIELD.entries.filter(e => !e.deleted && e.type==="issue" && (!cid || e.customer===cid)).sort(byNew);
+const openFieldIssues = cid => fieldIssues(cid).filter(e => entryStatus(e)!=="完了");
+const firstLine = s => String(s||"").split("\n")[0].slice(0,60);
+const fmtAt = iso => { const d = new Date(iso); if(isNaN(d)) return esc(iso||""); const p = n => String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
 
 /* ---------- chrome / lock ---------- */
 function applyChrome(){
@@ -407,21 +434,26 @@ function hydratePhotos(root){
 
 /* ---------- small pieces ---------- */
 const colorTag = c => c ? `<span class="tag ${colorCls(c)}">${esc(colorTx(c))}</span>` : "";
-const statusTag = s => s ? `<span class="tag ${s==="完了"?"done":(s==="対策中"||s==="調査中")?"open":""}">${esc(statusTx(s))}</span>` : "";
+const statusTag = s => s ? `<span class="tag ${s==="完了"?"done":"open"}">${esc(statusTx(s))}</span>` : "";
 function productItem(p){
   const c = byC[p.customer];
   const price = (JA() && p.price && p.price.current!=null) ? ` ・ <span class="num">${fmt(p.price.current)}</span> B` : (JA() && p.quote ? ` ・ <span class="num">${fmt(p.quote.price)}</span> ${esc(p.quote.unit||"")}` : "");
-  const nEnt = entriesFor(p.id).filter(e=>!e.deleted).length, nIss = (p.issueIds||[]).filter(id=>byI[id] && byI[id].status!=="完了").length;
+  const nEnt = entriesFor(p.id).filter(e=>!e.deleted).length;
+  const nIss = (p.issueIds||[]).filter(id=>byI[id] && issueStatus(byI[id])!=="完了").length + openFieldIssues().filter(e=>e.product===p.id).length;
   return `<li><a href="#${encodeURIComponent(p.id)}"><span class="no">${esc(p.id)}</span> ${esc(tx(p,"name"))}${colorTag(p.color)}${nIss?`<span class="tag issue">${esc(t("issues"))} ${nIss}</span>`:""}${nEnt?`<span class="tag memo">${esc(t("fieldRec"))} ${nEnt}</span>`:""}
     <div class="meta">${esc(c ? tx(c,"name") : p.customer)}${p.model?` ・ ${esc(p.model)}`:""}${p.masking && !/^(なし|No Masking)/.test(p.masking)?` ・ ${esc(t("chips").masking)} ${esc(tx(p,"masking"))}`:""}${p.status?` ・ ${esc(statusTx(p.status))}`:""}${price}</div></a></li>`;
 }
 function issueItem(i){
-  return `<li><a href="#i/${encodeURIComponent(i.id)}"><span class="no">${esc(i.id)}</span> ${esc(tx(i,"title"))} ${statusTag(i.status)}<div class="meta">${esc(i.date||"")}${(i.products||[]).length?` ・ ${esc((i.products||[]).slice(0,4).join(", "))}${i.products.length>4?" …":""}`:""}</div></a></li>`;
+  return `<li><a href="#i/${encodeURIComponent(i.id)}"><span class="no">${esc(i.id)}</span> ${esc(tx(i,"title"))} ${statusTag(issueStatus(i))}<div class="meta">${esc(i.date||"")}${(i.products||[]).length?` ・ ${esc((i.products||[]).slice(0,4).join(", "))}${i.products.length>4?" …":""}`:""}</div></a></li>`;
+}
+function fieldIssueItem(e){
+  const p = byP[e.product];
+  return `<li><a href="#e/${encodeURIComponent(e.id)}"><span class="tag issue" style="margin-left:0">${esc(t("fieldTag"))}</span> ${esc(e.title || firstLine(e.text))} ${statusTag(entryStatus(e))}<div class="meta">${esc(e.date||"")}${p?` ・ ${esc(p.id)} ${esc(tx(p,"name"))}`:""} ・ ${esc(e.author||"")}</div></a></li>`;
 }
 function entryCard(e, showProduct){
   const p = byP[e.product];
-  return `<div class="entry${e.deleted?" deleted":""}" data-entry="${esc(e.id)}"><div class="head"><span class="tag ${esc(e.type)}">${esc(t("types")[e.type]||e.type)}</span><span>${esc(e.date)}</span><span>${esc(t("by"))}: ${esc(e.author)}</span>${e.lot?`<span>${esc(t("fLot"))} ${esc(e.lot)}</span>`:""}${e.qty?`<span>${esc(t("fQty"))} ${fmt(e.qty)}</span>`:""}${showProduct && p?`<a class="prod" href="#${encodeURIComponent(p.id)}">${esc(p.id)}</a>`:""}${e.deleted?`<span>${esc(t("undone"))}</span>`:""}</div>
-    <p class="txt">${esc(e.text)}</p>${(e.photos||[]).length?`<div class="photos">${e.photos.map(id=>`<button type="button" class="ph" data-photo="${esc(id)}">${esc(t("photoLoad"))}</button>`).join("")}</div><div class="bigphoto"></div>`:""}
+  return `<div class="entry${e.deleted?" deleted":""}" data-entry="${esc(e.id)}"><div class="head"><span class="tag ${esc(e.type)}">${esc(t("types")[e.type]||e.type)}</span>${e.type==="issue"&&!e.deleted?statusTag(entryStatus(e)):""}<span>${esc(e.date)}</span><span>${esc(t("by"))}: ${esc(e.author)}</span>${e.lot?`<span>${esc(t("fLot"))} ${esc(e.lot)}</span>`:""}${e.qty?`<span>${esc(t("fQty"))} ${fmt(e.qty)}</span>`:""}${showProduct && p?`<a class="prod" href="#${encodeURIComponent(p.id)}">${esc(p.id)}</a>`:""}${e.deleted?`<span>${esc(t("undone"))}</span>`:""}<a class="more" href="#e/${encodeURIComponent(e.id)}">${esc(t("more"))}</a></div>
+    ${e.title?`<div class="etitle">${esc(e.title)}</div>`:""}<p class="txt"><a class="txtlink" href="#e/${encodeURIComponent(e.id)}">${esc(e.text)}</a></p>${(e.photos||[]).length?`<div class="photos">${e.photos.map(id=>`<button type="button" class="ph" data-photo="${esc(id)}">${esc(t("photoLoad"))}</button>`).join("")}</div><div class="bigphoto"></div>`:""}
     ${(EDIT && !e.deleted)?`<div class="actions"><button type="button" class="linkbtn" data-undo="${esc(e.id)}">${esc(t("undo"))}</button></div>`:""}</div>`;
 }
 /* Two-step button instead of confirm(): some in-app browsers suppress dialogs. First press arms it for 5 s. */
@@ -447,6 +479,36 @@ function docList(docs){
 function wireCopy(root){
   root.querySelectorAll("[data-copy]").forEach(cb => cb.addEventListener("click", ()=>{ const el = document.getElementById(cb.dataset.copy); navigator.clipboard.writeText(el.textContent).then(()=>{cb.textContent=t("copied")}).catch(()=>{ const s=window.getSelection(), rg=document.createRange(); rg.selectNodeContents(el); s.removeAllRanges(); s.addRange(rg); cb.textContent=t("selected"); }); }));
 }
+function statusPanel(key){
+  const cur = statusOf(key), l = logFor(key);
+  return `<h2>${esc(t("fStatus"))} ${statusTag(cur)}</h2>
+    ${EDIT?`<div class="statusbox"><label class="field">${esc(t("changeStatus"))}<select id="stSel">${STATUSES.map(s=>`<option value="${esc(s)}"${s===cur?" selected":""}>${esc(statusTx(s))}</option>`).join("")}</select></label><label class="field">${esc(t("statusNote"))}<input id="stNote" type="text"></label><button class="btn small" type="button" id="stGo" data-key="${esc(key)}">${esc(t("changeStatus"))}</button></div><div class="err" id="stErr"></div>`:""}
+    <h3>${esc(t("statusHistory"))}</h3>${l.length?`<ul class="list">${l.slice().reverse().map(x=>`<li style="padding:8px 2px"><div>${statusTag(x.from)} → ${statusTag(x.to)}</div><div class="meta">${fmtAt(x.at)} ・ ${esc(x.author)}${x.note?` ・ ${esc(x.note)}`:""}</div></li>`).join("")}</ul>`:`<p class="sub" style="margin:0">${esc(t("noHistory"))}</p>`}`;
+}
+function wireStatus(){
+  const b = document.getElementById("stGo"); if(!b) return;
+  b.addEventListener("click", async ()=>{
+    const key = b.dataset.key, to = document.getElementById("stSel").value, note = document.getElementById("stNote").value.trim(), err = document.getElementById("stErr"), from = statusOf(key);
+    if(to===from){ err.textContent = t("statusSame"); return; }
+    b.disabled = true; b.textContent = t("saving"); err.textContent = "";
+    try{
+      await updateField(d => {
+        (d.statusLog = d.statusLog || []).push({id:newId(), target:key, from, to, note:note||null, author:EDIT.name, at:new Date().toISOString()});
+        if(key.startsWith("e:")){ const x = d.entries.find(e=>e.id===key.slice(2)); if(x) x.status = to; }
+      }, `status: ${key} ${from} -> ${to} by ${EDIT.name}`);
+      FLASH = t("statusSaved"); route(true);
+    }catch(x){ b.disabled = false; b.textContent = t("changeStatus"); err.textContent = t("saveFail") + x.message; }
+  });
+}
+/* Records attached to an issue: master issue "i:<id>" or a field issue "e:<entryId>". */
+function linkedPanel(key, pid, cid){
+  const list = FIELD.entries.filter(e=>e.parent===key).sort(byNew);
+  const form = (FORM && FORM.parent===key) ? formHTML() : (EDIT ? `<div class="addbar"><button type="button" class="btn small" data-addlinked="${esc(key)}" data-pid="${esc(pid||"")}" data-cid="${esc(cid||"")}">${esc(t("addAction"))}</button></div>` : "");
+  return `<h2>${esc(t("linked"))}</h2>${form}${list.length?list.map(e=>entryCard(e,true)).join(""):`<p class="sub" style="margin:0">${esc(t("noIssue"))}</p>`}`;
+}
+function wireLinked(){
+  main.querySelectorAll("[data-addlinked]").forEach(b=>b.addEventListener("click",()=>{ FORM = {pid:b.dataset.pid||null, customer:b.dataset.cid||null, type:"action", parent:b.dataset.addlinked, date:today(), files:[]}; route(true); const f = document.getElementById("fText"); if(f) f.focus(); }));
+}
 
 /* ---------- pages ---------- */
 function renderHome(q){
@@ -458,19 +520,22 @@ function renderHome(q){
     main.innerHTML = `<div class="card"><h2>${esc(t("hitN")(ps.length+is.length))}</h2>${ps.length?`<ul class="list">${ps.map(productItem).join("")}</ul>`:""}${is.length?`<h3>${esc(t("issues"))}</h3><ul class="list">${is.map(issueItem).join("")}</ul>`:""}${(ps.length+is.length)?"":`<p class="empty">${esc(t("none"))}</p>`}</div>`;
     return;
   }
-  const recent = FIELD.entries.filter(e=>!e.deleted).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,8);
-  const oi = openIssues();
-  main.innerHTML = `<div class="card"><h2>${esc(t("customers"))}</h2><div class="cust">${CUSTOMERS.map(c=>{ const n = PRODUCTS.filter(p=>p.customer===c.id).length, o = openIssues(c.id).length; return `<a href="#c/${encodeURIComponent(c.id)}"><div class="nm">${esc(tx(c,"name"))}</div><div class="meta">${esc(t("nProducts")(n))}${o?` ・ ${esc(t("nOpen")(o))}`:""}</div></a>`; }).join("")}</div></div>
-    ${oi.length?`<div class="card"><h2>${esc(t("openIssues"))}</h2><ul class="list">${oi.map(issueItem).join("")}</ul></div>`:""}
+  const recent = FIELD.entries.filter(e=>!e.deleted).sort(byNew).slice(0,8);
+  const oi = openIssues(), ofi = openFieldIssues();
+  const regForm = (FORM && FORM.pickProduct) ? formHTML() : (EDIT ? `<div class="addbar"><button type="button" class="btn small" id="regIssue">${esc(t("registerIssue"))}</button></div>` : "");
+  main.innerHTML = `<div class="card"><h2>${esc(t("customers"))}</h2><div class="cust">${CUSTOMERS.map(c=>{ const n = PRODUCTS.filter(p=>p.customer===c.id).length, o = openIssues(c.id).length + openFieldIssues(c.id).length; return `<a href="#c/${encodeURIComponent(c.id)}"><div class="nm">${esc(tx(c,"name"))}</div><div class="meta">${esc(t("nProducts")(n))}${o?` ・ ${esc(t("nOpen")(o))}`:""}</div></a>`; }).join("")}</div></div>
+    ${(oi.length||ofi.length||EDIT)?`<div class="card"><h2>${esc(t("openIssues"))}</h2>${regForm}<ul class="list">${oi.map(issueItem).join("")}${ofi.map(fieldIssueItem).join("")}</ul></div>`:""}
     <div class="card" id="recent"><h2>${esc(t("recent"))}</h2>${recent.length?recent.map(e=>entryCard(e,true)).join(""):`<p class="empty">${esc(t("noRecent"))}</p>`}</div>`;
-  wireEntries(main);
+  const rb = document.getElementById("regIssue");
+  if(rb) rb.addEventListener("click", ()=>{ FORM = {pid:null, pickProduct:true, type:"issue", date:today(), files:[]}; renderHome(""); });
+  wireForm(); wireEntries(main);
 }
 function renderCustomer(c){
   const ps = PRODUCTS.filter(p=>p.customer===c.id);
   const models = [...new Set(ps.map(p=>p.model).filter(Boolean))];
   if(MODEL!=="*" && !models.includes(MODEL)) MODEL = "*";
   const shown = ps.filter(p => MODEL==="*" || p.model===MODEL);
-  const is = ISSUES.filter(i=>i.customer===c.id), ev = EVENTS.filter(e=>e.customer===c.id);
+  const is = ISSUES.filter(i=>i.customer===c.id), fis = fieldIssues(c.id), ev = EVENTS.filter(e=>e.customer===c.id);
   main.innerHTML = `<a class="back" href="#">${esc(t("backHome"))}</a>
     <div class="card"><div class="title"><span class="name" style="font-size:20px;font-weight:700">${esc(tx(c,"name"))}</span></div>${c.fullName?`<div class="sub">${esc(c.fullName)}${c.line?` ・ ${esc(t("chips").line)} ${esc(c.line)}`:""}</div>`:""}
       ${(JA() && (c.contacts||[]).length)?`<div class="chips">${c.contacts.map(x=>`<span class="chip"><b>${esc(t("contacts"))}</b>${esc(x.name)}${x.role?`（${esc(x.role)}）`:""}</span>`).join("")}</div>`:""}
@@ -478,7 +543,7 @@ function renderCustomer(c){
     <div class="card"><h2>${esc(t("products"))} <span class="sub">${ps.length}</span></h2>
       ${models.length>1?`<div class="filters">${["*",...models].map(m=>`<button type="button" data-model="${esc(m)}" aria-pressed="${m===MODEL}">${esc(m==="*"?t("all"):m)}</button>`).join("")}</div>`:""}
       <ul class="list">${shown.map(productItem).join("")}</ul></div>
-    ${is.length?`<div class="card"><h2>${esc(t("issues"))}</h2><ul class="list">${is.map(issueItem).join("")}</ul></div>`:""}
+    ${(is.length||fis.length)?`<div class="card"><h2>${esc(t("issues"))}</h2><ul class="list">${is.map(issueItem).join("")}${fis.map(fieldIssueItem).join("")}</ul></div>`:""}
     ${(JA() && ev.length)?`<div class="card"><h2>${esc(t("events"))}</h2><ul class="list">${ev.map(e=>`<li style="padding:9px 2px"><div><span class="num">${esc(e.date)}</span> ${esc(e.title)}</div>${e.summary?`<div class="meta">${esc(e.summary)}</div>`:""}</li>`).join("")}</ul></div>`:""}
     ${(JA() && (c.docs||[]).length)?`<div class="card"><h2>${esc(t("docs"))}</h2>${docList(c.docs)}</div>`:""}`;
   main.querySelectorAll("[data-model]").forEach(b=>b.addEventListener("click",()=>{ MODEL = b.dataset.model; renderCustomer(c); }));
@@ -488,11 +553,29 @@ function renderIssue(i){
   const ps = (i.products||[]).map(id=>byP[id]).filter(Boolean);
   const jaNote = JA() ? "" : ` <span class="jaonly">${esc(t("jaText"))}</span>`;
   main.innerHTML = `<a class="back" href="${i.customer?`#c/${encodeURIComponent(i.customer)}`:"#"}">${esc(t("back"))}</a>
-    <div class="card"><div class="title"><span class="no">${esc(i.id)}</span>${statusTag(i.status)}</div><div class="name" style="font-size:17px;font-weight:500;margin-top:4px">${esc(tx(i,"title"))}</div><div class="sub">${esc(i.date||"")}${i.customer?` ・ ${esc((byC[i.customer]||{}).name||i.customer)}`:""}</div>
+    <div class="card"><div class="title"><span class="no">${esc(i.id)}</span>${statusTag(issueStatus(i))}</div><div class="name" style="font-size:17px;font-weight:500;margin-top:4px">${esc(tx(i,"title"))}</div><div class="sub">${esc(i.date||"")}${i.customer?` ・ ${esc((byC[i.customer]||{}).name||i.customer)}`:""}</div>
       <dl class="kv" style="margin-top:12px">${["symptom","cause","action"].map(k=>i[k]?`<dt>${esc(t(k))}${jaNote}</dt><dd style="white-space:pre-wrap">${esc(tx(i,k))}</dd>`:"").join("")}</dl></div>
+    <div class="card">${statusPanel("i:"+i.id)}</div>
+    <div class="card">${linkedPanel("i:"+i.id, (i.products||[]).find(id=>byP[id]) || "", i.customer)}</div>
     ${ps.length?`<div class="card"><h2>${esc(t("related"))}</h2><ul class="list">${ps.map(productItem).join("")}</ul></div>`:""}
     ${(i.docs||[]).length?`<div class="card"><h2>${esc(t("docs"))}</h2>${docList(i.docs)}</div>`:""}`;
-  wireCopy(main);
+  wireCopy(main); wireStatus(); wireLinked(); wireForm(); wireEntries(main);
+}
+function renderEntry(e){
+  const p = byP[e.product], c = byC[p ? p.customer : e.customer], key = "e:"+e.id;
+  const parent = e.parent ? (e.parent.startsWith("i:") ? (byI[e.parent.slice(2)] ? `<a href="#i/${encodeURIComponent(e.parent.slice(2))}">${esc(e.parent.slice(2))} ${esc(tx(byI[e.parent.slice(2)],"title"))}</a>` : esc(e.parent)) : (entryById(e.parent.slice(2)) ? `<a href="#e/${encodeURIComponent(e.parent.slice(2))}">${esc(entryById(e.parent.slice(2)).title || firstLine(entryById(e.parent.slice(2)).text))}</a>` : esc(e.parent))) : "";
+  const row = (k, v) => v ? `<dt>${esc(t(k))}</dt><dd>${v}</dd>` : "";
+  main.innerHTML = `<a class="back" href="${p?`#${encodeURIComponent(p.id)}`:"#"}">${esc(t("back"))}${p?` ${esc(p.id)}`:""}</a>
+    <div class="card${e.deleted?" entry deleted":""}" data-entry="${esc(e.id)}"><div class="sub">${esc(t("detail"))}</div>
+      <div class="title" style="margin-top:4px"><span class="tag ${esc(e.type)}" style="margin-left:0">${esc(t("types")[e.type]||e.type)}</span>${e.type==="issue"?statusTag(entryStatus(e)):""}${e.deleted?`<span class="tag">${esc(t("undone"))}</span>`:""}</div>
+      <div class="name" style="font-size:18px;font-weight:500;margin-top:6px">${esc(e.title || firstLine(e.text))}</div>
+      <dl class="kv" style="margin-top:12px">${row("product", p?`<a href="#${encodeURIComponent(p.id)}" class="num">${esc(p.id)}</a> ${esc(tx(p,"name"))}`:"")}${row("customer", c?esc(tx(c,"name")):"")}${row("parentIssue", parent)}${row("fDate", esc(e.date))}${row("fLot", e.lot?esc(e.lot):"")}${row("fQty", e.qty?fmt(e.qty):"")}${row("author", esc(e.author))}${row("createdAt", fmtAt(e.createdAt))}</dl>
+      <p class="txt" style="white-space:pre-wrap;overflow-wrap:anywhere;margin:14px 0 0;font-size:15.5px">${esc(e.text)}</p>
+      ${(e.photos||[]).length?`<div class="bimgs">${e.photos.map(id=>`<div data-bimg="${esc(id)}"><div class="wait">${esc(t("loading"))}</div></div>`).join("")}</div>`:""}
+      ${(EDIT && !e.deleted)?`<div class="actions" style="margin-top:12px"><button type="button" class="linkbtn" data-undo="${esc(e.id)}">${esc(t("undo"))}</button></div>`:""}</div>
+    ${(e.type==="issue" && !e.deleted)?`<div class="card">${statusPanel(key)}</div><div class="card">${linkedPanel(key, e.product, e.customer)}</div>`:""}`;
+  main.querySelectorAll("[data-bimg]").forEach(async box => { const url = await photoURL(box.dataset.bimg).catch(()=>null); box.innerHTML = url ? `<img src="${url}" alt="">` : `<div class="wait">${esc(t("photoWait"))}</div>`; });
+  wireStatus(); wireLinked(); wireForm(); wireEntries(main);
 }
 function priceBlock(p){
   const pr = p.price; if(!pr) return "";
@@ -510,38 +593,48 @@ function quoteBlock(p){
     ${(q.tiers||[]).length?`<h3>${esc(t("tiers"))}</h3><div class="tblwrap"><table><tr><th>${esc(t("tierCol"))}</th><th class="num">${esc(t("perPc"))}</th></tr>${q.tiers.map(x=>{ const r = Array.isArray(x)?x:(x.value||[]); return `<tr><td>${esc(r[0])}</td><td class="num">${fmt(r[1])}</td></tr>`; }).join("")}</table></div>`:""}
     ${q.alt?`<h3>${esc(t("alt"))}</h3><p class="note">${esc(q.alt)}</p>`:""}${q.prev?`<h3>${esc(t("prev"))}</h3><p class="note">${esc(q.prev)}</p>`:""}`;
 }
-function formHTML(p){
-  const f = FORM;
-  return `<div class="form" id="entryForm"><h2>${esc(t("types")[f.type])}</h2>
-    <div class="row2"><label class="field">${esc(t("fType"))}<select id="fType">${["issue","action","memo"].map(k=>`<option value="${k}"${k===f.type?" selected":""}>${esc(t("types")[k])}</option>`).join("")}</select></label>
+function formHTML(){
+  const f = FORM, isIssue = f.type==="issue";
+  const prodSel = f.pickProduct ? `<label class="field">${esc(t("fProduct"))}<select id="fProd"><option value="">${esc(t("chooseProduct"))}</option>${CUSTOMERS.map(c=>`<optgroup label="${esc(tx(c,"name"))}">${PRODUCTS.filter(p=>p.customer===c.id).map(p=>`<option value="${esc(p.id)}"${p.id===f.pid?" selected":""}>${esc(p.id)} ${esc(tx(p,"name")||"")}</option>`).join("")}</optgroup>`).join("")}</select></label>` : "";
+  return `<div class="form" id="entryForm"><h2>${esc(t("types")[f.type])}</h2>${prodSel}
+    <div class="row2"><label class="field">${esc(t("fType"))}<select id="fType"${(f.parent||f.pickProduct)?" disabled":""}>${["issue","action","memo"].map(k=>`<option value="${k}"${k===f.type?" selected":""}>${esc(t("types")[k])}</option>`).join("")}</select></label>
       <label class="field">${esc(t("fDate"))}<input id="fDate" type="date" value="${esc(f.date)}"></label></div>
+    ${isIssue?`<div class="row2"><label class="field">${esc(t("fTitle"))}<input id="fTitle" type="text" value="${esc(f.title||"")}"></label><label class="field">${esc(t("fStatus"))}<select id="fStatus">${STATUSES.map(s=>`<option value="${esc(s)}"${s===(f.status||"未対応")?" selected":""}>${esc(statusTx(s))}</option>`).join("")}</select></label></div>`:""}
     <div class="row2"><label class="field">${esc(t("fLot"))}<input id="fLot" type="text" value="${esc(f.lot||"")}"></label><label class="field">${esc(t("fQty"))}<input id="fQty" type="number" inputmode="numeric" min="0" value="${esc(f.qty||"")}"></label></div>
     <label class="field">${esc(t("fText"))}<textarea id="fText" placeholder="${esc(t("fTextPh"))}">${esc(f.text||"")}</textarea></label>
     <label class="field">${esc(t("fPhotos"))}<input id="fPhotos" type="file" accept="image/*" multiple></label><div class="previews" id="fPrev"></div>
     <div class="actions"><button class="btn" type="button" id="fSave">${esc(t("save"))}</button><button class="btn ghost" type="button" id="fCancel">${esc(t("cancel"))}</button></div>
     <div class="err" id="fErr"></div></div>`;
 }
-function wireForm(p){
-  const box = document.getElementById("entryForm"); if(!box) return;
+/* One form for every place: product tabs, home ("register issue", pickProduct) and issue pages (parent = "i:<id>" / "e:<id>"). */
+function wireForm(){
+  const box = document.getElementById("entryForm"); if(!box || !FORM) return;
+  const $ = id => document.getElementById(id);
   const files = FORM.files || (FORM.files = []);
-  const prev = () => { document.getElementById("fPrev").innerHTML = files.map(f=>`<img src="${URL.createObjectURL(f)}" alt="">`).join(""); };
+  const prev = () => { $("fPrev").innerHTML = files.map(f=>`<img src="${URL.createObjectURL(f)}" alt="">`).join(""); };
   prev();
-  const keep = () => { FORM.type = document.getElementById("fType").value; FORM.date = document.getElementById("fDate").value; FORM.lot = document.getElementById("fLot").value; FORM.qty = document.getElementById("fQty").value; FORM.text = document.getElementById("fText").value; };
-  box.querySelectorAll("input,select,textarea").forEach(el => el.addEventListener("input", ()=>{ keep(); document.getElementById("fErr").textContent = ""; }));
-  document.getElementById("fType").addEventListener("change", ()=>{ keep(); box.querySelector("h2").textContent = t("types")[FORM.type]; });
-  document.getElementById("fPhotos").addEventListener("change", e => { const add = [...e.target.files]; if(files.length + add.length > 4){ document.getElementById("fErr").textContent = t("tooMany"); } files.push(...add.slice(0, 4-files.length)); e.target.value = ""; prev(); });
-  document.getElementById("fCancel").addEventListener("click", ()=>{ FORM = null; renderProduct(p); });
-  document.getElementById("fSave").addEventListener("click", async ()=>{
-    keep(); const err = document.getElementById("fErr"), btn = document.getElementById("fSave");
-    if(!FORM.text.trim()){ err.textContent = t("needText"); document.getElementById("fText").focus(); return; }
+  const keep = () => { FORM.type = $("fType").value; FORM.date = $("fDate").value; FORM.lot = $("fLot").value; FORM.qty = $("fQty").value; FORM.text = $("fText").value;
+    if($("fTitle")) FORM.title = $("fTitle").value; if($("fStatus")) FORM.status = $("fStatus").value; if($("fProd")) FORM.pid = $("fProd").value || null; };
+  box.querySelectorAll("input,select,textarea").forEach(el => el.addEventListener("input", ()=>{ keep(); $("fErr").textContent = ""; }));
+  $("fType").addEventListener("change", ()=>{ keep(); route(true); });
+  $("fPhotos").addEventListener("change", e => { const add = [...e.target.files]; if(files.length + add.length > 4){ $("fErr").textContent = t("tooMany"); } files.push(...add.slice(0, 4-files.length)); e.target.value = ""; prev(); });
+  $("fCancel").addEventListener("click", ()=>{ FORM = null; route(true); });
+  $("fSave").addEventListener("click", async ()=>{
+    keep(); const err = $("fErr"), btn = $("fSave"), f = FORM;
+    if(f.pickProduct && !f.pid){ err.textContent = t("needProduct"); $("fProd").focus(); return; }
+    if(!(f.text||"").trim()){ err.textContent = t("needText"); $("fText").focus(); return; }
+    const p = byP[f.pid];
     btn.disabled = true; btn.textContent = t("saving"); err.textContent = "";
     try{
       const photoIds = [];
-      for(const f of files){ const id = newId(); const data = await shrinkPhoto(f); await putFile(`${CONF.photos}${id}.enc.json`, JSON.stringify(await encryptJSON({type:"image/jpeg", data}, PW)), null, `photo: ${p.id} by ${EDIT.name}`); PHOTOS.set(id, `data:image/jpeg;base64,${data}`); photoIds.push(id); }
-      const entry = {id:newId(), product:p.id, customer:p.customer, type:FORM.type, date:FORM.date||today(), lot:FORM.lot.trim()||null, qty:FORM.qty?Number(FORM.qty):null, text:FORM.text.trim(), photos:photoIds, author:EDIT.name, createdAt:new Date().toISOString()};
-      await updateField(d => d.entries.push(entry), `field: ${entry.type} ${p.id} by ${EDIT.name}`);
-      FORM = null; TAB = entry.type==="memo" ? "memo" : "issues"; renderProduct(p);
-      main.insertAdjacentHTML("afterbegin", `<p class="okmsg">${esc(t("saved"))}</p>`);
+      for(const file of files){ const id = newId(); const data = await shrinkPhoto(file); await putFile(`${CONF.photos}${id}.enc.json`, JSON.stringify(await encryptJSON({type:"image/jpeg", data}, PW)), null, `photo: ${f.pid||f.parent||""} by ${EDIT.name}`); PHOTOS.set(id, `data:image/jpeg;base64,${data}`); photoIds.push(id); }
+      const isIssue = f.type==="issue";
+      const entry = {id:newId(), product:f.pid||null, customer:p ? p.customer : (f.customer||null), type:f.type, parent:f.parent||null, title:isIssue ? ((f.title||"").trim()||null) : null, status:isIssue ? (f.status||"未対応") : null,
+        date:f.date||today(), lot:(f.lot||"").trim()||null, qty:f.qty?Number(f.qty):null, text:f.text.trim(), photos:photoIds, author:EDIT.name, createdAt:new Date().toISOString()};
+      await updateField(d => d.entries.push(entry), `field: ${entry.type} ${entry.product||entry.parent||""} by ${EDIT.name}`);
+      FORM = null; FLASH = t("saved");
+      if(f.pickProduct){ location.hash = "#e/" + encodeURIComponent(entry.id); }
+      else { if(!f.parent) TAB = entry.type==="memo" ? "memo" : "issues"; route(true); }
     }catch(x){ btn.disabled = false; btn.textContent = t("save"); err.textContent = t("saveFail") + x.message; }
   });
 }
@@ -555,7 +648,7 @@ function renderProduct(p){
   const masterIss = (p.issueIds||[]).map(id=>byI[id]).filter(Boolean);
   const chip = (k, v) => v!=null && v!=="" ? `<span class="chip"><b>${esc(t("chips")[k])}</b>${v}</span>` : "";
   const counts = {issues: issEnt.filter(e=>!e.deleted).length + masterIss.length, memo: memoEnt.filter(e=>!e.deleted).length, docs:(p.docs||[]).length};
-  const formFor = kinds => (FORM && FORM.pid===p.id && kinds.includes(FORM.type)) ? formHTML(p) : (EDIT ? addButtons(kinds) : "");
+  const formFor = kinds => (FORM && FORM.pid===p.id && !FORM.parent && !FORM.pickProduct && kinds.includes(FORM.type)) ? formHTML() : (EDIT ? addButtons(kinds) : "");
   const panels = {
     info: () => `${JA() ? (p.price ? priceBlock(p) : quoteBlock(p)) : ""}
       ${(JA() && (p.notes||[]).length)?`<h3>${esc(t("notes"))}</h3><ul class="bul">${p.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul>`:""}
@@ -582,7 +675,7 @@ function renderProduct(p){
   main.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{ TAB=b.dataset.tab; ls.set("karte.tab2",TAB); renderProduct(p); }));
   main.querySelectorAll("[data-add]").forEach(b=>b.addEventListener("click",()=>{ FORM = {pid:p.id, type:b.dataset.add, date:today(), files:[]}; renderProduct(p); const tx_ = document.getElementById("fText"); if(tx_) tx_.focus(); }));
   if(TAB==="flow") renderDocs();
-  wireForm(p); wireEntries(main); wireCopy(main);
+  wireForm(); wireEntries(main); wireCopy(main);
 }
 async function loadFlowDocs(){
   if(FLOWDOCS) return FLOWDOCS;
@@ -602,11 +695,13 @@ function route(keepScroll){
   if(!DATA) return;
   const h = decodeURIComponent(location.hash.slice(1));
   if(h !== lastRoute){ FORM = null; if(lastRoute) TAB = "info"; lastRoute = h; if(!keepScroll) window.scrollTo(0,0); }
-  if(h.startsWith("c/") && byC[h.slice(2)]) return renderCustomer(byC[h.slice(2)]);
-  if(h.startsWith("i/") && byI[h.slice(2)]) return renderIssue(byI[h.slice(2)]);
   const p = byP[h] || PRODUCTS.find(x=>x.oldNo===h) || (/[A-Z]$/i.test(h) ? byP[h.slice(0,-1)] : null);
-  if(p){ document.getElementById("q").value = ""; return renderProduct(p); }
-  renderHome(document.getElementById("q").value);
+  if(h.startsWith("c/") && byC[h.slice(2)]) renderCustomer(byC[h.slice(2)]);
+  else if(h.startsWith("i/") && byI[h.slice(2)]) renderIssue(byI[h.slice(2)]);
+  else if(h.startsWith("e/") && entryById(h.slice(2))) renderEntry(entryById(h.slice(2)));
+  else if(p){ document.getElementById("q").value = ""; renderProduct(p); }
+  else renderHome(document.getElementById("q").value);
+  if(FLASH){ main.insertAdjacentHTML("afterbegin", `<p class="okmsg">${esc(FLASH)}</p>`); FLASH = ""; }
 }
 document.getElementById("form").addEventListener("submit",e=>{ e.preventDefault(); const v=document.getElementById("q").value.trim(); const exact=PRODUCTS.find(p=>p.id.toLowerCase()===v.toLowerCase()); if(exact){ location.hash=encodeURIComponent(exact.id); } else { if(location.hash) history.replaceState(null,"",location.pathname); lastRoute=""; renderHome(v); } });
 document.getElementById("q").addEventListener("input",e=>{ if(location.hash){ history.replaceState(null,"",location.pathname); lastRoute=""; } renderHome(e.target.value); });
