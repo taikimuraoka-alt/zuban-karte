@@ -132,6 +132,8 @@ td.num,th.num{text-align:right}
 .bimgs{display:flex;flex-direction:column;gap:10px;margin-top:12px}
 .bimgs img{width:100%;border-radius:8px;border:1px solid var(--line);display:block}
 .bimgs .wait{font-size:13px;color:var(--muted);background:var(--soft);border-radius:8px;padding:18px;text-align:center}
+.fgroup{margin:8px 0 2px}
+.flabel{display:block;font-size:12.5px;color:var(--muted);margin-bottom:2px}
 .statusbox{display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;align-items:end;margin-top:10px}
 .statusbox .field{margin-bottom:0}
 @media (max-width:520px){ .statusbox{grid-template-columns:1fr} }
@@ -174,7 +176,7 @@ let PW = null, DATA = null, FIELD = {entries:[]}, FLOWDOCS = null, FLOW_LOADING 
 let CUSTOMERS = [], PRODUCTS = [], ISSUES = [], EVENTS = [], FLOWSTEPS = [], CAUTIONS = [];
 let byP = {}, byC = {}, byI = {};
 let LANG = "ja"; try{ LANG = localStorage.getItem("karte.lang") || "ja" }catch(e){}
-let TAB = "info"; let MODEL = "*"; let FORM = null; let FLASH = "";
+let TAB = "info"; let MODEL = "*"; let FORM = null; let PFORM = null; let FLASH = "";
 const main = document.getElementById("main");
 const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt = n => typeof n==="number" ? n.toLocaleString("ja-JP",{maximumFractionDigits:2}) : esc(n);
@@ -200,6 +202,11 @@ const T = {
     addIssue:"＋ 問題・不良を記録", addAction:"＋ 対策・処置を記録", addMemo:"＋ メモ・注意点を書く",
     types:{issue:"問題・不良",action:"対策・処置",memo:"作業メモ・注意点"},
     status:{"未対応":"未対応","対策中":"対策中","完了":"完了","調査中":"調査中","量産":"量産","サンプル":"サンプル","見積中":"見積中"},
+    find:"製品を探す", fCust:"会社", fProc:"処理", fMat:"素材", fMask:"マスキング", fStat:"状態", maskYes:"あり", maskNo:"なし", clear:"条件を消す", nHit:n=>`${n} 製品`, unknownMat:"未記入",
+    addProduct:"＋ 製品を登録", editProduct:"基本情報を直す", pfTitleNew:"製品を登録", pfTitleEdit:"基本情報を直す", pfId:"図番（必須）", pfName:"品名（必須）", pfCust:"会社（必須）", pfNewCust:"新しい会社名", pfOtherCust:"（新しい会社）", pfModel:"モデル・シリーズ", pfOld:"旧図番",
+    pfProc:"処理", pfColor:"色", pfFinish:"仕上（図面の書き方）", pfMat:"材質", pfThick:"膜厚", pfMask:"マスキング（例 なし／M3×4）", pfArea:"面積 mm²", pfStatus:"状態", pfPath:"図面の保管場所（パス）", pfNote:"価格はここでは変えられません（事務所で更新します）。",
+    needId:"図番を入れてください。", dupId:"この図番はもう登録されています。", needName:"品名を入れてください。", needCust:"会社を選ぶか、新しい会社名を入れてください。", noChange:"変更がありません。", pSaved:"保存しました。ほかの人の画面には 1〜2 分で出ます。",
+    changeLog:"基本情報の変更履歴", addedField:"現場で登録",
     fTitle:"件名（短く）", fStatus:"状態", fProduct:"対象の製品", chooseProduct:"製品を選んでください", needProduct:"対象の製品を選んでください。", registerIssue:"＋ 問題を登録", more:"詳しく見る →", fieldTag:"現場",
     changeStatus:"状態を変える", statusNote:"ひとこと（任意）", statusSame:"今と同じ状態です。", statusSaved:"状態を変えました。ほかの人の画面には 1〜2 分で出ます。", statusHistory:"状態の履歴", noHistory:"まだ変更はありません。", linked:"この問題への対策・記録", product:"製品", author:"記録した人", createdAt:"登録日時", parentIssue:"どの問題への記録か", detail:"記録の詳細",
     symptom:"症状", cause:"原因", action:"対策", date:"日付", related:"対象の製品", docs:"資料",
@@ -224,6 +231,11 @@ const T = {
     addIssue:"＋ บันทึกปัญหา/ของเสีย", addAction:"＋ บันทึกการแก้ไข", addMemo:"＋ เขียนบันทึก/ข้อควรระวัง",
     types:{issue:"ปัญหา/ของเสีย",action:"การแก้ไข",memo:"บันทึกงาน/ข้อควรระวัง"},
     status:{"未対応":"ยังไม่ดำเนินการ","対策中":"กำลังแก้ไข","完了":"เสร็จสิ้น","調査中":"กำลังตรวจสอบ","量産":"ผลิตจริง","サンプル":"ตัวอย่าง","見積中":"กำลังเสนอราคา"},
+    find:"ค้นหาสินค้า", fCust:"บริษัท", fProc:"การชุบ", fMat:"วัสดุ", fMask:"มาสกิ้ง", fStat:"สถานะ", maskYes:"มี", maskNo:"ไม่มี", clear:"ล้างเงื่อนไข", nHit:n=>`${n} รายการ`, unknownMat:"ไม่ระบุ",
+    addProduct:"＋ ลงทะเบียนสินค้า", editProduct:"แก้ไขข้อมูลพื้นฐาน", pfTitleNew:"ลงทะเบียนสินค้า", pfTitleEdit:"แก้ไขข้อมูลพื้นฐาน", pfId:"เลขแบบ (จำเป็น)", pfName:"ชื่อชิ้นงาน (จำเป็น)", pfCust:"บริษัท (จำเป็น)", pfNewCust:"ชื่อบริษัทใหม่", pfOtherCust:"(บริษัทใหม่)", pfModel:"รุ่น・ซีรีส์", pfOld:"เลขแบบเดิม",
+    pfProc:"การชุบ", pfColor:"สี", pfFinish:"ผิวเคลือบ (ตามแบบ)", pfMat:"วัสดุ", pfThick:"ความหนาฟิล์ม", pfMask:"มาสกิ้ง (เช่น ไม่มี / M3×4)", pfArea:"พื้นที่ผิว mm²", pfStatus:"สถานะ", pfPath:"ที่เก็บไฟล์แบบ (พาธ)", pfNote:"ราคาแก้ไขที่นี่ไม่ได้ (สำนักงานเป็นผู้แก้ไข)",
+    needId:"กรุณาใส่เลขแบบ", dupId:"เลขแบบนี้ลงทะเบียนแล้ว", needName:"กรุณาใส่ชื่อชิ้นงาน", needCust:"กรุณาเลือกบริษัท หรือใส่ชื่อบริษัทใหม่", noChange:"ไม่มีการเปลี่ยนแปลง", pSaved:"บันทึกแล้ว คนอื่นจะเห็นภายใน 1-2 นาที",
+    changeLog:"ประวัติการแก้ไขข้อมูลพื้นฐาน", addedField:"ลงทะเบียนจากหน้างาน",
     fTitle:"หัวข้อ (สั้นๆ)", fStatus:"สถานะ", fProduct:"สินค้าที่เกี่ยวข้อง", chooseProduct:"เลือกสินค้า", needProduct:"กรุณาเลือกสินค้า", registerIssue:"＋ ลงทะเบียนปัญหา", more:"ดูรายละเอียด →", fieldTag:"หน้างาน",
     changeStatus:"เปลี่ยนสถานะ", statusNote:"หมายเหตุ (ไม่บังคับ)", statusSame:"สถานะเหมือนเดิม", statusSaved:"เปลี่ยนสถานะแล้ว คนอื่นจะเห็นภายใน 1-2 นาที", statusHistory:"ประวัติสถานะ", noHistory:"ยังไม่มีการเปลี่ยนแปลง", linked:"การแก้ไข・บันทึกของปัญหานี้", product:"สินค้า", author:"ผู้บันทึก", createdAt:"วันเวลาที่บันทึก", parentIssue:"บันทึกของปัญหา", detail:"รายละเอียดบันทึก",
     symptom:"อาการ", cause:"สาเหตุ", action:"การแก้ไข", date:"วันที่", related:"สินค้าที่เกี่ยวข้อง", docs:"เอกสาร",
@@ -271,9 +283,10 @@ async function fetchEnc(url, fresh){
 }
 
 /* ---------- data ---------- */
+/* Base data (DATA.sources, merged in order) + overlays written from the site (FIELD.customers / FIELD.products). Rebuilt whenever FIELD changes. */
 function normalize(src){
   const C = [], P = [], I = [], E = [];
-  const addC = c => { if(!C.find(x=>x.id===c.id)) C.push(c); };
+  const addC = c => { if(!C.find(x=>x.id===c.id)) C.push({...c}); };
   for(const s of src.sources){
     if(s.records){ /* legacy 図番カルテ v3 */
       FLOWSTEPS = s.flow || []; CAUTIONS = s.cautions || [];
@@ -281,25 +294,36 @@ function normalize(src){
         const cid = /サンシン/.test(r.customer) ? "SANSHIN" : /AP ?Tech/i.test(r.customer) ? "APTECH" : (r.customer||"OTHER");
         addC(cid==="SANSHIN" ? {id:"SANSHIN", name:"サンシン", name_th:"ซันชิน", fullName:"サンシン（設計 VS Technology）"} : cid==="APTECH" ? {id:"APTECH", name:"AP Tech", name_th:"AP Tech", fullName:"AP Tech（設計 VS Technology）"} : {id:cid, name:cid});
         const sim = (r.similar||[]).map(x => Array.isArray(x) ? x : (x && x.value) ? x.value : x);
-        P.push({ id:r.id, customer:cid, name:r.name, model:r.model, oldNo:r.oldNo, color:"黒", finish:r.finish, finish_th:r.finish_th, masking:r.masking, masking_th:r.masking_th,
+        P.push({ id:r.id, customer:cid, name:r.name, model:r.model, oldNo:r.oldNo, color:"黒", process:"FF Black", finish:r.finish, finish_th:r.finish_th, masking:r.masking, masking_th:r.masking_th,
           area_mm2:r.area, material:r.material, thickness:r.thickness, size:r.size, status:null, quote:r.quote, issueIds:[], legacyIssues:r.issues||[], issuesNote:r.issuesNote, issuesNote_th:r.issuesNote_th,
           similar:sim, flowSteps:true, docs: r.folder ? [{title:"図面 PDF", path:r.folder}] : [], received:r.received, rev:r.rev, sheet:r.sheet, areaFormula:r.areaFormula, notes:[] });
       }
     }
     (s.customers||[]).forEach(addC);
-    (s.products||[]).forEach(p => { const i = P.findIndex(x=>x.id===p.id); if(i>=0) P[i] = Object.assign(P[i], p); else P.push(p); });
+    (s.products||[]).forEach(p => { const i = P.findIndex(x=>x.id===p.id); if(i>=0) P[i] = {...P[i], ...p}; else if(p.name || p.customer) P.push({...p, issueIds:[...(p.issueIds||[])]}); });
     (s.issues||[]).forEach(x => I.push(x));
     (s.events||[]).forEach(x => E.push(x));
+  }
+  for(const c of (FIELD.customers||[])) addC(c);
+  for(const o of (FIELD.products||[])){
+    const i = P.findIndex(x=>x.id===o.id), f = {...o.fields};
+    const base = i>=0 ? P[i] : {id:o.id, issueIds:[], docs:[], notes:[], addedInField:true};
+    const merged = {...base, ...f};
+    if(f.drawingPath) merged.docs = [{title:"図面 PDF", path:f.drawingPath}, ...(base.docs||[]).filter(d=>d.path!==f.drawingPath)];
+    if(i>=0) P[i] = merged; else P.push(merged);
   }
   const nOf = id => P.filter(p=>p.customer===id).length;
   C.sort((a,b)=>nOf(b.id)-nOf(a.id));
   CUSTOMERS = C; PRODUCTS = P; ISSUES = I; EVENTS = E.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   byP = Object.fromEntries(P.map(p=>[p.id,p])); byC = Object.fromEntries(C.map(c=>[c.id,c])); byI = Object.fromEntries(I.map(i=>[i.id,i]));
-  for(const i of I) for(const pid of (i.products||[])) if(byP[pid] && !(byP[pid].issueIds||[]).includes(i.id)) (byP[pid].issueIds = byP[pid].issueIds||[]).push(i.id);
+  for(const p of P) p.issueIds = [...(p.issueIds||[])];
+  for(const i of I) for(const pid of (i.products||[])) if(byP[pid] && !byP[pid].issueIds.includes(i.id)) byP[pid].issueIds.push(i.id);
 }
+const rebuild = () => { if(DATA) normalize(DATA); };
 async function loadField(){
   try{ const e = await fetchEnc(CONF.field, true); FIELD = e ? await decryptJSON(e, PW) : {entries:[]}; }catch(err){ FIELD = FIELD || {entries:[]}; }
   if(!FIELD.entries) FIELD.entries = [];
+  rebuild();
 }
 const byNew = (a,b) => String(b.createdAt||b.at).localeCompare(String(a.createdAt||a.at));
 const entriesFor = pid => FIELD.entries.filter(e=>e.product===pid).sort(byNew);
@@ -314,6 +338,25 @@ const openIssues = cid => ISSUES.filter(i => issueStatus(i)!=="完了" && (!cid 
 const fieldIssues = cid => FIELD.entries.filter(e => !e.deleted && e.type==="issue" && (!cid || e.customer===cid)).sort(byNew);
 const openFieldIssues = cid => fieldIssues(cid).filter(e => entryStatus(e)!=="完了");
 const firstLine = s => String(s||"").split("\n")[0].slice(0,60);
+/* Search facets. Process/material are normalised from free text so "黒アルマイト（染色）Type II" and "A6061-T6" group sensibly. */
+const PROCS = ["黒アルマイト","クリアアルマイト","グレーアルマイト","FF Black","硬質アルマイト","その他"];
+const PROC_TH = {"黒アルマイト":"อโนไดซ์ดำ","クリアアルマイト":"อโนไดซ์ใส","グレーアルマイト":"อโนไดซ์เทา","FF Black":"FF Black","硬質アルマイト":"ฮาร์ดอโนไดซ์","その他":"อื่นๆ"};
+const procTx = s => JA() ? s : (PROC_TH[s]||s);
+function procOf(p){
+  if(p.process && PROCS.includes(p.process)) return p.process;
+  const s = `${p.process||""} ${p.finish||""}`;
+  if(/FF ?Black/i.test(s)) return "FF Black";
+  if(/硬質|hard/i.test(s)) return "硬質アルマイト";
+  if(p.color==="黒" || /黒|black/i.test(s)) return "黒アルマイト";
+  if(p.color==="クリア" || /クリア|clear|無着色/i.test(s)) return "クリアアルマイト";
+  if(p.color==="グレー" || /グレー|gr[ae]y/i.test(s)) return "グレーアルマイト";
+  return "その他";
+}
+const matOf = p => { const m = String(p.material||"").toUpperCase().replace(/\s+/g,"").match(/ADC\d+|AC\d+[A-Z]?|A\d{4}/); return m ? m[0] : ""; };
+const hasMask = p => (p.maskCount>0) || !!(p.masking && !/^(なし|no ?masking|-|—|none)/i.test(String(p.masking).trim()));
+let FILT = {cust:"", proc:"", mat:"", mask:"", status:""};
+const filtActive = () => Object.values(FILT).some(Boolean);
+const matchFilt = p => (!FILT.cust || p.customer===FILT.cust) && (!FILT.proc || procOf(p)===FILT.proc) && (!FILT.mat || (matOf(p)||"?")===FILT.mat) && (!FILT.mask || (FILT.mask==="yes")===hasMask(p)) && (!FILT.status || p.status===FILT.status);
 const fmtAt = iso => { const d = new Date(iso); if(isNaN(d)) return esc(iso||""); const p = n => String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
 
 /* ---------- chrome / lock ---------- */
@@ -396,7 +439,7 @@ async function updateField(mutate, message){
     const data = cur ? await decryptJSON(JSON.parse(ghText(cur)), PW) : {entries:[]};
     if(!data.entries) data.entries = [];
     mutate(data);
-    try{ await putFile(CONF.field, JSON.stringify(await encryptJSON(data, PW)), cur && cur.sha, message); FIELD = data; return; }
+    try{ await putFile(CONF.field, JSON.stringify(await encryptJSON(data, PW)), cur && cur.sha, message); FIELD = data; rebuild(); return; }
     catch(e){ if(e.status!==409 && e.status!==422) throw e; }
   }
   throw new Error("conflict");
@@ -511,24 +554,107 @@ function wireLinked(){
 }
 
 /* ---------- pages ---------- */
+/* "製品を探す": one-tap facets (company, process, material, masking, status). Options only show values that exist. */
+function findCard(){
+  const pool = PRODUCTS;
+  const opts = (key, vals, label) => vals.length ? `<div class="fgroup"><span class="flabel">${esc(label)}</span><div class="filters">${vals.map(([v,txt])=>`<button type="button" data-f="${key}" data-v="${esc(v)}" aria-pressed="${FILT[key]===v}">${esc(txt)}</button>`).join("")}</div></div>` : "";
+  const uniq = arr => [...new Set(arr)];
+  const custs = CUSTOMERS.filter(c=>pool.some(p=>p.customer===c.id)).map(c=>[c.id, tx(c,"name")]);
+  const procs = PROCS.filter(x=>pool.some(p=>procOf(p)===x)).map(x=>[x, procTx(x)]);
+  const mats = uniq(pool.map(p=>matOf(p)||"?")).sort((a,b)=>a==="?"?1:b==="?"?-1:a.localeCompare(b)).map(m=>[m, m==="?"?t("unknownMat"):m]);
+  const stats = ["量産","サンプル","見積中"].filter(s=>pool.some(p=>p.status===s)).map(s=>[s, statusTx(s)]);
+  const hits = filtActive() ? pool.filter(matchFilt) : [];
+  const pf = (PFORM && PFORM.isNew) ? productFormHTML() : (EDIT ? `<div class="addbar"><button type="button" class="btn small ghost" id="addProd">${esc(t("addProduct"))}</button></div>` : "");
+  return `<div class="card" id="find"><h2>${esc(t("find"))}</h2>${pf}
+    ${opts("cust", custs, t("fCust"))}${opts("proc", procs, t("fProc"))}${opts("mat", mats, t("fMat"))}${opts("mask", [["yes",t("maskYes")],["no",t("maskNo")]], t("fMask"))}${opts("status", stats, t("fStat"))}
+    ${filtActive()?`<div class="actions" style="margin:6px 0 4px"><span class="sub">${esc(t("nHit")(hits.length))}</span><button type="button" class="linkbtn" id="fClear">${esc(t("clear"))}</button></div><ul class="list">${hits.map(productItem).join("")}</ul>`:""}</div>`;
+}
+function wireFind(){
+  main.querySelectorAll("[data-f]").forEach(b=>b.addEventListener("click",()=>{ const k = b.dataset.f, v = b.dataset.v; FILT[k] = FILT[k]===v ? "" : v; route(true); }));
+  const c = document.getElementById("fClear"); if(c) c.addEventListener("click",()=>{ FILT = {cust:"", proc:"", mat:"", mask:"", status:""}; route(true); });
+  const a = document.getElementById("addProd"); if(a) a.addEventListener("click",()=>{ PFORM = {isNew:true, data:{status:"サンプル"}}; route(true); const x = document.getElementById("pfId"); if(x) x.focus(); });
+  wireProductForm();
+}
 function renderHome(q){
   const words = (q||"").trim().toLowerCase().split(/\s+/).filter(Boolean);
   if(words.length){
-    const hay = p => [p.id, p.oldNo, p.name, p.model, p.finish, p.color, p.masking, (byC[p.customer]||{}).name, (byC[p.customer]||{}).fullName, p.customer].join(" ").toLowerCase();
-    const ps = PRODUCTS.filter(p => words.every(w => hay(p).includes(w)));
+    const hay = p => [p.id, p.oldNo, p.name, p.model, p.finish, p.color, procOf(p), p.material, p.thickness, p.masking, (byC[p.customer]||{}).name, (byC[p.customer]||{}).fullName, p.customer].join(" ").toLowerCase();
+    const ps = PRODUCTS.filter(p => words.every(w => hay(p).includes(w)) && matchFilt(p));
     const is = ISSUES.filter(i => words.every(w => [i.id, i.title, i.title_th, i.customer, (i.products||[]).join(" ")].join(" ").toLowerCase().includes(w)));
-    main.innerHTML = `<div class="card"><h2>${esc(t("hitN")(ps.length+is.length))}</h2>${ps.length?`<ul class="list">${ps.map(productItem).join("")}</ul>`:""}${is.length?`<h3>${esc(t("issues"))}</h3><ul class="list">${is.map(issueItem).join("")}</ul>`:""}${(ps.length+is.length)?"":`<p class="empty">${esc(t("none"))}</p>`}</div>`;
+    main.innerHTML = `<div class="card"><h2>${esc(t("hitN")(ps.length+is.length))}</h2>${filtActive()?`<p class="sub" style="margin:0 0 6px">${esc(t("find"))}: ${esc(Object.values(FILT).filter(Boolean).map(v=>v==="yes"?t("fMask")+" "+t("maskYes"):v==="no"?t("fMask")+" "+t("maskNo"):v).join(" / "))} <button type="button" class="linkbtn" id="fClear">${esc(t("clear"))}</button></p>`:""}${ps.length?`<ul class="list">${ps.map(productItem).join("")}</ul>`:""}${is.length?`<h3>${esc(t("issues"))}</h3><ul class="list">${is.map(issueItem).join("")}</ul>`:""}${(ps.length+is.length)?"":`<p class="empty">${esc(t("none"))}</p>`}</div>`;
+    const c = document.getElementById("fClear"); if(c) c.addEventListener("click",()=>{ FILT = {cust:"", proc:"", mat:"", mask:"", status:""}; renderHome(q); });
     return;
   }
   const recent = FIELD.entries.filter(e=>!e.deleted).sort(byNew).slice(0,8);
   const oi = openIssues(), ofi = openFieldIssues();
   const regForm = (FORM && FORM.pickProduct) ? formHTML() : (EDIT ? `<div class="addbar"><button type="button" class="btn small" id="regIssue">${esc(t("registerIssue"))}</button></div>` : "");
   main.innerHTML = `<div class="card"><h2>${esc(t("customers"))}</h2><div class="cust">${CUSTOMERS.map(c=>{ const n = PRODUCTS.filter(p=>p.customer===c.id).length, o = openIssues(c.id).length + openFieldIssues(c.id).length; return `<a href="#c/${encodeURIComponent(c.id)}"><div class="nm">${esc(tx(c,"name"))}</div><div class="meta">${esc(t("nProducts")(n))}${o?` ・ ${esc(t("nOpen")(o))}`:""}</div></a>`; }).join("")}</div></div>
+    ${findCard()}
     ${(oi.length||ofi.length||EDIT)?`<div class="card"><h2>${esc(t("openIssues"))}</h2>${regForm}<ul class="list">${oi.map(issueItem).join("")}${ofi.map(fieldIssueItem).join("")}</ul></div>`:""}
     <div class="card" id="recent"><h2>${esc(t("recent"))}</h2>${recent.length?recent.map(e=>entryCard(e,true)).join(""):`<p class="empty">${esc(t("noRecent"))}</p>`}</div>`;
   const rb = document.getElementById("regIssue");
   if(rb) rb.addEventListener("click", ()=>{ FORM = {pid:null, pickProduct:true, type:"issue", date:today(), files:[]}; renderHome(""); });
-  wireForm(); wireEntries(main);
+  wireFind(); wireForm(); wireEntries(main);
+}
+/* Product register / edit. Saved as overlays in FIELD.products (+ FIELD.productLog); prices are never editable here. */
+const PF_KEYS = ["name","customer","model","oldNo","process","color","finish","material","thickness","masking","area_mm2","status","drawingPath"];
+function productFormHTML(){
+  const f = PFORM, d = f.data, isNew = f.isNew;
+  const inp = (id, label, key, type) => `<label class="field">${esc(label)}<input id="${id}" type="${type||"text"}" value="${esc(d[key]==null?"":d[key])}"${type==="number"?' inputmode="decimal"':""}></label>`;
+  const sel = (id, label, key, vals) => `<label class="field">${esc(label)}<select id="${id}"><option value=""></option>${vals.map(([v,txt])=>`<option value="${esc(v)}"${String(d[key]||"")===v?" selected":""}>${esc(txt)}</option>`).join("")}</select></label>`;
+  return `<div class="form" id="prodForm"><h2>${esc(t(isNew?"pfTitleNew":"pfTitleEdit"))}</h2>
+    ${isNew?inp("pfId", t("pfId"), "id"):""}
+    <div class="row2">${inp("pfName", t("pfName"), "name")}${inp("pfModel", t("pfModel"), "model")}</div>
+    <div class="row2">${sel("pfCust", t("pfCust"), "customer", [...CUSTOMERS.map(c=>[c.id, tx(c,"name")]), ["__new", t("pfOtherCust")]])}${inp("pfNewCust", t("pfNewCust"), "newCust")}</div>
+    <div class="row2">${sel("pfProc", t("pfProc"), "process", PROCS.map(x=>[x, procTx(x)]))}${sel("pfColor", t("pfColor"), "color", [["黒",colorTx("黒")],["クリア",colorTx("クリア")],["グレー",colorTx("グレー")]])}</div>
+    ${inp("pfFinish", t("pfFinish"), "finish")}
+    <div class="row2">${inp("pfMat", t("pfMat"), "material")}${inp("pfThick", t("pfThick"), "thickness")}</div>
+    <div class="row2">${inp("pfMask", t("pfMask"), "masking")}${inp("pfArea", t("pfArea"), "area_mm2", "number")}</div>
+    <div class="row2">${sel("pfStatus", t("pfStatus"), "status", ["量産","サンプル","見積中"].map(s=>[s, statusTx(s)]))}${isNew?"":inp("pfOld", t("pfOld"), "oldNo")}</div>
+    ${isNew?inp("pfOld", t("pfOld"), "oldNo"):""}
+    ${inp("pfPath", t("pfPath"), "drawingPath")}
+    ${JA()?`<p class="sub" style="margin:0 0 8px">${esc(t("pfNote"))}</p>`:""}
+    <div class="actions"><button class="btn" type="button" id="pfSave">${esc(t("save"))}</button><button class="btn ghost" type="button" id="pfCancel">${esc(t("cancel"))}</button></div><div class="err" id="pfErr"></div></div>`;
+}
+function wireProductForm(){
+  const box = document.getElementById("prodForm"); if(!box || !PFORM) return;
+  const $ = id => document.getElementById(id);
+  const map = {pfId:"id", pfName:"name", pfModel:"model", pfCust:"customer", pfNewCust:"newCust", pfProc:"process", pfColor:"color", pfFinish:"finish", pfMat:"material", pfThick:"thickness", pfMask:"masking", pfArea:"area_mm2", pfStatus:"status", pfOld:"oldNo", pfPath:"drawingPath"};
+  const keep = () => { for(const [id,k] of Object.entries(map)) if($(id)) PFORM.data[k] = $(id).value; };
+  box.querySelectorAll("input,select").forEach(el => el.addEventListener("input", ()=>{ keep(); $("pfErr").textContent = ""; }));
+  $("pfCancel").addEventListener("click", ()=>{ PFORM = null; route(true); });
+  $("pfSave").addEventListener("click", async ()=>{
+    keep(); const d = PFORM.data, err = $("pfErr"), btn = $("pfSave"), isNew = PFORM.isNew;
+    const id = isNew ? String(d.id||"").trim().toUpperCase() : PFORM.pid;
+    if(isNew && !id){ err.textContent = t("needId"); return; }
+    if(isNew && byP[id]){ err.textContent = t("dupId"); return; }
+    if(!String(d.name||"").trim()){ err.textContent = t("needName"); return; }
+    let cust = d.customer, newCust = null;
+    if(cust==="__new" || (!cust && d.newCust)){ const nm = String(d.newCust||"").trim(); if(!nm){ err.textContent = t("needCust"); return; } cust = nm.toUpperCase().replace(/[^A-Z0-9]+/g,"") || ("C"+Date.now().toString(36)); newCust = byC[cust] ? null : {id:cust, name:nm}; }
+    if(!cust){ err.textContent = t("needCust"); return; }
+    const cur = isNew ? {} : byP[id], fields = {}, changes = {};
+    for(const k of PF_KEYS){
+      let v = k==="customer" ? cust : d[k];
+      v = v==null ? "" : String(v).trim();
+      if(k==="area_mm2") v = v==="" ? null : Number(v); else if(v==="") v = null;
+      const was = k==="drawingPath" ? ((cur.docs||[])[0]||{}).path || null : (cur[k]==null ? null : cur[k]);
+      if(isNew ? v!=null : String(v??"")!==String(was??"")){ fields[k] = v; changes[k] = [was, v]; }
+    }
+    if(!Object.keys(fields).length){ err.textContent = t("noChange"); return; }
+    btn.disabled = true; btn.textContent = t("saving"); err.textContent = "";
+    try{
+      const at = new Date().toISOString();
+      await updateField(dd => {
+        if(newCust && !(dd.customers||[]).some(c=>c.id===newCust.id)) (dd.customers = dd.customers||[]).push(newCust);
+        dd.products = dd.products || [];
+        let o = dd.products.find(x=>x.id===id); if(!o){ o = {id, fields:{}}; dd.products.push(o); }
+        Object.assign(o.fields, fields); o.by = EDIT.name; o.at = at;
+        (dd.productLog = dd.productLog || []).push({id:newId(), product:id, action:isNew?"add":"edit", changes, author:EDIT.name, at});
+      }, `product: ${isNew?"add":"edit"} ${id} by ${EDIT.name}`);
+      PFORM = null; FLASH = t("pSaved");
+      if(isNew) location.hash = "#" + encodeURIComponent(id); else route(true);
+    }catch(x){ btn.disabled = false; btn.textContent = t("save"); err.textContent = t("saveFail") + x.message; }
+  });
 }
 function renderCustomer(c){
   const ps = PRODUCTS.filter(p=>p.customer===c.id);
@@ -650,7 +776,8 @@ function renderProduct(p){
   const counts = {issues: issEnt.filter(e=>!e.deleted).length + masterIss.length, memo: memoEnt.filter(e=>!e.deleted).length, docs:(p.docs||[]).length};
   const formFor = kinds => (FORM && FORM.pid===p.id && !FORM.parent && !FORM.pickProduct && kinds.includes(FORM.type)) ? formHTML() : (EDIT ? addButtons(kinds) : "");
   const panels = {
-    info: () => `${JA() ? (p.price ? priceBlock(p) : quoteBlock(p)) : ""}
+    info: () => `${(PFORM && !PFORM.isNew && PFORM.pid===p.id) ? productFormHTML() : (EDIT ? `<div class="addbar"><button type="button" class="btn small ghost" id="editProd">${esc(t("editProduct"))}</button></div>` : "")}
+      ${JA() ? (p.price ? priceBlock(p) : quoteBlock(p)) : ""}
       ${(JA() && (p.notes||[]).length)?`<h3>${esc(t("notes"))}</h3><ul class="bul">${p.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul>`:""}
       ${(p.similar||[]).length?`<h3>${esc(t("similar"))}</h3><ul class="list">${p.similar.map(s=>byP[s[0]]?productItem(byP[s[0]]).replace("</a></li>", `<div class="meta">${esc(JA()?s[1]:(s[2]||s[1]))}</div></a></li>`):"").join("")}</ul>`:""}
       ${(!JA() && !(p.similar||[]).length)?`<dl class="kv"><dt>${esc(t("customer"))}</dt><dd>${esc(tx(c,"name"))}</dd><dt>${esc(t("model"))}</dt><dd>${esc(p.model||"—")}</dd><dt>${esc(t("chips").status)}</dt><dd>${esc(statusTx(p.status)||"—")}</dd></dl>`:""}`,
@@ -662,20 +789,29 @@ function renderProduct(p){
       <h3>${esc(t("fieldRec"))}</h3>${issEnt.length?issEnt.map(e=>entryCard(e,false)).join(""):`<p class="empty">${esc(p.issuesNote ? tx(p,"issuesNote") : t("noIssue"))}</p>`}`,
     memo: () => `${formFor(["memo"])}${memoEnt.length?memoEnt.map(e=>entryCard(e,false)).join(""):`<p class="empty">${esc(t("noIssue"))}</p>`}
       ${(p.flowSteps && CAUTIONS.length)?`<h3>${esc(t("cautions"))}</h3><ul class="bul">${CAUTIONS.map(x=>`<li>${esc(JA()?x.ja:x.th)}</li>`).join("")}</ul>`:""}`,
-    docs: () => `${(p.received||p.rev||p.areaFormula)?`<dl class="kv" style="margin-bottom:12px">${p.received?`<dt>${esc(t("received"))}</dt><dd>${esc(p.received)}</dd>`:""}${p.rev?`<dt>${esc(t("rev"))}</dt><dd>${esc(p.rev)}</dd>`:""}${p.areaFormula?`<dt>${esc(t("areaF"))}</dt><dd class="num">${esc(p.areaFormula)}</dd>`:""}</dl>`:""}${docList(p.docs)}`
+    docs: () => `${(p.received||p.rev||p.areaFormula)?`<dl class="kv" style="margin-bottom:12px">${p.received?`<dt>${esc(t("received"))}</dt><dd>${esc(p.received)}</dd>`:""}${p.rev?`<dt>${esc(t("rev"))}</dt><dd>${esc(p.rev)}</dd>`:""}${p.areaFormula?`<dt>${esc(t("areaF"))}</dt><dd class="num">${esc(p.areaFormula)}</dd>`:""}</dl>`:""}${docList(p.docs)}${changeLogHTML(p.id)}`
   };
   if(!panels[TAB]) TAB = "info";
   const tabs = ["info","flow","issues","memo","docs"];
   main.innerHTML = `<a class="back" href="#c/${encodeURIComponent(p.customer)}">${esc(t("back"))} ${esc(tx(c,"name"))}</a>
     <div class="card"><div class="title"><span class="no">${esc(p.id)}</span><span class="name">${esc(tx(p,"name"))}</span></div>
-      <div class="sub">${esc(tx(c,"name"))}${p.model?` ・ ${esc(t("model"))} ${esc(p.model)}`:""}${p.oldNo?` ・ ${esc(t("old"))} ${esc(p.oldNo)}`:""}</div>
-      <div class="chips">${chip("color", p.color?esc(colorTx(p.color)):"")}${chip("finish", p.finish?esc(tx(p,"finish")):"")}${chip("masking", p.masking?esc(tx(p,"masking")):"")}${chip("area", p.area_mm2!=null?`${fmt(p.area_mm2)} mm²`:"")}${chip("material", p.material?esc(p.material):"")}${chip("thickness", p.thickness?esc(p.thickness):"")}${chip("size", p.size?esc(p.size):"")}${chip("status", p.status?esc(statusTx(p.status)):"")}</div></div>
+      <div class="sub">${esc(tx(c,"name"))}${p.model?` ・ ${esc(t("model"))} ${esc(p.model)}`:""}${p.oldNo?` ・ ${esc(t("old"))} ${esc(p.oldNo)}`:""}${p.addedInField?`<span class="tag memo">${esc(t("addedField"))}</span>`:""}</div>
+      <div class="chips"><span class="chip"><b>${esc(t("fProc"))}</b>${esc(procTx(procOf(p)))}</span>${chip("color", p.color?esc(colorTx(p.color)):"")}${chip("finish", p.finish?esc(tx(p,"finish")):"")}${chip("masking", p.masking?esc(tx(p,"masking")):"")}${chip("area", p.area_mm2!=null?`${fmt(p.area_mm2)} mm²`:"")}${chip("material", p.material?esc(p.material):"")}${chip("thickness", p.thickness?esc(p.thickness):"")}${chip("size", p.size?esc(p.size):"")}${chip("status", p.status?esc(statusTx(p.status)):"")}</div></div>
     <div class="tabs" role="tablist">${tabs.map(k=>`<button role="tab" data-tab="${k}" aria-selected="${k===TAB}">${esc(t("tabs")[k])}${counts[k]?`<span class="cnt">${counts[k]}</span>`:""}</button>`).join("")}</div>
     <div class="card" id="panel">${panels[TAB]()}</div>`;
   main.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{ TAB=b.dataset.tab; ls.set("karte.tab2",TAB); renderProduct(p); }));
   main.querySelectorAll("[data-add]").forEach(b=>b.addEventListener("click",()=>{ FORM = {pid:p.id, type:b.dataset.add, date:today(), files:[]}; renderProduct(p); const tx_ = document.getElementById("fText"); if(tx_) tx_.focus(); }));
   if(TAB==="flow") renderDocs();
-  wireForm(); wireEntries(main); wireCopy(main);
+  const ep = document.getElementById("editProd");
+  if(ep) ep.addEventListener("click", ()=>{ PFORM = {isNew:false, pid:p.id, data:{...p, drawingPath:((p.docs||[])[0]||{}).path||""}}; renderProduct(p); });
+  wireProductForm(); wireForm(); wireEntries(main); wireCopy(main);
+}
+const PF_LABEL = {name:"pfName", customer:"pfCust", model:"pfModel", oldNo:"pfOld", process:"pfProc", color:"pfColor", finish:"pfFinish", material:"pfMat", thickness:"pfThick", masking:"pfMask", area_mm2:"pfArea", status:"pfStatus", drawingPath:"pfPath"};
+function changeLogHTML(pid){
+  const l = (FIELD.productLog||[]).filter(x=>x.product===pid).sort(byNew);
+  if(!l.length) return "";
+  const v = x => x==null || x==="" ? "—" : esc(x);
+  return `<h3>${esc(t("changeLog"))}</h3><ul class="list">${l.map(x=>`<li style="padding:8px 2px"><div class="meta">${fmtAt(x.at)} ・ ${esc(x.author)}${x.action==="add"?` ・ ${esc(t("addedField"))}`:""}</div>${Object.entries(x.changes||{}).map(([k,[a,b]])=>`<div style="font-size:13.5px">${esc(String(t(PF_LABEL[k]||k)).replace(/（.*?）|\(.*?\)/g,""))}：${x.action==="add"?"":`${v(a)} → `}${v(b)}</div>`).join("")}</li>`).join("")}</ul>`;
 }
 async function loadFlowDocs(){
   if(FLOWDOCS) return FLOWDOCS;
@@ -694,7 +830,7 @@ let lastRoute = "";
 function route(keepScroll){
   if(!DATA) return;
   const h = decodeURIComponent(location.hash.slice(1));
-  if(h !== lastRoute){ FORM = null; if(lastRoute) TAB = "info"; lastRoute = h; if(!keepScroll) window.scrollTo(0,0); }
+  if(h !== lastRoute){ FORM = null; PFORM = null; if(lastRoute) TAB = "info"; lastRoute = h; if(!keepScroll) window.scrollTo(0,0); }
   const p = byP[h] || PRODUCTS.find(x=>x.oldNo===h) || (/[A-Z]$/i.test(h) ? byP[h.slice(0,-1)] : null);
   if(h.startsWith("c/") && byC[h.slice(2)]) renderCustomer(byC[h.slice(2)]);
   else if(h.startsWith("i/") && byI[h.slice(2)]) renderIssue(byI[h.slice(2)]);
