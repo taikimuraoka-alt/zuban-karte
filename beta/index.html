@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>製品カルテ</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one column, phone first. Lock screen → header (search, language, edit) → home / customer / product / issue (from #hash). */
+:root{
+  --bg:#f6f7f4; --fg:#1d2420; --muted:#5d665f; --line:#d7dbd3; --card:#ffffff;
+  --accent:#1f5f4a; --accent-fg:#ffffff; --soft:#e7efe9; --warn:#9a4a00; --warn-bg:#fff3e2; --bad:#9b1c1c; --bad-bg:#fde9e9; --ok:#1d6b35; --ok-bg:#e6f4ea;
+  --sans:"Noto Sans JP","Noto Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#141916; --fg:#e8ebe6; --muted:#a3aca5; --line:#2d3630; --card:#1c231f; --accent:#7fc9a9; --accent-fg:#0d1a14; --soft:#1f2d26; --warn:#ffb974; --warn-bg:#2d2416; --bad:#ff9b9b; --bad-bg:#331a1a; --ok:#8fd6a3; --ok-bg:#16291c; color-scheme:dark } }
+:root[data-theme="dark"]{ --bg:#141916; --fg:#e8ebe6; --muted:#a3aca5; --line:#2d3630; --card:#1c231f; --accent:#7fc9a9; --accent-fg:#0d1a14; --soft:#1f2d26; --warn:#ffb974; --warn-bg:#2d2416; --bad:#ff9b9b; --bad-bg:#331a1a; --ok:#8fd6a3; --ok-bg:#16291c; color-scheme:dark }
+:root[lang="th"]{ --sans:"Noto Sans Thai","Noto Sans JP",system-ui,sans-serif }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.6;margin:0;padding-block:0 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto}
+header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:12px 0 10px;z-index:5;border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.brand{display:flex;align-items:center;gap:8px 10px;margin-bottom:8px;flex-wrap:wrap}
+.brand h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.02em}
+.brand h1 a{color:inherit;text-decoration:none}
+.brand small{color:var(--muted);font-size:12px;flex:1 1 auto}
+.tools{display:flex;gap:4px;margin-left:auto;align-items:center}
+.tools button{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px}
+.tools button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.tools .editbtn.on{background:var(--warn-bg);color:var(--warn);border-color:var(--warn)}
+.search{display:flex;gap:8px}
+.search input,.lock input,.field input,.field select,.field textarea{flex:1;min-width:0;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg);width:100%}
+.search input,.lock input{font-family:var(--mono)}
+.search input:focus,.lock input:focus,.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.btn,.search button,.lock button{font:inherit;padding:10px 16px;border:0;border-radius:8px;background:var(--accent);color:var(--accent-fg);font-weight:500;cursor:pointer}
+.btn.ghost{background:var(--card);color:var(--fg);border:1px solid var(--line)}
+.btn.small{font-size:13.5px;padding:7px 12px}
+.btn:disabled{opacity:.55;cursor:default}
+.hint{font-size:12px;color:var(--muted);margin:6px 0 0}
+main{padding-top:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.lock{max-width:420px;margin:48px auto 0;text-align:center}
+.lock h2{font-size:18px;margin:0 0 6px}
+.lock p{color:var(--muted);font-size:14px;margin:0 0 14px}
+.lock form{display:flex;gap:8px}
+.err{color:var(--bad);font-size:13px;margin-top:8px;min-height:1.2em}
+.okmsg{color:var(--ok);font-size:13px;margin-top:8px}
+.title{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+.title .no{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:.01em;overflow-wrap:anywhere}
+.title .name{font-size:17px;font-weight:500}
+.sub{color:var(--muted);font-size:13px;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-size:12.5px;padding:3px 9px;border-radius:999px;background:var(--soft);color:var(--fg)}
+.chip b{font-weight:500;color:var(--muted);margin-right:4px}
+.tag{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:999px;background:var(--soft);color:var(--muted);margin-left:6px;vertical-align:middle;white-space:nowrap}
+.tag.black{background:#2b2f2c;color:#f2f2ee}
+.tag.clear{background:#dcefff;color:#0c447c}
+.tag.gray{background:#d3d1c7;color:#2c2c2a}
+.tag.issue{background:var(--bad-bg);color:var(--bad)}
+.tag.action{background:var(--ok-bg);color:var(--ok)}
+.tag.memo{background:var(--warn-bg);color:var(--warn)}
+.tag.open{background:var(--warn-bg);color:var(--warn)}
+.tag.done{background:var(--ok-bg);color:var(--ok)}
+.tabs{display:flex;gap:4px;overflow-x:auto;margin:4px 0 10px;padding-bottom:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs button{flex:0 0 auto;font:inherit;font-size:15px;padding:9px 14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.tabs button .cnt{font-size:11px;margin-left:5px;opacity:.8}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px}
+.filters button{font:inherit;font-size:13px;padding:4px 11px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px}
+.filters button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+h2{font-size:16px;margin:0 0 8px;text-wrap:balance}
+h3{font-size:13px;margin:16px 0 6px;color:var(--muted);letter-spacing:.04em;font-weight:500}
+.kv{display:grid;grid-template-columns:minmax(90px,32%) 1fr;gap:6px 12px;font-size:14.5px;margin:0}
+.kv dt{color:var(--muted)}.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.price{font-family:var(--mono);font-size:28px;font-weight:600;color:var(--accent)}
+.price small{font-size:13px;font-weight:400;color:var(--muted);font-family:var(--sans)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+.tblwrap{overflow-x:auto}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:500;font-size:12.5px}
+td.num,th.num{text-align:right}
+.note{background:var(--soft);border-radius:8px;padding:10px 12px;font-size:14px;margin:0}
+.bul{margin:0;padding-left:18px;font-size:14.5px}
+.bul li{margin:2px 0}
+.flow{list-style:none;margin:0;padding:0;counter-reset:step}
+.flow li{position:relative;padding:0 0 14px 34px;counter-increment:step}
+.flow li::before{content:counter(step);position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-fg);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:var(--mono)}
+.flow li::after{content:"";position:absolute;left:11px;top:26px;bottom:0;width:2px;background:var(--line)}
+.flow li:last-child::after{display:none}
+.flow .st{font-weight:500}.flow .sd{font-size:13.5px;color:var(--muted)}
+.docs{display:flex;flex-direction:column;gap:14px}
+.doc h4{font-size:14px;margin:0 0 6px;font-weight:500}
+.doc .pages{display:flex;flex-direction:column;gap:8px}
+.doc img{width:100%;max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;background:#fff;display:block}
+.pagebar{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--muted);margin-top:4px}
+.pagebar button{font:inherit;font-size:12.5px;padding:4px 10px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:6px}
+.zoomwrap{overflow:auto;max-height:80vh;border-radius:6px}
+.zoomwrap img.zoomed{width:200%;max-width:none}
+.list{list-style:none;margin:0;padding:0}
+.list li{border-bottom:1px solid var(--line)}
+.list li:last-child{border-bottom:0}
+.list a{display:block;padding:11px 2px;color:inherit;text-decoration:none}
+.list a:hover,.list a:focus-visible{background:var(--soft);outline:none}
+.list .no{font-family:var(--mono);font-weight:600}
+.list .meta{font-size:13px;color:var(--muted)}
+.cust{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.cust a{display:block;border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:inherit;text-decoration:none;background:var(--card)}
+.cust a:hover,.cust a:focus-visible{border-color:var(--accent);outline:none}
+.cust .nm{font-weight:700;font-size:16px}
+.cust .meta{font-size:12.5px;color:var(--muted)}
+.path{font-family:var(--mono);font-size:12px;overflow-wrap:anywhere;background:var(--soft);padding:8px 10px;border-radius:6px}
+.copy{font:inherit;font-size:12.5px;padding:4px 10px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:6px;margin-top:6px}
+.doclist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.back{display:inline-block;margin-bottom:10px;color:var(--accent);text-decoration:none;font-size:15px}
+.empty{color:var(--muted);text-align:center;padding:20px 0;margin:0}
+.loading{color:var(--muted);font-size:14px;padding:10px 0}
+.entry{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.entry.deleted{opacity:.5}
+.entry.deleted .txt{text-decoration:line-through}
+.entry .head{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;font-size:13px;color:var(--muted)}
+.entry .head .tag{margin-left:0}
+.entry .txt{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 0;font-size:15px}
+.entry .prod{font-family:var(--mono);font-size:13px;color:var(--accent);text-decoration:none}
+.photos{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.photos .ph{width:88px;height:88px;border-radius:6px;border:1px solid var(--line);background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);overflow:hidden;padding:0;cursor:pointer}
+.photos .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.bigphoto{margin-top:8px}
+.bigphoto img{width:100%;border-radius:8px;border:1px solid var(--line);display:block}
+.form{border:1px solid var(--accent);border-radius:10px;padding:12px;margin-bottom:12px;background:var(--card)}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;font-size:13.5px;color:var(--muted)}
+.field textarea{min-height:110px;resize:vertical;font-family:var(--sans)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.addbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.previews{display:flex;gap:6px;flex-wrap:wrap}
+.previews img{width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+.linkbtn{font:inherit;font-size:12.5px;color:var(--muted);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+.jaonly{font-size:11.5px;color:var(--muted)}
+footer{color:var(--muted);font-size:12px;margin-top:20px;text-align:center}
+@media (max-width:420px){ .row2{grid-template-columns:1fr} .title .no{font-size:20px} }
+@media (prefers-reduced-motion:no-preference){ .card{animation:in .18s ease-out} @keyframes in{from{opacity:.6;transform:translateY(3px)}to{opacity:1;transform:none}} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="brand"><h1><a href="#" id="h1">製品カルテ</a></h1><small id="brandSub"></small>
+    <div class="tools"><button type="button" class="editbtn" id="editBtn" hidden></button><span role="group" aria-label="language" style="display:flex;gap:4px"><button type="button" data-lang="ja" aria-pressed="true">日本語</button><button type="button" data-lang="th" aria-pressed="false">ไทย</button></span></div></div>
+  <form class="search" id="form" hidden><input id="q" type="search" autocomplete="off" aria-label="search"><button type="submit" id="qbtn"></button></form>
+  <p class="hint" id="hint"></p>
+</header>
+<main id="main"></main>
+<footer id="foot"></footer>
+</div>
+
+<script>
+const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", repoDir:"beta/", build:"2026-10-30" };
+let PW = null, DATA = null, FIELD = {entries:[]}, FLOWDOCS = null, FLOW_LOADING = null, EDIT = null;
+let CUSTOMERS = [], PRODUCTS = [], ISSUES = [], EVENTS = [], FLOWSTEPS = [], CAUTIONS = [];
+let byP = {}, byC = {}, byI = {};
+let LANG = "ja"; try{ LANG = localStorage.getItem("karte.lang") || "ja" }catch(e){}
+let TAB = "info"; let MODEL = "*"; let FORM = null; let OPEN_PHOTO = null;
+const main = document.getElementById("main");
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = n => typeof n==="number" ? n.toLocaleString("ja-JP",{maximumFractionDigits:2}) : esc(n);
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+function u8b64(u8){ let s=""; for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null, u8.subarray(i,i+0x8000)); return btoa(s); }
+const today = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+const ls = { get(k){ try{ return localStorage.getItem(k) }catch(e){ return null } }, set(k,v){ try{ localStorage.setItem(k,v) }catch(e){} }, del(k){ try{ localStorage.removeItem(k) }catch(e){} } };
+
+const T = {
+  ja:{ title:"製品カルテ", sub:"Dydo-tec アルマイト 製品・工程・問題の記録", ph:"図番・品名・モデル・会社名（例 R47、T1301）", search:"検索", hint:"図面のQRを読むと、その製品のページが直接開きます。", lock:"ロックする",
+    lockTitle:"パスワード", lockMsg:"社内担当者から受け取ったパスワードを入力してください。", lockHint:"このページは社内専用です。", open:"開く", checking:"確認中…", wrong:"パスワードが違います。", pw:"パスワード",
+    home:"ホーム", customers:"会社", nProducts:n=>`${n} 製品`, nOpen:n=>n?`未完了の問題 ${n}`:"", openIssues:"未完了の問題", recent:"最近の現場記録", noRecent:"まだ記録はありません。",
+    hitN:n=>`検索結果 ${n} 件`, none:"見つかりません。図番の一部、品名、モデル（R47 など）、会社名で探してください。", products:"製品", issues:"問題", events:"できごと", all:"すべて",
+    back:"← 戻る", backHome:"← ホーム",
+    tabs:{info:"概要",flow:"フロー",issues:"問題・対策",memo:"現場メモ",docs:"図面・資料"},
+    chips:{color:"色",finish:"仕上",masking:"マスキング",area:"面積",material:"材質",thickness:"膜厚",size:"寸法",status:"状態",line:"ライン"},
+    model:"モデル", old:"旧図番", customer:"会社", contacts:"窓口", notes:"メモ（社内）",
+    priceT:"価格", current:"今の単価", since:"いつから", fixed:"固定価格", sampleClass:"サンプル品の価格区分", history:"価格の経緯", volume:"直近12か月の数量", perPc:"B/個",
+    quote:"見積", profit:"利益", lot:"ロット", total:"一式", basis:"根拠", book:"見積ブック", tiers:"処理数量別の参考単価（合計 個/回）", tierCol:"1 回の処理数量", alt:"他案・下限", prev:"前回の見積",
+    similar:"似ている図面",
+    flowTitle:"標準の工程（FF Black）", flowSub:"枠工程は 1 回あたりの時間。工程順は現場の指示書を優先してください。", docsTitle:"公式フローチャート", docsSub:"指で拡大できます。NSP 向け黒アルマイト（Line 2/2）の標準工程です。", loading:"読み込み中…", loadFail:"読み込みに失敗しました。通信状態を確認して開き直してください。", zoom:"拡大", unzoom:"元に戻す", page:"ページ",
+    issueMaster:"登録済みの問題", fieldRec:"現場の記録", cautions:"この仕上げで注意する点", noIssue:"記録はありません。",
+    addIssue:"＋ 問題・不良を記録", addAction:"＋ 対策・処置を記録", addMemo:"＋ メモ・注意点を書く",
+    types:{issue:"問題・不良",action:"対策・処置",memo:"作業メモ・注意点"},
+    status:{"対策中":"対策中","完了":"完了","調査中":"調査中","量産":"量産","サンプル":"サンプル","見積中":"見積中"},
+    symptom:"症状", cause:"原因", action:"対策", date:"日付", related:"対象の製品", docs:"資料",
+    received:"入手日", rev:"リビジョン", areaF:"面積式", pdf:"図面 PDF", copy:"パスをコピー", copied:"コピーしました", selected:"選択しました", noDocs:"登録された資料はありません。",
+    edit:"編集", editing:n=>`編集中：${n}`, editTitle:"編集モード", editMsg:"記録を書き込むには、編集パスワードと名前を入れてください。", editPw:"編集パスワード", yourName:"名前（記録に残ります）", remember:"この端末で覚える", start:"始める", cancel:"やめる", editEnd:"編集を終える", notReady:"編集の準備がまだできていません（管理者が鍵を設定します）。", editWrong:"編集パスワードが違います。", tokenBad:"書き込みの鍵が使えません（期限切れの可能性）。管理者に連絡してください。",
+    fType:"種類", fDate:"日付", fLot:"ロット・T/T 番号", fQty:"数量（個）", fText:"内容", fTextPh:"何が起きたか・何をしたか・気をつけること", fPhotos:"写真（4 枚まで）", save:"保存する", saving:"保存中…", saved:"保存しました。ほかの人の画面には 1〜2 分で出ます。", needText:"内容を書いてください。", tooMany:"写真は 4 枚までです。", saveFail:"保存できませんでした：",
+    photoWait:"写真は反映待ち（1〜2 分）", photoLoad:"写真", undo:"取り消す", undone:"取り消し済み", confirmUndo:"この記録を取り消しますか？（履歴には残ります）", by:"記録", jaText:"",
+    foot:"社内専用・パスワードは社内の担当者へ ・ 現場の記録は GitHub に暗号化して保存され、履歴が残ります" },
+  th:{ title:"บัตรข้อมูลสินค้า", sub:"Dydo-tec ชุบอโนไดซ์ บันทึกสินค้า・ขั้นตอน・ปัญหา", ph:"เลขแบบ・ชื่อชิ้นงาน・รุ่น・ชื่อบริษัท (เช่น R47, T1301)", search:"ค้นหา", hint:"สแกน QR บนแบบ จะเปิดหน้าของสินค้านั้นโดยตรง", lock:"ล็อก",
+    lockTitle:"รหัสผ่าน", lockMsg:"กรุณาใส่รหัสผ่านที่ได้รับจากผู้รับผิดชอบ", lockHint:"หน้านี้ใช้ภายในบริษัทเท่านั้น", open:"เปิด", checking:"กำลังตรวจสอบ…", wrong:"รหัสผ่านไม่ถูกต้อง", pw:"รหัสผ่าน",
+    home:"หน้าแรก", customers:"บริษัท", nProducts:n=>`${n} รายการ`, nOpen:n=>n?`ปัญหาที่ยังไม่เสร็จ ${n}`:"", openIssues:"ปัญหาที่ยังไม่เสร็จ", recent:"บันทึกล่าสุดจากหน้างาน", noRecent:"ยังไม่มีบันทึก",
+    hitN:n=>`ผลการค้นหา ${n} รายการ`, none:"ไม่พบ ลองค้นด้วยบางส่วนของเลขแบบ ชื่อชิ้นงาน รุ่น (เช่น R47) หรือชื่อบริษัท", products:"สินค้า", issues:"ปัญหา", events:"เหตุการณ์", all:"ทั้งหมด",
+    back:"← กลับ", backHome:"← หน้าแรก",
+    tabs:{info:"ข้อมูล",flow:"ขั้นตอน",issues:"ปัญหา・การแก้ไข",memo:"บันทึกหน้างาน",docs:"แบบ・เอกสาร"},
+    chips:{color:"สี",finish:"ผิวเคลือบ",masking:"มาสกิ้ง",area:"พื้นที่ผิว",material:"วัสดุ",thickness:"ความหนาฟิล์ม",size:"ขนาด",status:"สถานะ",line:"ไลน์"},
+    model:"รุ่น", old:"เลขแบบเดิม", customer:"บริษัท", contacts:"ผู้ติดต่อ", notes:"บันทึก",
+    priceT:"", current:"", since:"", fixed:"", sampleClass:"", history:"", volume:"", perPc:"",
+    quote:"", profit:"", lot:"ล็อต", total:"", basis:"", book:"", tiers:"", tierCol:"", alt:"", prev:"",
+    similar:"แบบที่คล้ายกัน",
+    flowTitle:"ขั้นตอนมาตรฐาน (FF Black)", flowSub:"งานต่อรอบ = เวลาต่อ 1 รอบ ลำดับจริงให้ยึดตามใบสั่งงานหน้างาน", docsTitle:"แผนผังกระบวนการอย่างเป็นทางการ", docsSub:"ใช้นิ้วขยายได้ ขั้นตอนมาตรฐานชุบดำสำหรับ NSP (Line 2/2)", loading:"กำลังโหลด…", loadFail:"โหลดไม่สำเร็จ กรุณาตรวจสอบสัญญาณแล้วเปิดใหม่", zoom:"ขยาย", unzoom:"ย่อกลับ", page:"หน้า",
+    issueMaster:"ปัญหาที่ลงทะเบียนไว้", fieldRec:"บันทึกจากหน้างาน", cautions:"ข้อควรระวังสำหรับผิวเคลือบนี้", noIssue:"ยังไม่มีบันทึก",
+    addIssue:"＋ บันทึกปัญหา/ของเสีย", addAction:"＋ บันทึกการแก้ไข", addMemo:"＋ เขียนบันทึก/ข้อควรระวัง",
+    types:{issue:"ปัญหา/ของเสีย",action:"การแก้ไข",memo:"บันทึกงาน/ข้อควรระวัง"},
+    status:{"対策中":"กำลังแก้ไข","完了":"เสร็จสิ้น","調査中":"กำลังตรวจสอบ","量産":"ผลิตจริง","サンプル":"ตัวอย่าง","見積中":"กำลังเสนอราคา"},
+    symptom:"อาการ", cause:"สาเหตุ", action:"การแก้ไข", date:"วันที่", related:"สินค้าที่เกี่ยวข้อง", docs:"เอกสาร",
+    received:"วันที่รับ", rev:"Revision", areaF:"สูตรพื้นที่", pdf:"ไฟล์แบบ PDF", copy:"คัดลอกพาธ", copied:"คัดลอกแล้ว", selected:"เลือกแล้ว", noDocs:"ไม่มีเอกสาร",
+    edit:"แก้ไข", editing:n=>`กำลังแก้ไข: ${n}`, editTitle:"โหมดแก้ไข", editMsg:"ใส่รหัสผ่านสำหรับแก้ไขและชื่อของคุณ เพื่อบันทึกข้อมูล", editPw:"รหัสผ่านสำหรับแก้ไข", yourName:"ชื่อ (จะแสดงในบันทึก)", remember:"จำไว้ในเครื่องนี้", start:"เริ่ม", cancel:"ยกเลิก", editEnd:"ออกจากโหมดแก้ไข", notReady:"ยังไม่พร้อมสำหรับการแก้ไข (ผู้ดูแลกำลังตั้งค่า)", editWrong:"รหัสผ่านสำหรับแก้ไขไม่ถูกต้อง", tokenBad:"กุญแจสำหรับบันทึกใช้ไม่ได้ (อาจหมดอายุ) กรุณาติดต่อผู้ดูแล",
+    fType:"ประเภท", fDate:"วันที่", fLot:"ล็อต・เลข T/T", fQty:"จำนวน (ชิ้น)", fText:"รายละเอียด", fTextPh:"เกิดอะไรขึ้น・ทำอะไรไป・ต้องระวังอะไร", fPhotos:"รูปภาพ (ไม่เกิน 4 รูป)", save:"บันทึก", saving:"กำลังบันทึก…", saved:"บันทึกแล้ว คนอื่นจะเห็นภายใน 1-2 นาที", needText:"กรุณาเขียนรายละเอียด", tooMany:"รูปภาพได้ไม่เกิน 4 รูป", saveFail:"บันทึกไม่สำเร็จ: ",
+    photoWait:"รูปกำลังอัปโหลด (1-2 นาที)", photoLoad:"รูป", undo:"ยกเลิกบันทึก", undone:"ยกเลิกแล้ว", confirmUndo:"ยกเลิกบันทึกนี้หรือไม่? (ประวัติยังเก็บไว้)", by:"บันทึกโดย", jaText:"(ภาษาญี่ปุ่น)",
+    foot:"ใช้ภายในบริษัทเท่านั้น ・ บันทึกจากหน้างานถูกเข้ารหัสเก็บใน GitHub และมีประวัติ" }
+};
+const t = k => T[LANG][k];
+const JA = () => LANG === "ja";
+const tx = (o, k) => (!JA() && o && o[k+"_th"]) ? o[k+"_th"] : (o ? o[k] : "");
+const COLOR_TH = {"黒":"ดำ","クリア":"ใส","グレー":"เทา"};
+const colorCls = c => c==="黒"?"black":c==="クリア"?"clear":c==="グレー"?"gray":"";
+const colorTx = c => JA() ? c : (COLOR_TH[c]||c);
+const statusTx = s => (s && t("status")[s]) || s || "";
+
+/* ---------- crypto ---------- */
+const KEYS = new Map();
+async function keyFor(pass, salt, iter, usage){
+  const id = usage+":"+salt+":"+iter;
+  if(KEYS.has(id)) return KEYS.get(id);
+  const km = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
+  const k = await crypto.subtle.deriveKey({name:"PBKDF2", salt:b64(salt), iterations:iter, hash:"SHA-256"}, km, {name:"AES-CBC", length:256}, false, [usage]);
+  if(pass===PW) KEYS.set(id, k);
+  return k;
+}
+async function decryptText(e, pass){
+  const key = await keyFor(pass, e.salt, e.iter, "decrypt");
+  const pt = await crypto.subtle.decrypt({name:"AES-CBC", iv:b64(e.iv)}, key, b64(e.ct));
+  return new TextDecoder().decode(pt);
+}
+const decryptJSON = async (e, pass) => JSON.parse(await decryptText(e, pass));
+async function encryptJSON(obj, pass){
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(16));
+  const key = await keyFor(pass, u8b64(salt), 100000, "encrypt");
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name:"AES-CBC", iv}, key, new TextEncoder().encode(JSON.stringify(obj))));
+  return {ct:u8b64(ct), iter:100000, iv:u8b64(iv), salt:u8b64(salt)};
+}
+async function fetchEnc(url, fresh){
+  const r = await fetch(fresh ? `${url}${url.includes("?")?"&":"?"}t=${Date.now()}` : url, {cache: fresh ? "no-store" : "default"});
+  if(r.status===404) return null;
+  if(!r.ok) throw new Error("http "+r.status);
+  return r.json();
+}
+
+/* ---------- data ---------- */
+function normalize(src){
+  const C = [], P = [], I = [], E = [];
+  const addC = c => { if(!C.find(x=>x.id===c.id)) C.push(c); };
+  for(const s of src.sources){
+    if(s.records){ /* legacy 図番カルテ v3 */
+      FLOWSTEPS = s.flow || []; CAUTIONS = s.cautions || [];
+      for(const r of s.records){
+        const cid = /サンシン/.test(r.customer) ? "SANSHIN" : /AP ?Tech/i.test(r.customer) ? "APTECH" : (r.customer||"OTHER");
+        addC(cid==="SANSHIN" ? {id:"SANSHIN", name:"サンシン", name_th:"ซันชิน", fullName:"サンシン（設計 VS Technology）"} : cid==="APTECH" ? {id:"APTECH", name:"AP Tech", name_th:"AP Tech", fullName:"AP Tech（設計 VS Technology）"} : {id:cid, name:cid});
+        const sim = (r.similar||[]).map(x => Array.isArray(x) ? x : (x && x.value) ? x.value : x);
+        P.push({ id:r.id, customer:cid, name:r.name, model:r.model, oldNo:r.oldNo, color:"黒", finish:r.finish, finish_th:r.finish_th, masking:r.masking, masking_th:r.masking_th,
+          area_mm2:r.area, material:r.material, thickness:r.thickness, size:r.size, status:null, quote:r.quote, issueIds:[], legacyIssues:r.issues||[], issuesNote:r.issuesNote, issuesNote_th:r.issuesNote_th,
+          similar:sim, flowSteps:true, docs: r.folder ? [{title:"図面 PDF", path:r.folder}] : [], received:r.received, rev:r.rev, sheet:r.sheet, areaFormula:r.areaFormula, notes:[] });
+      }
+    }
+    (s.customers||[]).forEach(addC);
+    (s.products||[]).forEach(p => { const i = P.findIndex(x=>x.id===p.id); if(i>=0) P[i] = Object.assign(P[i], p); else P.push(p); });
+    (s.issues||[]).forEach(x => I.push(x));
+    (s.events||[]).forEach(x => E.push(x));
+  }
+  const nOf = id => P.filter(p=>p.customer===id).length;
+  C.sort((a,b)=>nOf(b.id)-nOf(a.id));
+  CUSTOMERS = C; PRODUCTS = P; ISSUES = I; EVENTS = E.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  byP = Object.fromEntries(P.map(p=>[p.id,p])); byC = Object.fromEntries(C.map(c=>[c.id,c])); byI = Object.fromEntries(I.map(i=>[i.id,i]));
+  for(const i of I) for(const pid of (i.products||[])) if(byP[pid] && !(byP[pid].issueIds||[]).includes(i.id)) (byP[pid].issueIds = byP[pid].issueIds||[]).push(i.id);
+}
+async function loadField(){
+  try{ const e = await fetchEnc(CONF.field, true); FIELD = e ? await decryptJSON(e, PW) : {entries:[]}; }catch(err){ FIELD = FIELD || {entries:[]}; }
+  if(!FIELD.entries) FIELD.entries = [];
+}
+const entriesFor = pid => FIELD.entries.filter(e=>e.product===pid).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+const openIssues = cid => ISSUES.filter(i => i.status!=="完了" && (!cid || i.customer===cid));
+
+/* ---------- chrome / lock ---------- */
+function applyChrome(){
+  document.documentElement.setAttribute("lang", LANG);
+  document.getElementById("h1").textContent = t("title"); document.getElementById("brandSub").textContent = t("sub");
+  document.getElementById("q").placeholder = t("ph"); document.getElementById("qbtn").textContent = t("search");
+  document.getElementById("foot").textContent = t("foot");
+  document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang===LANG)));
+  const eb = document.getElementById("editBtn");
+  eb.hidden = !DATA; eb.textContent = EDIT ? t("editing")(EDIT.name) : t("edit"); eb.classList.toggle("on", !!EDIT);
+  const h = document.getElementById("hint");
+  if(DATA){ h.innerHTML = `${esc(t("hint"))} <button type="button" class="linkbtn" id="lockBtn">${esc(t("lock"))}</button>`; document.getElementById("lockBtn").addEventListener("click", lock); }
+  else h.textContent = t("lockHint");
+}
+document.querySelectorAll("[data-lang]").forEach(b => b.addEventListener("click", ()=>{ LANG = b.dataset.lang; ls.set("karte.lang", LANG); applyChrome(); if(DATA) route(); else renderLock(""); }));
+document.getElementById("editBtn").addEventListener("click", ()=>{ if(EDIT){ if(confirm(t("editEnd")+"?")){ EDIT=null; ls.del("karte.editpw"); applyChrome(); route(); } } else renderEditLogin(""); });
+
+function renderLock(msg){
+  document.getElementById("form").hidden = true; applyChrome();
+  main.innerHTML = `<div class="card lock"><h2>${esc(t("lockTitle"))}</h2><p>${esc(t("lockMsg"))}</p>
+    <form id="lockForm"><input id="pw" type="password" autocomplete="current-password" autocapitalize="off" aria-label="${esc(t("pw"))}" placeholder="${esc(t("pw"))}"><button type="submit">${esc(t("open"))}</button></form>
+    <div class="err" id="err">${esc(msg||"")}</div></div>`;
+  document.getElementById("lockForm").addEventListener("submit", async e => { e.preventDefault(); const pw = document.getElementById("pw").value; document.getElementById("err").textContent = t("checking"); try{ await unlock(pw); ls.set("karte.pw", pw); }catch(_){ document.getElementById("err").textContent = t("wrong"); } });
+  setTimeout(()=>{ const p=document.getElementById("pw"); if(p) p.focus(); }, 50);
+}
+function lock(){ ls.del("karte.pw"); ls.del("karte.editpw"); PW=null; DATA=null; EDIT=null; FIELD={entries:[]}; FLOWDOCS=null; FLOW_LOADING=null; KEYS.clear(); renderLock(""); }
+async function unlock(pw){
+  if(!(window.crypto && crypto.subtle)) throw new Error("no webcrypto");
+  const e = await fetchEnc(CONF.data, true); if(!e) throw new Error("no data");
+  const data = await decryptJSON(e, pw);
+  PW = pw; DATA = data; normalize(data);
+  document.getElementById("form").hidden = false; applyChrome(); route();
+  await loadField(); route(true);
+  const ep = ls.get("karte.editpw"), en = ls.get("karte.editname"); if(ep && en) startEdit(ep, en, true).catch(()=>{});
+}
+
+/* ---------- edit mode ---------- */
+async function startEdit(epw, name, quiet){
+  const e = await fetchEnc(CONF.editkey, true);
+  if(!e) throw new Error("notReady");
+  let k; try{ k = await decryptJSON(e, epw); }catch(_){ throw new Error("editWrong"); }
+  const r = await fetch(`https://api.github.com/repos/${k.owner}/${k.repo}`, {headers:{Authorization:`Bearer ${k.token}`, Accept:"application/vnd.github+json"}});
+  if(!r.ok) throw new Error("tokenBad");
+  EDIT = {token:k.token, owner:k.owner, repo:k.repo, branch:k.branch||"main", name};
+  applyChrome(); if(!quiet) route();
+}
+function renderEditLogin(msg){
+  const last = ls.get("karte.editname") || "";
+  main.insertAdjacentHTML("afterbegin", `<div class="form" id="editLogin"><h2>${esc(t("editTitle"))}</h2><p class="sub" style="margin:0 0 10px">${esc(t("editMsg"))}</p>
+    <label class="field">${esc(t("editPw"))}<input id="epw" type="password" autocomplete="off" autocapitalize="off"></label>
+    <label class="field">${esc(t("yourName"))}<input id="ename" type="text" value="${esc(last)}" autocomplete="name"></label>
+    <label style="font-size:13.5px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="erem" checked> ${esc(t("remember"))}</label>
+    <div class="actions"><button class="btn" id="estart" type="button">${esc(t("start"))}</button><button class="btn ghost" id="ecancel" type="button">${esc(t("cancel"))}</button></div>
+    <div class="err" id="eerr">${esc(msg)}</div></div>`);
+  window.scrollTo(0,0);
+  document.getElementById("ecancel").addEventListener("click", ()=>document.getElementById("editLogin").remove());
+  document.getElementById("estart").addEventListener("click", async ()=>{
+    const epw = document.getElementById("epw").value, name = document.getElementById("ename").value.trim(), err = document.getElementById("eerr");
+    if(!name){ err.textContent = t("yourName"); return; }
+    err.textContent = t("checking");
+    try{ await startEdit(epw, name); ls.set("karte.editname", name); if(document.getElementById("erem").checked) ls.set("karte.editpw", epw); }
+    catch(x){ err.textContent = t(["notReady","editWrong","tokenBad"].includes(x.message) ? x.message : "tokenBad"); }
+  });
+}
+async function gh(method, path, body){
+  const url = `https://api.github.com/repos/${EDIT.owner}/${EDIT.repo}/contents/${CONF.repoDir}${path}` + (method==="GET" ? `?ref=${EDIT.branch}&t=${Date.now()}` : "");
+  const r = await fetch(url, {method, headers:{Authorization:`Bearer ${EDIT.token}`, Accept:"application/vnd.github+json", "Content-Type":"application/json"}, body: body ? JSON.stringify(body) : undefined, cache:"no-store"});
+  if(method==="GET" && r.status===404) return null;
+  if(!r.ok){ const e = new Error(`GitHub ${r.status}`); e.status = r.status; throw e; }
+  return r.json();
+}
+const ghText = j => new TextDecoder().decode(b64(j.content.replace(/\s/g,"")));
+async function putFile(path, text, sha, message){
+  return gh("PUT", path, {message, content:u8b64(new TextEncoder().encode(text)), branch:EDIT.branch, ...(sha?{sha}:{})});
+}
+async function updateField(mutate, message){
+  for(let attempt=0; attempt<4; attempt++){
+    const cur = await gh("GET", CONF.field);
+    const data = cur ? await decryptJSON(JSON.parse(ghText(cur)), PW) : {entries:[]};
+    if(!data.entries) data.entries = [];
+    mutate(data);
+    try{ await putFile(CONF.field, JSON.stringify(await encryptJSON(data, PW)), cur && cur.sha, message); FIELD = data; return; }
+    catch(e){ if(e.status!==409 && e.status!==422) throw e; }
+  }
+  throw new Error("conflict");
+}
+async function shrinkPhoto(file){
+  let src;
+  try{ src = await createImageBitmap(file); }
+  catch(_){ src = await new Promise((ok,ng)=>{ const im = new Image(); im.onload = ()=>ok(im); im.onerror = ng; im.src = URL.createObjectURL(file); }); }
+  const w0 = src.width, h0 = src.height, s = Math.min(1, 1600/Math.max(w0,h0));
+  const cv = document.createElement("canvas"); cv.width = Math.round(w0*s); cv.height = Math.round(h0*s);
+  cv.getContext("2d").drawImage(src, 0, 0, cv.width, cv.height);
+  const blob = await new Promise(ok=>cv.toBlob(ok, "image/jpeg", 0.72));
+  return u8b64(new Uint8Array(await blob.arrayBuffer()));
+}
+const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
+
+/* ---------- photos ---------- */
+const PHOTOS = new Map();
+async function photoURL(id){
+  if(PHOTOS.has(id)) return PHOTOS.get(id);
+  let e = null;
+  try{ e = await fetchEnc(`${CONF.photos}${id}.enc.json`, false); }catch(_){}
+  if(!e && EDIT){ try{ const j = await gh("GET", `${CONF.photos}${id}.enc.json`); if(j && j.content) e = JSON.parse(ghText(j)); }catch(_){} }
+  if(!e) return null;
+  const p = await decryptJSON(e, PW);
+  const url = `data:${p.type||"image/jpeg"};base64,${p.data}`; PHOTOS.set(id, url); return url;
+}
+function hydratePhotos(root){
+  root.querySelectorAll(".ph[data-photo]").forEach(async btn => {
+    const id = btn.dataset.photo; const url = await photoURL(id).catch(()=>null);
+    if(url){ btn.innerHTML = `<img src="${url}" alt="">`; btn.addEventListener("click", ()=>{ const box = btn.closest(".entry").querySelector(".bigphoto"); if(box.dataset.cur===id){ box.innerHTML=""; box.dataset.cur=""; } else { box.innerHTML = `<img src="${url}" alt="">`; box.dataset.cur=id; } }); }
+    else btn.textContent = t("photoWait");
+  });
+}
+
+/* ---------- small pieces ---------- */
+const colorTag = c => c ? `<span class="tag ${colorCls(c)}">${esc(colorTx(c))}</span>` : "";
+const statusTag = s => s ? `<span class="tag ${s==="完了"?"done":(s==="対策中"||s==="調査中")?"open":""}">${esc(statusTx(s))}</span>` : "";
+function productItem(p){
+  const c = byC[p.customer];
+  const price = (JA() && p.price && p.price.current!=null) ? ` ・ <span class="num">${fmt(p.price.current)}</span> B` : (JA() && p.quote ? ` ・ <span class="num">${fmt(p.quote.price)}</span> ${esc(p.quote.unit||"")}` : "");
+  const nEnt = entriesFor(p.id).filter(e=>!e.deleted).length, nIss = (p.issueIds||[]).filter(id=>byI[id] && byI[id].status!=="完了").length;
+  return `<li><a href="#${encodeURIComponent(p.id)}"><span class="no">${esc(p.id)}</span> ${esc(tx(p,"name"))}${colorTag(p.color)}${nIss?`<span class="tag issue">${esc(t("issues"))} ${nIss}</span>`:""}${nEnt?`<span class="tag memo">${esc(t("fieldRec"))} ${nEnt}</span>`:""}
+    <div class="meta">${esc(c ? tx(c,"name") : p.customer)}${p.model?` ・ ${esc(p.model)}`:""}${p.masking && !/^(なし|No Masking)/.test(p.masking)?` ・ ${esc(t("chips").masking)} ${esc(tx(p,"masking"))}`:""}${p.status?` ・ ${esc(statusTx(p.status))}`:""}${price}</div></a></li>`;
+}
+function issueItem(i){
+  return `<li><a href="#i/${encodeURIComponent(i.id)}"><span class="no">${esc(i.id)}</span> ${esc(tx(i,"title"))} ${statusTag(i.status)}<div class="meta">${esc(i.date||"")}${(i.products||[]).length?` ・ ${esc((i.products||[]).slice(0,4).join(", "))}${i.products.length>4?" …":""}`:""}</div></a></li>`;
+}
+function entryCard(e, showProduct){
+  const p = byP[e.product];
+  return `<div class="entry${e.deleted?" deleted":""}" data-entry="${esc(e.id)}"><div class="head"><span class="tag ${esc(e.type)}">${esc(t("types")[e.type]||e.type)}</span><span>${esc(e.date)}</span><span>${esc(t("by"))}: ${esc(e.author)}</span>${e.lot?`<span>${esc(t("fLot"))} ${esc(e.lot)}</span>`:""}${e.qty?`<span>${esc(t("fQty"))} ${fmt(e.qty)}</span>`:""}${showProduct && p?`<a class="prod" href="#${encodeURIComponent(p.id)}">${esc(p.id)}</a>`:""}${e.deleted?`<span>${esc(t("undone"))}</span>`:""}</div>
+    <p class="txt">${esc(e.text)}</p>${(e.photos||[]).length?`<div class="photos">${e.photos.map(id=>`<button type="button" class="ph" data-photo="${esc(id)}">${esc(t("photoLoad"))}</button>`).join("")}</div><div class="bigphoto"></div>`:""}
+    ${(EDIT && !e.deleted)?`<div class="actions"><button type="button" class="linkbtn" data-undo="${esc(e.id)}">${esc(t("undo"))}</button></div>`:""}</div>`;
+}
+function wireEntries(root){
+  hydratePhotos(root);
+  root.querySelectorAll("[data-undo]").forEach(b => b.addEventListener("click", async ()=>{
+    if(!confirm(t("confirmUndo"))) return;
+    b.disabled = true; b.textContent = t("saving");
+    try{ await updateField(d => { const x = d.entries.find(e=>e.id===b.dataset.undo); if(x){ x.deleted = true; x.deletedBy = EDIT.name; x.deletedAt = new Date().toISOString(); } }, `field: undo ${b.dataset.undo} by ${EDIT.name}`); route(); }
+    catch(err){ b.disabled = false; b.textContent = t("saveFail") + err.message; }
+  }));
+}
+function docList(docs){
+  if(!docs || !docs.length) return `<p class="empty">${esc(t("noDocs"))}</p>`;
+  return `<ul class="doclist">${docs.map((d,i)=>`<li><div style="font-size:14px">${esc(tx(d,"title"))}</div><div class="path" id="dp${i}">${esc(d.path||"")}</div>${d.path?`<button class="copy" type="button" data-copy="dp${i}">${esc(t("copy"))}</button>`:""}</li>`).join("")}</ul>`;
+}
+function wireCopy(root){
+  root.querySelectorAll("[data-copy]").forEach(cb => cb.addEventListener("click", ()=>{ const el = document.getElementById(cb.dataset.copy); navigator.clipboard.writeText(el.textContent).then(()=>{cb.textContent=t("copied")}).catch(()=>{ const s=window.getSelection(), rg=document.createRange(); rg.selectNodeContents(el); s.removeAllRanges(); s.addRange(rg); cb.textContent=t("selected"); }); }));
+}
+
+/* ---------- pages ---------- */
+function renderHome(q){
+  const words = (q||"").trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if(words.length){
+    const hay = p => [p.id, p.oldNo, p.name, p.model, p.finish, p.color, p.masking, (byC[p.customer]||{}).name, (byC[p.customer]||{}).fullName, p.customer].join(" ").toLowerCase();
+    const ps = PRODUCTS.filter(p => words.every(w => hay(p).includes(w)));
+    const is = ISSUES.filter(i => words.every(w => [i.id, i.title, i.title_th, i.customer, (i.products||[]).join(" ")].join(" ").toLowerCase().includes(w)));
+    main.innerHTML = `<div class="card"><h2>${esc(t("hitN")(ps.length+is.length))}</h2>${ps.length?`<ul class="list">${ps.map(productItem).join("")}</ul>`:""}${is.length?`<h3>${esc(t("issues"))}</h3><ul class="list">${is.map(issueItem).join("")}</ul>`:""}${(ps.length+is.length)?"":`<p class="empty">${esc(t("none"))}</p>`}</div>`;
+    return;
+  }
+  const recent = FIELD.entries.filter(e=>!e.deleted).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,8);
+  const oi = openIssues();
+  main.innerHTML = `<div class="card"><h2>${esc(t("customers"))}</h2><div class="cust">${CUSTOMERS.map(c=>{ const n = PRODUCTS.filter(p=>p.customer===c.id).length, o = openIssues(c.id).length; return `<a href="#c/${encodeURIComponent(c.id)}"><div class="nm">${esc(tx(c,"name"))}</div><div class="meta">${esc(t("nProducts")(n))}${o?` ・ ${esc(t("nOpen")(o))}`:""}</div></a>`; }).join("")}</div></div>
+    ${oi.length?`<div class="card"><h2>${esc(t("openIssues"))}</h2><ul class="list">${oi.map(issueItem).join("")}</ul></div>`:""}
+    <div class="card" id="recent"><h2>${esc(t("recent"))}</h2>${recent.length?recent.map(e=>entryCard(e,true)).join(""):`<p class="empty">${esc(t("noRecent"))}</p>`}</div>`;
+  wireEntries(main);
+}
+function renderCustomer(c){
+  const ps = PRODUCTS.filter(p=>p.customer===c.id);
+  const models = [...new Set(ps.map(p=>p.model).filter(Boolean))];
+  if(MODEL!=="*" && !models.includes(MODEL)) MODEL = "*";
+  const shown = ps.filter(p => MODEL==="*" || p.model===MODEL);
+  const is = ISSUES.filter(i=>i.customer===c.id), ev = EVENTS.filter(e=>e.customer===c.id);
+  main.innerHTML = `<a class="back" href="#">${esc(t("backHome"))}</a>
+    <div class="card"><div class="title"><span class="name" style="font-size:20px;font-weight:700">${esc(tx(c,"name"))}</span></div>${c.fullName?`<div class="sub">${esc(c.fullName)}${c.line?` ・ ${esc(t("chips").line)} ${esc(c.line)}`:""}</div>`:""}
+      ${(JA() && (c.contacts||[]).length)?`<div class="chips">${c.contacts.map(x=>`<span class="chip"><b>${esc(t("contacts"))}</b>${esc(x.name)}${x.role?`（${esc(x.role)}）`:""}</span>`).join("")}</div>`:""}
+      ${(JA() && (c.notes||[]).length)?`<details style="margin-top:12px"><summary style="cursor:pointer;font-size:14px;color:var(--muted)">${esc(t("notes"))}（${c.notes.length}）</summary><ul class="bul" style="margin-top:6px">${c.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></details>`:""}</div>
+    <div class="card"><h2>${esc(t("products"))} <span class="sub">${ps.length}</span></h2>
+      ${models.length>1?`<div class="filters">${["*",...models].map(m=>`<button type="button" data-model="${esc(m)}" aria-pressed="${m===MODEL}">${esc(m==="*"?t("all"):m)}</button>`).join("")}</div>`:""}
+      <ul class="list">${shown.map(productItem).join("")}</ul></div>
+    ${is.length?`<div class="card"><h2>${esc(t("issues"))}</h2><ul class="list">${is.map(issueItem).join("")}</ul></div>`:""}
+    ${(JA() && ev.length)?`<div class="card"><h2>${esc(t("events"))}</h2><ul class="list">${ev.map(e=>`<li style="padding:9px 2px"><div><span class="num">${esc(e.date)}</span> ${esc(e.title)}</div>${e.summary?`<div class="meta">${esc(e.summary)}</div>`:""}</li>`).join("")}</ul></div>`:""}
+    ${(JA() && (c.docs||[]).length)?`<div class="card"><h2>${esc(t("docs"))}</h2>${docList(c.docs)}</div>`:""}`;
+  main.querySelectorAll("[data-model]").forEach(b=>b.addEventListener("click",()=>{ MODEL = b.dataset.model; renderCustomer(c); }));
+  wireCopy(main);
+}
+function renderIssue(i){
+  const ps = (i.products||[]).map(id=>byP[id]).filter(Boolean);
+  const jaNote = JA() ? "" : ` <span class="jaonly">${esc(t("jaText"))}</span>`;
+  main.innerHTML = `<a class="back" href="${i.customer?`#c/${encodeURIComponent(i.customer)}`:"#"}">${esc(t("back"))}</a>
+    <div class="card"><div class="title"><span class="no">${esc(i.id)}</span>${statusTag(i.status)}</div><div class="name" style="font-size:17px;font-weight:500;margin-top:4px">${esc(tx(i,"title"))}</div><div class="sub">${esc(i.date||"")}${i.customer?` ・ ${esc((byC[i.customer]||{}).name||i.customer)}`:""}</div>
+      <dl class="kv" style="margin-top:12px">${["symptom","cause","action"].map(k=>i[k]?`<dt>${esc(t(k))}${jaNote}</dt><dd style="white-space:pre-wrap">${esc(tx(i,k))}</dd>`:"").join("")}</dl></div>
+    ${ps.length?`<div class="card"><h2>${esc(t("related"))}</h2><ul class="list">${ps.map(productItem).join("")}</ul></div>`:""}
+    ${(i.docs||[]).length?`<div class="card"><h2>${esc(t("docs"))}</h2>${docList(i.docs)}</div>`:""}`;
+  wireCopy(main);
+}
+function priceBlock(p){
+  const pr = p.price; if(!pr) return "";
+  const hist = (pr.history||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  return `<h3>${esc(t("priceT"))}</h3><div class="price">${pr.current!=null?fmt(pr.current):"—"} <small>${esc(pr.unit||"B/個")}${pr.since?` ・ ${esc(t("since"))} ${esc(pr.since)}`:""}${pr.fixed?` ・ ${esc(t("fixed"))}`:""}</small></div>
+    ${pr.sampleClass?`<p class="sub" style="margin:4px 0 0">${esc(t("sampleClass"))}：${esc(pr.sampleClass)}</p>`:""}
+    ${pr.note?`<p class="note" style="margin-top:8px">${esc(pr.note)}</p>`:""}
+    ${hist.length?`<h3>${esc(t("history"))}</h3><div class="tblwrap"><table><tr><th>${esc(t("date"))}</th><th class="num">${esc(t("perPc"))}</th><th></th></tr>${hist.map(h=>`<tr><td style="font-family:var(--mono);white-space:nowrap">${esc(h.date)}</td><td class="num">${h.price!=null?fmt(h.price):"—"}</td><td>${esc(h.label||"")}</td></tr>`).join("")}</table></div>`:""}
+    ${(p.volume && p.volume.last12m!=null)?`<h3>${esc(t("volume"))}</h3><p style="margin:0"><span class="num">${fmt(p.volume.last12m)}</span> 個${p.volume.note?` <span class="sub">${esc(p.volume.note)}</span>`:""}</p>`:""}`;
+}
+function quoteBlock(p){
+  const q = p.quote; if(!q) return "";
+  return `<h3>${esc(t("quote"))}</h3><div class="price">${fmt(q.price)} <small>${esc(q.unit)} ・ ${esc(q.date)}${q.profit && q.profit!=="—"?` ・ ${esc(t("profit"))} ${esc(q.profit)}`:""}</small></div>
+    <dl class="kv" style="margin-top:10px"><dt>${esc(t("lot"))}</dt><dd>${esc(q.lot)}</dd><dt>${esc(t("total"))}</dt><dd>${esc(q.total)}</dd><dt>${esc(t("basis"))}</dt><dd>${esc(q.basis)}</dd><dt>${esc(t("book"))}</dt><dd>${esc(p.sheet)}</dd></dl>
+    ${(q.tiers||[]).length?`<h3>${esc(t("tiers"))}</h3><div class="tblwrap"><table><tr><th>${esc(t("tierCol"))}</th><th class="num">${esc(t("perPc"))}</th></tr>${q.tiers.map(x=>{ const r = Array.isArray(x)?x:(x.value||[]); return `<tr><td>${esc(r[0])}</td><td class="num">${fmt(r[1])}</td></tr>`; }).join("")}</table></div>`:""}
+    ${q.alt?`<h3>${esc(t("alt"))}</h3><p class="note">${esc(q.alt)}</p>`:""}${q.prev?`<h3>${esc(t("prev"))}</h3><p class="note">${esc(q.prev)}</p>`:""}`;
+}
+function formHTML(p){
+  const f = FORM;
+  return `<div class="form" id="entryForm"><h2>${esc(t("types")[f.type])}</h2>
+    <div class="row2"><label class="field">${esc(t("fType"))}<select id="fType">${["issue","action","memo"].map(k=>`<option value="${k}"${k===f.type?" selected":""}>${esc(t("types")[k])}</option>`).join("")}</select></label>
+      <label class="field">${esc(t("fDate"))}<input id="fDate" type="date" value="${esc(f.date)}"></label></div>
+    <div class="row2"><label class="field">${esc(t("fLot"))}<input id="fLot" type="text" value="${esc(f.lot||"")}"></label><label class="field">${esc(t("fQty"))}<input id="fQty" type="number" inputmode="numeric" min="0" value="${esc(f.qty||"")}"></label></div>
+    <label class="field">${esc(t("fText"))}<textarea id="fText" placeholder="${esc(t("fTextPh"))}">${esc(f.text||"")}</textarea></label>
+    <label class="field">${esc(t("fPhotos"))}<input id="fPhotos" type="file" accept="image/*" multiple></label><div class="previews" id="fPrev"></div>
+    <div class="actions"><button class="btn" type="button" id="fSave">${esc(t("save"))}</button><button class="btn ghost" type="button" id="fCancel">${esc(t("cancel"))}</button></div>
+    <div class="err" id="fErr"></div></div>`;
+}
+function wireForm(p){
+  const box = document.getElementById("entryForm"); if(!box) return;
+  const files = FORM.files || (FORM.files = []);
+  const prev = () => { document.getElementById("fPrev").innerHTML = files.map(f=>`<img src="${URL.createObjectURL(f)}" alt="">`).join(""); };
+  prev();
+  const keep = () => { FORM.type = document.getElementById("fType").value; FORM.date = document.getElementById("fDate").value; FORM.lot = document.getElementById("fLot").value; FORM.qty = document.getElementById("fQty").value; FORM.text = document.getElementById("fText").value; };
+  box.querySelectorAll("input,select,textarea").forEach(el => el.addEventListener("input", ()=>{ keep(); document.getElementById("fErr").textContent = ""; }));
+  document.getElementById("fType").addEventListener("change", ()=>{ keep(); box.querySelector("h2").textContent = t("types")[FORM.type]; });
+  document.getElementById("fPhotos").addEventListener("change", e => { const add = [...e.target.files]; if(files.length + add.length > 4){ document.getElementById("fErr").textContent = t("tooMany"); } files.push(...add.slice(0, 4-files.length)); e.target.value = ""; prev(); });
+  document.getElementById("fCancel").addEventListener("click", ()=>{ FORM = null; renderProduct(p); });
+  document.getElementById("fSave").addEventListener("click", async ()=>{
+    keep(); const err = document.getElementById("fErr"), btn = document.getElementById("fSave");
+    if(!FORM.text.trim()){ err.textContent = t("needText"); document.getElementById("fText").focus(); return; }
+    btn.disabled = true; btn.textContent = t("saving"); err.textContent = "";
+    try{
+      const photoIds = [];
+      for(const f of files){ const id = newId(); const data = await shrinkPhoto(f); await putFile(`${CONF.photos}${id}.enc.json`, JSON.stringify(await encryptJSON({type:"image/jpeg", data}, PW)), null, `photo: ${p.id} by ${EDIT.name}`); PHOTOS.set(id, `data:image/jpeg;base64,${data}`); photoIds.push(id); }
+      const entry = {id:newId(), product:p.id, customer:p.customer, type:FORM.type, date:FORM.date||today(), lot:FORM.lot.trim()||null, qty:FORM.qty?Number(FORM.qty):null, text:FORM.text.trim(), photos:photoIds, author:EDIT.name, createdAt:new Date().toISOString()};
+      await updateField(d => d.entries.push(entry), `field: ${entry.type} ${p.id} by ${EDIT.name}`);
+      FORM = null; TAB = entry.type==="memo" ? "memo" : "issues"; renderProduct(p);
+      main.insertAdjacentHTML("afterbegin", `<p class="okmsg">${esc(t("saved"))}</p>`);
+    }catch(x){ btn.disabled = false; btn.textContent = t("save"); err.textContent = t("saveFail") + x.message; }
+  });
+}
+function addButtons(kinds){
+  return `<div class="addbar">${kinds.map(k=>`<button type="button" class="btn small${k==="issue"?"":" ghost"}" data-add="${k}">${esc(t(k==="issue"?"addIssue":k==="action"?"addAction":"addMemo"))}</button>`).join("")}</div>`;
+}
+function renderProduct(p){
+  const c = byC[p.customer] || {name:p.customer};
+  const ents = entriesFor(p.id);
+  const issEnt = ents.filter(e=>e.type!=="memo"), memoEnt = ents.filter(e=>e.type==="memo");
+  const masterIss = (p.issueIds||[]).map(id=>byI[id]).filter(Boolean);
+  const chip = (k, v) => v!=null && v!=="" ? `<span class="chip"><b>${esc(t("chips")[k])}</b>${v}</span>` : "";
+  const counts = {issues: issEnt.filter(e=>!e.deleted).length + masterIss.length, memo: memoEnt.filter(e=>!e.deleted).length, docs:(p.docs||[]).length};
+  const formFor = kinds => (FORM && FORM.pid===p.id && kinds.includes(FORM.type)) ? formHTML(p) : (EDIT ? addButtons(kinds) : "");
+  const panels = {
+    info: () => `${JA() ? (p.price ? priceBlock(p) : quoteBlock(p)) : ""}
+      ${(JA() && (p.notes||[]).length)?`<h3>${esc(t("notes"))}</h3><ul class="bul">${p.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul>`:""}
+      ${(p.similar||[]).length?`<h3>${esc(t("similar"))}</h3><ul class="list">${p.similar.map(s=>byP[s[0]]?productItem(byP[s[0]]).replace("</a></li>", `<div class="meta">${esc(JA()?s[1]:(s[2]||s[1]))}</div></a></li>`):"").join("")}</ul>`:""}
+      ${(!JA() && !(p.similar||[]).length)?`<dl class="kv"><dt>${esc(t("customer"))}</dt><dd>${esc(tx(c,"name"))}</dd><dt>${esc(t("model"))}</dt><dd>${esc(p.model||"—")}</dd><dt>${esc(t("chips").status)}</dt><dd>${esc(statusTx(p.status)||"—")}</dd></dl>`:""}`,
+    flow: () => `${p.flowSteps && FLOWSTEPS.length?`<h2>${esc(t("flowTitle"))}</h2><p class="sub" style="margin-bottom:10px">${esc(t("flowSub"))}</p><ol class="flow">${FLOWSTEPS.map(s=>`<li><div class="st">${esc(tx(s,"st"))}</div><div class="sd">${esc(tx(s,"sd"))}</div></li>`).join("")}</ol>`:""}
+      <h3>${esc(t("docsTitle"))}</h3><p class="sub" style="margin-bottom:8px">${esc(t("docsSub"))}</p><div id="docs" class="docs"><div class="loading">${esc(t("loading"))}</div></div>`,
+    issues: () => `${formFor(["issue","action"])}
+      ${masterIss.length?`<h3 style="margin-top:0">${esc(t("issueMaster"))}</h3><ul class="list">${masterIss.map(issueItem).join("")}</ul>`:""}
+      ${(p.legacyIssues||[]).length?`<ul class="bul">${p.legacyIssues.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}
+      <h3>${esc(t("fieldRec"))}</h3>${issEnt.length?issEnt.map(e=>entryCard(e,false)).join(""):`<p class="empty">${esc(p.issuesNote ? tx(p,"issuesNote") : t("noIssue"))}</p>`}`,
+    memo: () => `${formFor(["memo"])}${memoEnt.length?memoEnt.map(e=>entryCard(e,false)).join(""):`<p class="empty">${esc(t("noIssue"))}</p>`}
+      ${(p.flowSteps && CAUTIONS.length)?`<h3>${esc(t("cautions"))}</h3><ul class="bul">${CAUTIONS.map(x=>`<li>${esc(JA()?x.ja:x.th)}</li>`).join("")}</ul>`:""}`,
+    docs: () => `${(p.received||p.rev||p.areaFormula)?`<dl class="kv" style="margin-bottom:12px">${p.received?`<dt>${esc(t("received"))}</dt><dd>${esc(p.received)}</dd>`:""}${p.rev?`<dt>${esc(t("rev"))}</dt><dd>${esc(p.rev)}</dd>`:""}${p.areaFormula?`<dt>${esc(t("areaF"))}</dt><dd class="num">${esc(p.areaFormula)}</dd>`:""}</dl>`:""}${docList(p.docs)}`
+  };
+  if(!panels[TAB]) TAB = "info";
+  const tabs = ["info","flow","issues","memo","docs"];
+  main.innerHTML = `<a class="back" href="#c/${encodeURIComponent(p.customer)}">${esc(t("back"))} ${esc(tx(c,"name"))}</a>
+    <div class="card"><div class="title"><span class="no">${esc(p.id)}</span><span class="name">${esc(tx(p,"name"))}</span></div>
+      <div class="sub">${esc(tx(c,"name"))}${p.model?` ・ ${esc(t("model"))} ${esc(p.model)}`:""}${p.oldNo?` ・ ${esc(t("old"))} ${esc(p.oldNo)}`:""}</div>
+      <div class="chips">${chip("color", p.color?esc(colorTx(p.color)):"")}${chip("finish", p.finish?esc(tx(p,"finish")):"")}${chip("masking", p.masking?esc(tx(p,"masking")):"")}${chip("area", p.area_mm2!=null?`${fmt(p.area_mm2)} mm²`:"")}${chip("material", p.material?esc(p.material):"")}${chip("thickness", p.thickness?esc(p.thickness):"")}${chip("size", p.size?esc(p.size):"")}${chip("status", p.status?esc(statusTx(p.status)):"")}</div></div>
+    <div class="tabs" role="tablist">${tabs.map(k=>`<button role="tab" data-tab="${k}" aria-selected="${k===TAB}">${esc(t("tabs")[k])}${counts[k]?`<span class="cnt">${counts[k]}</span>`:""}</button>`).join("")}</div>
+    <div class="card" id="panel">${panels[TAB]()}</div>`;
+  main.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{ TAB=b.dataset.tab; ls.set("karte.tab2",TAB); renderProduct(p); }));
+  main.querySelectorAll("[data-add]").forEach(b=>b.addEventListener("click",()=>{ FORM = {pid:p.id, type:b.dataset.add, date:today(), files:[]}; renderProduct(p); const tx_ = document.getElementById("fText"); if(tx_) tx_.focus(); }));
+  if(TAB==="flow") renderDocs();
+  wireForm(p); wireEntries(main); wireCopy(main);
+}
+async function loadFlowDocs(){
+  if(FLOWDOCS) return FLOWDOCS;
+  if(!FLOW_LOADING){ FLOW_LOADING = fetchEnc(CONF.flow, false).then(e=>decryptJSON(e, PW)).then(d=>{ FLOWDOCS = d.docs; return FLOWDOCS; }).catch(err=>{ FLOW_LOADING=null; throw err; }); }
+  return FLOW_LOADING;
+}
+function renderDocs(){
+  loadFlowDocs().then(docs=>{ const b = document.getElementById("docs"); if(!b) return;
+    b.innerHTML = docs.map((d,i)=>`<div class="doc"><h4>${esc(d.title[LANG]||d.title.ja)}</h4><div class="pages">${d.pages.map((p,j)=>`<div><div class="zoomwrap"><img src="${p}" alt="${esc(d.id)} p${j+1}" loading="lazy"></div><div class="pagebar"><span>${esc(t("page"))} ${j+1}/${d.pages.length}</span><button type="button" class="zoombtn">${esc(t("zoom"))}</button></div></div>`).join("")}</div></div>`).join("");
+    b.querySelectorAll(".zoombtn").forEach(btn=>btn.addEventListener("click",()=>{ const img = btn.closest("div").previousElementSibling.querySelector("img"); const z = img.classList.toggle("zoomed"); btn.textContent = z ? t("unzoom") : t("zoom"); }));
+  }).catch(()=>{ const b = document.getElementById("docs"); if(b) b.innerHTML = `<p class="note">${esc(t("loadFail"))}</p>`; });
+}
+
+/* ---------- routing ---------- */
+let lastRoute = "";
+function route(keepScroll){
+  if(!DATA) return;
+  const h = decodeURIComponent(location.hash.slice(1));
+  if(h !== lastRoute){ FORM = null; if(lastRoute) TAB = "info"; lastRoute = h; if(!keepScroll) window.scrollTo(0,0); }
+  if(h.startsWith("c/") && byC[h.slice(2)]) return renderCustomer(byC[h.slice(2)]);
+  if(h.startsWith("i/") && byI[h.slice(2)]) return renderIssue(byI[h.slice(2)]);
+  const p = byP[h] || PRODUCTS.find(x=>x.oldNo===h) || (/[A-Z]$/i.test(h) ? byP[h.slice(0,-1)] : null);
+  if(p){ document.getElementById("q").value = ""; return renderProduct(p); }
+  renderHome(document.getElementById("q").value);
+}
+document.getElementById("form").addEventListener("submit",e=>{ e.preventDefault(); const v=document.getElementById("q").value.trim(); const exact=PRODUCTS.find(p=>p.id.toLowerCase()===v.toLowerCase()); if(exact){ location.hash=encodeURIComponent(exact.id); } else { if(location.hash) history.replaceState(null,"",location.pathname); lastRoute=""; renderHome(v); } });
+document.getElementById("q").addEventListener("input",e=>{ if(location.hash){ history.replaceState(null,"",location.pathname); lastRoute=""; } renderHome(e.target.value); });
+window.addEventListener("hashchange",()=>route());
+TAB = ls.get("karte.tab2") || "info";
+(async()=>{ applyChrome(); const saved = ls.get("karte.pw");
+  if(saved){ try{ await unlock(saved); return; }catch(e){ ls.del("karte.pw"); } }
+  renderLock(""); })();
+</script>
+</body>
+</html>
