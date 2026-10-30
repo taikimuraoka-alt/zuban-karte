@@ -138,6 +138,7 @@ td.num,th.num{text-align:right}
 .previews{display:flex;gap:6px;flex-wrap:wrap}
 .previews img{width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
 .linkbtn{font:inherit;font-size:12.5px;color:var(--muted);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+.linkbtn.armed{color:var(--bad);font-weight:500}
 .jaonly{font-size:11.5px;color:var(--muted)}
 footer{color:var(--muted);font-size:12px;margin-top:20px;text-align:center}
 @media (max-width:420px){ .row2{grid-template-columns:1fr} .title .no{font-size:20px} }
@@ -192,7 +193,7 @@ const T = {
     received:"入手日", rev:"リビジョン", areaF:"面積式", pdf:"図面 PDF", copy:"パスをコピー", copied:"コピーしました", selected:"選択しました", noDocs:"登録された資料はありません。",
     edit:"編集", editing:n=>`編集中：${n}`, editTitle:"編集モード", editMsg:"記録を書き込むには、編集パスワードと名前を入れてください。", editPw:"編集パスワード", yourName:"名前（記録に残ります）", remember:"この端末で覚える", start:"始める", cancel:"やめる", editEnd:"編集を終える", notReady:"編集の準備がまだできていません（管理者が鍵を設定します）。", editWrong:"編集パスワードが違います。", tokenBad:"書き込みの鍵が使えません（期限切れの可能性）。管理者に連絡してください。",
     fType:"種類", fDate:"日付", fLot:"ロット・T/T 番号", fQty:"数量（個）", fText:"内容", fTextPh:"何が起きたか・何をしたか・気をつけること", fPhotos:"写真（4 枚まで）", save:"保存する", saving:"保存中…", saved:"保存しました。ほかの人の画面には 1〜2 分で出ます。", needText:"内容を書いてください。", tooMany:"写真は 4 枚までです。", saveFail:"保存できませんでした：",
-    photoWait:"写真は反映待ち（1〜2 分）", photoLoad:"写真", undo:"取り消す", undone:"取り消し済み", confirmUndo:"この記録を取り消しますか？（履歴には残ります）", by:"記録", jaText:"",
+    photoWait:"写真は反映待ち（1〜2 分）", photoLoad:"写真", undo:"取り消す", undone:"取り消し済み", confirmUndo:"もう一度押すと取り消します（履歴には残ります）", by:"記録", jaText:"",
     foot:"社内専用・パスワードは社内の担当者へ ・ 現場の記録は GitHub に暗号化して保存され、履歴が残ります" },
   th:{ title:"บัตรข้อมูลสินค้า", sub:"Dydo-tec ชุบอโนไดซ์ บันทึกสินค้า・ขั้นตอน・ปัญหา", ph:"เลขแบบ・ชื่อชิ้นงาน・รุ่น・ชื่อบริษัท (เช่น R47, T1301)", search:"ค้นหา", hint:"สแกน QR บนแบบ จะเปิดหน้าของสินค้านั้นโดยตรง", lock:"ล็อก",
     lockTitle:"รหัสผ่าน", lockMsg:"กรุณาใส่รหัสผ่านที่ได้รับจากผู้รับผิดชอบ", lockHint:"หน้านี้ใช้ภายในบริษัทเท่านั้น", open:"เปิด", checking:"กำลังตรวจสอบ…", wrong:"รหัสผ่านไม่ถูกต้อง", pw:"รหัสผ่าน",
@@ -214,7 +215,7 @@ const T = {
     received:"วันที่รับ", rev:"Revision", areaF:"สูตรพื้นที่", pdf:"ไฟล์แบบ PDF", copy:"คัดลอกพาธ", copied:"คัดลอกแล้ว", selected:"เลือกแล้ว", noDocs:"ไม่มีเอกสาร",
     edit:"แก้ไข", editing:n=>`กำลังแก้ไข: ${n}`, editTitle:"โหมดแก้ไข", editMsg:"ใส่รหัสผ่านสำหรับแก้ไขและชื่อของคุณ เพื่อบันทึกข้อมูล", editPw:"รหัสผ่านสำหรับแก้ไข", yourName:"ชื่อ (จะแสดงในบันทึก)", remember:"จำไว้ในเครื่องนี้", start:"เริ่ม", cancel:"ยกเลิก", editEnd:"ออกจากโหมดแก้ไข", notReady:"ยังไม่พร้อมสำหรับการแก้ไข (ผู้ดูแลกำลังตั้งค่า)", editWrong:"รหัสผ่านสำหรับแก้ไขไม่ถูกต้อง", tokenBad:"กุญแจสำหรับบันทึกใช้ไม่ได้ (อาจหมดอายุ) กรุณาติดต่อผู้ดูแล",
     fType:"ประเภท", fDate:"วันที่", fLot:"ล็อต・เลข T/T", fQty:"จำนวน (ชิ้น)", fText:"รายละเอียด", fTextPh:"เกิดอะไรขึ้น・ทำอะไรไป・ต้องระวังอะไร", fPhotos:"รูปภาพ (ไม่เกิน 4 รูป)", save:"บันทึก", saving:"กำลังบันทึก…", saved:"บันทึกแล้ว คนอื่นจะเห็นภายใน 1-2 นาที", needText:"กรุณาเขียนรายละเอียด", tooMany:"รูปภาพได้ไม่เกิน 4 รูป", saveFail:"บันทึกไม่สำเร็จ: ",
-    photoWait:"รูปกำลังอัปโหลด (1-2 นาที)", photoLoad:"รูป", undo:"ยกเลิกบันทึก", undone:"ยกเลิกแล้ว", confirmUndo:"ยกเลิกบันทึกนี้หรือไม่? (ประวัติยังเก็บไว้)", by:"บันทึกโดย", jaText:"(ภาษาญี่ปุ่น)",
+    photoWait:"รูปกำลังอัปโหลด (1-2 นาที)", photoLoad:"รูป", undo:"ยกเลิกบันทึก", undone:"ยกเลิกแล้ว", confirmUndo:"กดอีกครั้งเพื่อยกเลิก (ประวัติยังเก็บไว้)", by:"บันทึกโดย", jaText:"(ภาษาญี่ปุ่น)",
     foot:"ใช้ภายในบริษัทเท่านั้น ・ บันทึกจากหน้างานถูกเข้ารหัสเก็บใน GitHub และมีประวัติ" }
 };
 const t = k => T[LANG][k];
@@ -302,7 +303,7 @@ function applyChrome(){
   else h.textContent = t("lockHint");
 }
 document.querySelectorAll("[data-lang]").forEach(b => b.addEventListener("click", ()=>{ LANG = b.dataset.lang; ls.set("karte.lang", LANG); applyChrome(); if(DATA) route(); else renderLock(""); }));
-document.getElementById("editBtn").addEventListener("click", ()=>{ if(EDIT){ if(confirm(t("editEnd")+"?")){ EDIT=null; ls.del("karte.editpw"); applyChrome(); route(); } } else renderEditLogin(""); });
+document.getElementById("editBtn").addEventListener("click", e=>{ const b = e.currentTarget; if(EDIT){ if(armed(b, t("editEnd")+"？")){ b.dataset.armed=""; EDIT=null; ls.del("karte.editpw"); applyChrome(); route(); } } else if(!document.getElementById("editLogin")) renderEditLogin(""); });
 
 function renderLock(msg){
   document.getElementById("form").hidden = true; applyChrome();
@@ -423,10 +424,17 @@ function entryCard(e, showProduct){
     <p class="txt">${esc(e.text)}</p>${(e.photos||[]).length?`<div class="photos">${e.photos.map(id=>`<button type="button" class="ph" data-photo="${esc(id)}">${esc(t("photoLoad"))}</button>`).join("")}</div><div class="bigphoto"></div>`:""}
     ${(EDIT && !e.deleted)?`<div class="actions"><button type="button" class="linkbtn" data-undo="${esc(e.id)}">${esc(t("undo"))}</button></div>`:""}</div>`;
 }
+/* Two-step button instead of confirm(): some in-app browsers suppress dialogs. First press arms it for 5 s. */
+function armed(btn, label){
+  if(btn.dataset.armed==="1") return true;
+  const orig = btn.textContent; btn.dataset.armed = "1"; btn.textContent = label; btn.classList.add("armed");
+  setTimeout(()=>{ if(btn.isConnected && btn.dataset.armed==="1"){ btn.dataset.armed = ""; btn.textContent = orig; btn.classList.remove("armed"); } }, 5000);
+  return false;
+}
 function wireEntries(root){
   hydratePhotos(root);
   root.querySelectorAll("[data-undo]").forEach(b => b.addEventListener("click", async ()=>{
-    if(!confirm(t("confirmUndo"))) return;
+    if(!armed(b, t("confirmUndo"))) return;
     b.disabled = true; b.textContent = t("saving");
     try{ await updateField(d => { const x = d.entries.find(e=>e.id===b.dataset.undo); if(x){ x.deleted = true; x.deletedBy = EDIT.name; x.deletedAt = new Date().toISOString(); } }, `field: undo ${b.dataset.undo} by ${EDIT.name}`); route(); }
     catch(err){ b.disabled = false; b.textContent = t("saveFail") + err.message; }
