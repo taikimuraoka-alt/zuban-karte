@@ -201,8 +201,9 @@ const T = {
     flowTitle:"標準の工程（FF Black）", flowSub:"枠工程は 1 回あたりの時間。工程順は現場の指示書を優先してください。", docsTitle:"公式フローチャート", docsSub:"指で拡大できます。NSP 向け黒アルマイト（Line 2/2）の標準工程です。", loading:"読み込み中…", loadFail:"読み込みに失敗しました。通信状態を確認して開き直してください。", zoom:"拡大", unzoom:"元に戻す", page:"ページ",
     issueMaster:"登録済みの問題", fieldRec:"現場の記録", cautions:"この仕上げで注意する点", noIssue:"記録はありません。",
     addIssue:"＋ 問題・不良を記録", addAction:"＋ 対策・処置を記録", addMemo:"＋ メモ・注意点を書く",
-    types:{issue:"問題・不良",action:"対策・処置",memo:"作業メモ・注意点",scan:"AIで読む写真",receipt:"受入・現品票",inspection:"検査表"},
-    scanCard:"AIで読む写真", sendScan:"＋ 写真を送る", scanKind:"写真の種類", kinds:{drawing:"図面",defect:"不良の写真・不良票",label:"現品票・ラベル",inspection:"検査表・記録用紙"}, scanPending:"取り込み待ち", scanDone:"取込済",
+    types:{issue:"問題・不良",action:"対策・処置",memo:"作業メモ・注意点",scan:"AIで読む資料",receipt:"受入・現品票",inspection:"検査表",event:"できごと"},
+    scanCard:"AIで読む資料（写真・メール・書類）", sendScan:"＋ 資料を送る", scanKind:"資料の種類", kinds:{drawing:"図面",defect:"不良の写真・不良票",label:"現品票・ラベル",inspection:"検査表・記録用紙",document:"メール・書類"},
+    docText:"メールの本文・書類の内容（そのまま貼り付けてOK）", fFiles:"ファイル（PDF・Word・Excel・メールなど、1つ8MBまで）", needDoc:"本文を貼り付けるか、写真・ファイルを付けてください。", tooBig:"8MBを超えるファイルは送れません：", attachments:"添付ファイル", download:"開く・保存", scanPending:"取り込み待ち", scanDone:"取込済",
     scanHint:"送った写真は、管理者が「取り込んで」と頼んだときに Claude が読んで、製品・問題・受入・検査の記録にします。", scanMemo:"メモ（分かれば：何の写真か、気になる点）", scanNeedPhoto:"写真を1枚以上選んでください。", fromScan:"写真から作成", results:"この写真から作った記録", noScan:"取り込み待ちの写真はありません。",
     status:{"未対応":"未対応","対策中":"対策中","完了":"完了","調査中":"調査中","量産":"量産","サンプル":"サンプル","見積中":"見積中"},
     finishSpec:"図面の表面処理の指示", pfSize:"寸法", find:"製品を探す", fCust:"会社", fProc:"処理", fMat:"素材", fMask:"マスキング", fStat:"状態", maskYes:"あり", maskNo:"なし", clear:"条件を消す", nHit:n=>`${n} 製品`, unknownMat:"未記入",
@@ -232,8 +233,9 @@ const T = {
     flowTitle:"ขั้นตอนมาตรฐาน (FF Black)", flowSub:"งานต่อรอบ = เวลาต่อ 1 รอบ ลำดับจริงให้ยึดตามใบสั่งงานหน้างาน", docsTitle:"แผนผังกระบวนการอย่างเป็นทางการ", docsSub:"ใช้นิ้วขยายได้ ขั้นตอนมาตรฐานชุบดำสำหรับ NSP (Line 2/2)", loading:"กำลังโหลด…", loadFail:"โหลดไม่สำเร็จ กรุณาตรวจสอบสัญญาณแล้วเปิดใหม่", zoom:"ขยาย", unzoom:"ย่อกลับ", page:"หน้า",
     issueMaster:"ปัญหาที่ลงทะเบียนไว้", fieldRec:"บันทึกจากหน้างาน", cautions:"ข้อควรระวังสำหรับผิวเคลือบนี้", noIssue:"ยังไม่มีบันทึก",
     addIssue:"＋ บันทึกปัญหา/ของเสีย", addAction:"＋ บันทึกการแก้ไข", addMemo:"＋ เขียนบันทึก/ข้อควรระวัง",
-    types:{issue:"ปัญหา/ของเสีย",action:"การแก้ไข",memo:"บันทึกงาน/ข้อควรระวัง",scan:"รูปให้ AI อ่าน",receipt:"รับเข้า・ป้ายสินค้า",inspection:"ตารางตรวจสอบ"},
-    scanCard:"รูปให้ AI อ่าน", sendScan:"＋ ส่งรูป", scanKind:"ประเภทรูป", kinds:{drawing:"แบบ (Drawing)",defect:"รูปของเสีย・ใบแจ้งของเสีย",label:"ป้ายสินค้า・ฉลาก",inspection:"ตารางตรวจสอบ・ใบบันทึก"}, scanPending:"รอนำเข้า", scanDone:"นำเข้าแล้ว",
+    types:{issue:"ปัญหา/ของเสีย",action:"การแก้ไข",memo:"บันทึกงาน/ข้อควรระวัง",scan:"เอกสารให้ AI อ่าน",receipt:"รับเข้า・ป้ายสินค้า",inspection:"ตารางตรวจสอบ",event:"เหตุการณ์"},
+    scanCard:"เอกสารให้ AI อ่าน (รูป・อีเมล・เอกสาร)", sendScan:"＋ ส่งเอกสาร", scanKind:"ประเภทเอกสาร", kinds:{drawing:"แบบ (Drawing)",defect:"รูปของเสีย・ใบแจ้งของเสีย",label:"ป้ายสินค้า・ฉลาก",inspection:"ตารางตรวจสอบ・ใบบันทึก",document:"อีเมล・เอกสาร"},
+    docText:"เนื้อหาอีเมล・เอกสาร (วางได้เลย)", fFiles:"ไฟล์ (PDF・Word・Excel・อีเมล ฯลฯ ไม่เกิน 8MB ต่อไฟล์)", needDoc:"กรุณาวางข้อความ หรือแนบรูป・ไฟล์", tooBig:"ไฟล์เกิน 8MB ส่งไม่ได้: ", attachments:"ไฟล์แนบ", download:"เปิด・บันทึก", scanPending:"รอนำเข้า", scanDone:"นำเข้าแล้ว",
     scanHint:"รูปที่ส่งมา Claude จะอ่านและสร้างเป็นบันทึกสินค้า・ปัญหา・รับเข้า・ตรวจสอบ เมื่อผู้ดูแลสั่งให้นำเข้า", scanMemo:"หมายเหตุ (ถ้าทราบ: รูปอะไร จุดที่สงสัย)", scanNeedPhoto:"กรุณาเลือกรูปอย่างน้อย 1 รูป", fromScan:"สร้างจากรูป", results:"บันทึกที่สร้างจากรูปนี้", noScan:"ไม่มีรูปที่รอนำเข้า",
     status:{"未対応":"ยังไม่ดำเนินการ","対策中":"กำลังแก้ไข","完了":"เสร็จสิ้น","調査中":"กำลังตรวจสอบ","量産":"ผลิตจริง","サンプル":"ตัวอย่าง","見積中":"กำลังเสนอราคา"},
     finishSpec:"ข้อกำหนดการชุบตามแบบ", pfSize:"ขนาด", find:"ค้นหาสินค้า", fCust:"บริษัท", fProc:"การชุบ", fMat:"วัสดุ", fMask:"มาสกิ้ง", fStat:"สถานะ", maskYes:"มี", maskNo:"ไม่มี", clear:"ล้างเงื่อนไข", nHit:n=>`${n} รายการ`, unknownMat:"ไม่ระบุ",
@@ -505,7 +507,7 @@ function tableHTML(tb){
 }
 function scanItem(e){
   const p = byP[e.product];
-  return `<li><a href="#e/${encodeURIComponent(e.id)}">${scanTag(e)} ${esc(t("kinds")[e.kind]||e.kind||"")}${e.text?` ・ ${esc(firstLine(e.text))}`:""}<div class="meta">${esc(e.date||"")} ・ ${esc(e.author||"")}${p?` ・ ${esc(p.id)}`:""} ・ ${(e.photos||[]).length} ${esc(t("photoLoad"))}</div></a></li>`;
+  return `<li><a href="#e/${encodeURIComponent(e.id)}">${scanTag(e)} ${esc(t("kinds")[e.kind]||e.kind||"")}${e.text?` ・ ${esc(firstLine(e.text))}`:""}<div class="meta">${esc(e.date||"")} ・ ${esc(e.author||"")}${p?` ・ ${esc(p.id)}`:""}${(e.photos||[]).length?` ・ ${e.photos.length} ${esc(t("photoLoad"))}`:""}${(e.files||[]).length?` ・ ${esc(t("attachments"))} ${e.files.length}`:""}</div></a></li>`;
 }
 function scanCardHTML(){
   const scans = FIELD.entries.filter(e=>e.type==="scan" && !e.deleted).sort(byNew);
@@ -516,38 +518,65 @@ function scanCardHTML(){
     ${pending.length?`<ul class="list">${pending.map(scanItem).join("")}</ul>`:`<p class="sub" style="margin:0">${esc(t("noScan"))}</p>`}
     ${done.length?`<h3>${esc(t("scanDone"))}</h3><ul class="list">${done.map(scanItem).join("")}</ul>`:""}</div>`;
 }
+/* Material for AI reading: photos (shrunk JPEG, stored like record photos) plus any other files (PDF/Office/mail, stored as-is in files/) and pasted text. */
+const MAX_FILE = 8*1024*1024;
 function scanFormHTML(){
-  const f = SFORM;
+  const f = SFORM, isDoc = f.kind==="document";
   return `<div class="form" id="scanForm">
     <div class="row2"><label class="field">${esc(t("scanKind"))}<select id="sKind">${Object.keys(T.ja.kinds).map(k=>`<option value="${k}"${k===f.kind?" selected":""}>${esc(t("kinds")[k])}</option>`).join("")}</select></label>
       <label class="field">${esc(t("fProduct"))}<select id="sProd"><option value=""></option>${CUSTOMERS.map(c=>`<optgroup label="${esc(tx(c,"name"))}">${PRODUCTS.filter(p=>p.customer===c.id).map(p=>`<option value="${esc(p.id)}"${p.id===f.pid?" selected":""}>${esc(p.id)} ${esc(tx(p,"name")||"")}</option>`).join("")}</optgroup>`).join("")}</select></label></div>
-    <label class="field">${esc(t("scanMemo"))}<textarea id="sMemo" style="min-height:70px">${esc(f.text||"")}</textarea></label>
+    <label class="field">${esc(t(isDoc?"docText":"scanMemo"))}<textarea id="sMemo" style="min-height:${isDoc?180:70}px">${esc(f.text||"")}</textarea></label>
     <label class="field">${esc(t("fPhotos"))}<input id="sPhotos" type="file" accept="image/*" multiple></label><div class="previews" id="sPrev"></div>
+    ${isDoc?`<label class="field">${esc(t("fFiles"))}<input id="sFiles" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.xlsm,.ppt,.pptx,.msg,.eml,.txt,.csv,image/*,application/pdf"></label><ul class="bul" id="sFileList" style="margin-bottom:8px"></ul>`:""}
     <div class="actions"><button class="btn" type="button" id="sSave">${esc(t("save"))}</button><button class="btn ghost" type="button" id="sCancel">${esc(t("cancel"))}</button></div><div class="err" id="sErr"></div></div>`;
 }
 function wireScanForm(){
-  const sb = document.getElementById("sendScan"); if(sb) sb.addEventListener("click", ()=>{ SFORM = {kind:"drawing", files:[]}; route(true); });
+  const sb = document.getElementById("sendScan"); if(sb) sb.addEventListener("click", ()=>{ SFORM = {kind:"drawing", files:[], docs:[]}; route(true); });
   const box = document.getElementById("scanForm"); if(!box || !SFORM) return;
-  const $ = id => document.getElementById(id), files = SFORM.files;
-  const prev = () => { $("sPrev").innerHTML = files.map(f=>`<img src="${URL.createObjectURL(f)}" alt="">`).join(""); };
+  const $ = id => document.getElementById(id), files = SFORM.files, docs = SFORM.docs || (SFORM.docs = []);
+  const prev = () => { $("sPrev").innerHTML = files.map(f=>`<img src="${URL.createObjectURL(f)}" alt="">`).join(""); if($("sFileList")) $("sFileList").innerHTML = docs.map(d=>`<li>${esc(d.name)} <span class="sub">${Math.ceil(d.size/1024)} KB</span></li>`).join(""); };
   prev();
   const keep = () => { SFORM.kind = $("sKind").value; SFORM.pid = $("sProd").value || null; SFORM.text = $("sMemo").value; };
   box.querySelectorAll("select,textarea").forEach(el => el.addEventListener("input", ()=>{ keep(); $("sErr").textContent = ""; }));
+  $("sKind").addEventListener("change", ()=>{ keep(); route(true); });
   $("sPhotos").addEventListener("change", e => { const add = [...e.target.files]; if(files.length + add.length > 4) $("sErr").textContent = t("tooMany"); files.push(...add.slice(0, 4-files.length)); e.target.value = ""; prev(); });
+  if($("sFiles")) $("sFiles").addEventListener("change", e => { for(const fl of e.target.files){ if(fl.size > MAX_FILE){ $("sErr").textContent = t("tooBig") + fl.name; continue; } docs.push(fl); } e.target.value = ""; prev(); });
   $("sCancel").addEventListener("click", ()=>{ SFORM = null; route(true); });
   $("sSave").addEventListener("click", async ()=>{
-    keep(); const err = $("sErr"), btn = $("sSave"), f = SFORM;
-    if(!files.length){ err.textContent = t("scanNeedPhoto"); return; }
+    keep(); const err = $("sErr"), btn = $("sSave"), f = SFORM, isDoc = f.kind==="document";
+    const useDocs = isDoc ? docs : [];
+    if(!files.length && !useDocs.length && !(isDoc && (f.text||"").trim())){ err.textContent = t(isDoc ? "needDoc" : "scanNeedPhoto"); return; }
     btn.disabled = true; btn.textContent = t("saving"); err.textContent = "";
     try{
-      const photoIds = [];
+      const photoIds = [], fileRefs = [];
       for(const file of files){ const id = newId(); const data = await shrinkPhoto(file); await putFile(`${CONF.photos}${id}.enc.json`, JSON.stringify(await encryptJSON({type:"image/jpeg", data}, PW)), null, `photo: scan by ${EDIT.name}`); PHOTOS.set(id, `data:image/jpeg;base64,${data}`); photoIds.push(id); }
+      for(const file of useDocs){ const id = newId(); const data = u8b64(new Uint8Array(await file.arrayBuffer())); await putFile(`files/${id}.enc.json`, JSON.stringify(await encryptJSON({name:file.name, type:file.type||"application/octet-stream", data}, PW)), null, `file: scan by ${EDIT.name}`); fileRefs.push({id, name:file.name, type:file.type||"", size:file.size}); }
       const p = byP[f.pid];
-      const entry = {id:newId(), type:"scan", kind:f.kind, product:f.pid||null, customer:p?p.customer:null, text:(f.text||"").trim(), photos:photoIds, scanStatus:"未取込", date:today(), author:EDIT.name, createdAt:new Date().toISOString()};
+      const entry = {id:newId(), type:"scan", kind:f.kind, product:f.pid||null, customer:p?p.customer:null, text:(f.text||"").trim(), photos:photoIds, files:fileRefs, scanStatus:"未取込", date:today(), author:EDIT.name, createdAt:new Date().toISOString()};
       await updateField(d => d.entries.push(entry), `scan: ${entry.kind} by ${EDIT.name}`);
       SFORM = null; FLASH = t("saved"); route(true);
     }catch(x){ btn.disabled = false; btn.textContent = t("save"); err.textContent = t("saveFail") + x.message; }
   });
+}
+/* Attached files: decrypted on demand and handed to the browser as a download. */
+function filesHTML(list){
+  if(!(list||[]).length) return "";
+  return `<h3>${esc(t("attachments"))}</h3><ul class="doclist">${list.map(f=>`<li><div style="font-size:14px">${esc(f.name)} <span class="sub">${Math.ceil((f.size||0)/1024)} KB</span></div><button type="button" class="copy" data-file="${esc(f.id)}" data-name="${esc(f.name)}">${esc(t("download"))}</button></li>`).join("")}</ul>`;
+}
+function wireFiles(root){
+  root.querySelectorAll("[data-file]").forEach(b => b.addEventListener("click", async ()=>{
+    const id = b.dataset.file, label = b.textContent; b.disabled = true; b.textContent = t("loading");
+    try{
+      let e = await fetchEnc(`files/${id}.enc.json`, false).catch(()=>null);
+      if(!e && EDIT){ const j = await gh("GET", `files/${id}.enc.json`); if(j && j.content) e = JSON.parse(ghText(j)); }
+      if(!e) throw new Error(t("photoWait"));
+      const f = await decryptJSON(e, PW);
+      const url = URL.createObjectURL(new Blob([b64(f.data)], {type:f.type||"application/octet-stream"}));
+      const a = document.createElement("a"); a.href = url; a.download = f.name || b.dataset.name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 60000); b.textContent = label;
+    }catch(x){ b.textContent = x.message; }
+    b.disabled = false;
+  }));
 }
 function fieldIssueItem(e){
   const p = byP[e.product];
@@ -722,7 +751,8 @@ function renderCustomer(c){
   const models = [...new Set(ps.map(p=>p.model).filter(Boolean))];
   if(MODEL!=="*" && !models.includes(MODEL)) MODEL = "*";
   const shown = ps.filter(p => MODEL==="*" || p.model===MODEL);
-  const is = ISSUES.filter(i=>i.customer===c.id), fis = fieldIssues(c.id), ev = EVENTS.filter(e=>e.customer===c.id);
+  const is = ISSUES.filter(i=>i.customer===c.id), fis = fieldIssues(c.id);
+  const ev = [...EVENTS.filter(e=>e.customer===c.id), ...FIELD.entries.filter(e=>e.type==="event" && !e.deleted && e.customer===c.id).map(e=>({date:e.date, title:e.title||firstLine(e.text), summary:e.title?e.text:"", entryId:e.id}))].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   main.innerHTML = `<a class="back" href="#">${esc(t("backHome"))}</a>
     <div class="card"><div class="title"><span class="name" style="font-size:20px;font-weight:700">${esc(tx(c,"name"))}</span></div>${c.fullName?`<div class="sub">${esc(c.fullName)}${c.line?` ・ ${esc(t("chips").line)} ${esc(c.line)}`:""}</div>`:""}
       ${(JA() && (c.contacts||[]).length)?`<div class="chips">${c.contacts.map(x=>`<span class="chip"><b>${esc(t("contacts"))}</b>${esc(x.name)}${x.role?`（${esc(x.role)}）`:""}</span>`).join("")}</div>`:""}
@@ -731,7 +761,7 @@ function renderCustomer(c){
       ${models.length>1?`<div class="filters">${["*",...models].map(m=>`<button type="button" data-model="${esc(m)}" aria-pressed="${m===MODEL}">${esc(m==="*"?t("all"):m)}</button>`).join("")}</div>`:""}
       <ul class="list">${shown.map(productItem).join("")}</ul></div>
     ${(is.length||fis.length)?`<div class="card"><h2>${esc(t("issues"))}</h2><ul class="list">${is.map(issueItem).join("")}${fis.map(fieldIssueItem).join("")}</ul></div>`:""}
-    ${(JA() && ev.length)?`<div class="card"><h2>${esc(t("events"))}</h2><ul class="list">${ev.map(e=>`<li style="padding:9px 2px"><div><span class="num">${esc(e.date)}</span> ${esc(e.title)}</div>${e.summary?`<div class="meta">${esc(e.summary)}</div>`:""}</li>`).join("")}</ul></div>`:""}
+    ${(JA() && ev.length)?`<div class="card"><h2>${esc(t("events"))}</h2><ul class="list">${ev.map(e=>`<li style="padding:9px 2px"><div><span class="num">${esc(e.date)}</span> ${e.entryId?`<a href="#e/${encodeURIComponent(e.entryId)}" style="color:var(--accent)">${esc(e.title)}</a>`:esc(e.title)}</div>${e.summary?`<div class="meta" style="white-space:pre-wrap">${esc(e.summary)}</div>`:""}</li>`).join("")}</ul></div>`:""}
     ${(JA() && (c.docs||[]).length)?`<div class="card"><h2>${esc(t("docs"))}</h2>${docList(c.docs)}</div>`:""}`;
   main.querySelectorAll("[data-model]").forEach(b=>b.addEventListener("click",()=>{ MODEL = b.dataset.model; renderCustomer(c); }));
   wireCopy(main);
@@ -757,13 +787,13 @@ function renderEntry(e){
       <div class="title" style="margin-top:4px"><span class="tag ${esc(e.type)}" style="margin-left:0">${esc(t("types")[e.type]||e.type)}</span>${e.type==="issue"?statusTag(entryStatus(e)):""}${e.type==="scan"?scanTag(e):""}${e.deleted?`<span class="tag">${esc(t("undone"))}</span>`:""}</div>
       <div class="name" style="font-size:18px;font-weight:500;margin-top:6px">${esc(e.title || firstLine(e.text) || (e.type==="scan" ? t("kinds")[e.kind] : ""))}</div>
       <dl class="kv" style="margin-top:12px">${row("product", p?`<a href="#${encodeURIComponent(p.id)}" class="num">${esc(p.id)}</a> ${esc(tx(p,"name"))}`:"")}${row("customer", c?esc(tx(c,"name")):"")}${row("parentIssue", parent)}${row("scanKind", e.type==="scan" ? esc(t("kinds")[e.kind]||e.kind||"") : "")}${row("fromScan", e.fromScan ? `<a href="#e/${encodeURIComponent(e.fromScan)}">${esc(t("scanCard"))}</a>` : "")}${row("fDate", esc(e.date))}${row("fLot", e.lot?esc(e.lot):"")}${row("fQty", e.qty?fmt(e.qty):"")}${row("author", esc(e.author))}${row("createdAt", fmtAt(e.createdAt))}</dl>
-      ${e.text?`<p class="txt" style="white-space:pre-wrap;overflow-wrap:anywhere;margin:14px 0 0;font-size:15.5px">${esc(e.text)}</p>`:""}${tableHTML(e.table)}
+      ${e.text?`<p class="txt" style="white-space:pre-wrap;overflow-wrap:anywhere;margin:14px 0 0;font-size:15.5px">${esc(e.text)}</p>`:""}${tableHTML(e.table)}${filesHTML(e.files)}
       ${(e.photos||[]).length?`<div class="bimgs">${e.photos.map(id=>`<div data-bimg="${esc(id)}"><div class="wait">${esc(t("loading"))}</div></div>`).join("")}</div>`:""}
       ${(EDIT && !e.deleted)?`<div class="actions" style="margin-top:12px"><button type="button" class="linkbtn" data-undo="${esc(e.id)}">${esc(t("undo"))}</button></div>`:""}</div>
     ${(e.type==="issue" && !e.deleted)?`<div class="card">${statusPanel(key)}</div><div class="card">${linkedPanel(key, e.product, e.customer)}</div>`:""}
     ${(e.type==="scan" && (e.results||[]).length)?`<div class="card"><h2>${esc(t("results"))}</h2><ul class="list">${e.results.map(r=>r.kind==="product" ? (byP[r.id] ? productItem(byP[r.id]) : "") : (entryById(r.id) ? `<li style="border:0">${entryCard(entryById(r.id), true)}</li>` : "")).join("")}</ul></div>`:""}`;
   main.querySelectorAll("[data-bimg]").forEach(async box => { const url = await photoURL(box.dataset.bimg).catch(()=>null); box.innerHTML = url ? `<img src="${url}" alt="">` : `<div class="wait">${esc(t("photoWait"))}</div>`; });
-  wireStatus(); wireLinked(); wireForm(); wireEntries(main);
+  wireFiles(main); wireStatus(); wireLinked(); wireForm(); wireEntries(main);
 }
 function priceBlock(p){
   const pr = p.price; if(!pr) return "";
@@ -839,7 +869,7 @@ function renderProduct(p){
   const formFor = kinds => (FORM && FORM.pid===p.id && !FORM.parent && !FORM.pickProduct && kinds.includes(FORM.type)) ? formHTML() : (EDIT ? addButtons(kinds) : "");
   const panels = {
     info: () => `${(PFORM && !PFORM.isNew && PFORM.pid===p.id) ? productFormHTML() : (EDIT ? `<div class="addbar"><button type="button" class="btn small ghost" id="editProd">${esc(t("editProduct"))}</button></div>` : "")}
-      ${p.finishSpec?`<h3 style="margin-top:0">${esc(t("finishSpec"))}</h3><p class="note">${esc(p.finishSpec)}</p>`:""}
+      ${p.finishSpec?`<h3 style="margin-top:0">${esc(t("finishSpec"))}</h3><p class="note" style="white-space:pre-wrap">${esc(p.finishSpec)}</p>`:""}
       ${JA() ? (p.price ? priceBlock(p) : quoteBlock(p)) : ""}
       ${(JA() && (p.notes||[]).length)?`<h3>${esc(t("notes"))}</h3><ul class="bul">${p.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul>`:""}
       ${(p.similar||[]).length?`<h3>${esc(t("similar"))}</h3><ul class="list">${p.similar.map(s=>byP[s[0]]?productItem(byP[s[0]]).replace("</a></li>", `<div class="meta">${esc(JA()?s[1]:(s[2]||s[1]))}</div></a></li>`):"").join("")}</ul>`:""}
