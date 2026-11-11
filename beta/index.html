@@ -1,128 +1,194 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja" data-theme="dark">
 <head>
 <meta charset="utf-8">
+<script>try{ if(localStorage.getItem("karte.theme")==="light") document.documentElement.setAttribute("data-theme","light"); }catch(e){}</script>
+<meta name="theme-color" content="#0b0e10">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>製品カルテ</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: one column, phone first. Lock screen → header (search, language, edit) → home / customer / product / issue (from #hash). */
+/* Layout: one column, phone first. Lock screen → header (search, language, edit) → home / customer / product / issue (from #hash).
+   Look: dark graphite + anodized teal/blue accents by default (data-theme="light" for a bright version). Part numbers in mono. */
 :root{
-  --bg:#f6f7f4; --fg:#1d2420; --muted:#5d665f; --line:#d7dbd3; --card:#ffffff;
-  --accent:#1f5f4a; --accent-fg:#ffffff; --soft:#e7efe9; --warn:#9a4a00; --warn-bg:#fff3e2; --bad:#9b1c1c; --bad-bg:#fde9e9; --ok:#1d6b35; --ok-bg:#e6f4ea;
+  --bg:#0b0e10; --bg2:#0f1417; --fg:#e7ecef; --muted:#8d99a2; --line:#222a30; --line2:#2f3a42; --card:#12171b; --card2:#161d22;
+  --accent:#4fd6c4; --accent2:#7ea6ff; --accent-fg:#04201c; --soft:#19232a; --glow:rgba(79,214,196,.16);
+  --warn:#f4b860; --warn-bg:#2a2112; --bad:#ff8f86; --bad-bg:#2f1715; --ok:#72dc9d; --ok-bg:#12261b;
+  --grid:rgba(126,166,255,.07); --shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 8px 24px rgba(0,0,0,.25);
   --sans:"Noto Sans JP","Noto Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#141916; --fg:#e8ebe6; --muted:#a3aca5; --line:#2d3630; --card:#1c231f; --accent:#7fc9a9; --accent-fg:#0d1a14; --soft:#1f2d26; --warn:#ffb974; --warn-bg:#2d2416; --bad:#ff9b9b; --bad-bg:#331a1a; --ok:#8fd6a3; --ok-bg:#16291c; color-scheme:dark } }
-:root[data-theme="dark"]{ --bg:#141916; --fg:#e8ebe6; --muted:#a3aca5; --line:#2d3630; --card:#1c231f; --accent:#7fc9a9; --accent-fg:#0d1a14; --soft:#1f2d26; --warn:#ffb974; --warn-bg:#2d2416; --bad:#ff9b9b; --bad-bg:#331a1a; --ok:#8fd6a3; --ok-bg:#16291c; color-scheme:dark }
+:root[data-theme="light"]{
+  --bg:#f2f4f5; --bg2:#e9edef; --fg:#13191d; --muted:#5a6670; --line:#dbe1e5; --line2:#c9d2d8; --card:#ffffff; --card2:#fbfcfc;
+  --accent:#0c7a70; --accent2:#2f5bd3; --accent-fg:#ffffff; --soft:#e7eef0; --glow:rgba(12,122,112,.10);
+  --warn:#94500a; --warn-bg:#fff2df; --bad:#a3221c; --bad-bg:#fde8e6; --ok:#1a6b37; --ok-bg:#e4f4e9;
+  --grid:rgba(47,91,211,.06); --shadow:0 1px 2px rgba(16,24,40,.05), 0 6px 18px rgba(16,24,40,.05);
+  color-scheme:light;
+}
 :root[lang="th"]{ --sans:"Noto Sans Thai","Noto Sans JP",system-ui,sans-serif }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.6;margin:0;padding-block:0 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));-webkit-text-size-adjust:100%}
-.wrap{max-width:760px;margin:0 auto}
-header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:12px 0 10px;z-index:5;border-bottom:1px solid var(--line)}
+html{background:var(--bg)}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.6;margin:0;padding-block:0 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));-webkit-text-size-adjust:100%;min-height:100vh}
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(900px 420px at 85% -10%,var(--glow),transparent 70%),radial-gradient(700px 380px at -10% 0%,rgba(126,166,255,.08),transparent 70%)}
+.wrap{max-width:900px;margin:0 auto}
+a{color:var(--accent)}
+/* header: compact + sticky on inner pages, large hero on home */
+header{position:sticky;top:env(safe-area-inset-top,0px);background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);padding:12px 0 12px;z-index:5;border-bottom:1px solid var(--line)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
-.brand{display:flex;align-items:center;gap:8px 10px;margin-bottom:8px;flex-wrap:wrap}
-.brand h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.02em}
+.brand{display:flex;align-items:center;gap:8px 12px;margin-bottom:10px;flex-wrap:wrap}
+.logo{width:30px;height:30px;flex:0 0 auto;display:block}
+.brand .bt{display:flex;flex-direction:column;min-width:0;flex:1 1 auto}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;line-height:1.3}
+.brand h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.04em;line-height:1.3}
 .brand h1 a{color:inherit;text-decoration:none}
-.brand small{color:var(--muted);font-size:12px;flex:1 1 auto}
-.tools{display:flex;gap:4px;margin-left:auto;align-items:center}
-.tools button{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px}
-.tools button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.brand small{color:var(--muted);font-size:12px;display:none}
+.tools{display:flex;gap:6px;margin-left:auto;align-items:center}
+.tools button{font:inherit;font-size:12.5px;padding:5px 11px;border:1px solid var(--line2);background:var(--card);color:var(--fg);border-radius:999px;cursor:pointer}
+.tools button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .tools .editbtn.on{background:var(--warn-bg);color:var(--warn);border-color:var(--warn)}
-.search{display:flex;gap:8px}
-.search input,.lock input,.field input,.field select,.field textarea{flex:1;min-width:0;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg);width:100%}
+.tools .themebtn{width:32px;height:30px;padding:0;display:flex;align-items:center;justify-content:center}
+.seg{display:flex;border:1px solid var(--line2);border-radius:999px;padding:2px;background:var(--card)}
+.seg button{border:0!important;padding:3px 10px!important;background:transparent}
+.search{display:flex;gap:8px;position:relative}
+.search .sicon{position:absolute;left:13px;top:50%;width:18px;height:18px;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.search input{padding-left:40px!important}
+.search input,.lock input,.field input,.field select,.field textarea{flex:1;min-width:0;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line2);border-radius:10px;background:var(--card);color:var(--fg);width:100%}
 .search input,.lock input{font-family:var(--mono)}
-.search input:focus,.lock input:focus,.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
-.btn,.search button,.lock button{font:inherit;padding:10px 16px;border:0;border-radius:8px;background:var(--accent);color:var(--accent-fg);font-weight:500;cursor:pointer}
-.btn.ghost{background:var(--card);color:var(--fg);border:1px solid var(--line)}
-.btn.small{font-size:13.5px;padding:7px 12px}
+.search input::placeholder{font-family:var(--sans);color:var(--muted)}
+.search input:focus,.lock input:focus,.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+.btn,.search button,.lock button{font:inherit;padding:10px 18px;border:0;border-radius:10px;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 60%,var(--accent2)));color:var(--accent-fg);font-weight:700;cursor:pointer;letter-spacing:.02em}
+.btn.ghost{background:var(--card);color:var(--fg);border:1px solid var(--line2);font-weight:500}
+.btn.small{font-size:13.5px;padding:7px 13px}
 .btn:disabled{opacity:.55;cursor:default}
-.hint{font-size:12px;color:var(--muted);margin:6px 0 0}
-main{padding-top:14px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:12px}
-.lock{max-width:420px;margin:48px auto 0;text-align:center}
-.lock h2{font-size:18px;margin:0 0 6px}
-.lock p{color:var(--muted);font-size:14px;margin:0 0 14px}
+.hint{font-size:12px;color:var(--muted);margin:8px 0 0}
+body.is-home header{position:relative;top:auto;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;border-bottom:0;padding:26px 0 6px}
+body.is-home header::before{content:"";position:absolute;inset:0 -16px;z-index:-1;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px;-webkit-mask-image:linear-gradient(180deg,#000 30%,transparent);mask-image:linear-gradient(180deg,#000 30%,transparent)}
+body.is-home .brand{margin-bottom:22px}
+body.is-home .logo{width:44px;height:44px}
+body.is-home .brand h1{font-size:28px}
+body.is-home .brand small{display:block;font-size:13px;margin-top:2px}
+body.is-home .search input{font-size:18px;padding:15px 14px 15px 46px!important;border-radius:14px;background:var(--card2);border-color:var(--line2)}
+body.is-home .search .sicon{left:16px;width:20px;height:20px}
+body.is-home .search button{padding:0 22px;border-radius:14px;font-size:16px}
+main{padding-top:16px}
+.card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.lock{max-width:420px;margin:48px auto 0;text-align:center;padding:28px 22px}
+.lock .logo{width:52px;height:52px;margin:0 auto 12px}
+.lock h2{font-size:18px;margin:0 0 6px;justify-content:center}
+.lock h2::before{display:none}
+.lock p{color:var(--muted);font-size:14px;margin:0 0 16px}
 .lock form{display:flex;gap:8px}
 .err{color:var(--bad);font-size:13px;margin-top:8px;min-height:1.2em}
-.okmsg{color:var(--ok);font-size:13px;margin-top:8px}
-.title{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
-.title .no{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:.01em;overflow-wrap:anywhere}
+.okmsg{color:var(--ok);font-size:13px;margin:0 0 10px;background:var(--ok-bg);border-radius:8px;padding:8px 12px}
+.title{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+.title .no{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.01em;overflow-wrap:anywhere;line-height:1.25}
 .title .name{font-size:17px;font-weight:500}
-.sub{color:var(--muted);font-size:13px;margin-top:2px}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.chip{font-size:12.5px;padding:3px 9px;border-radius:999px;background:var(--soft);color:var(--fg)}
-.chip b{font-weight:500;color:var(--muted);margin-right:4px}
-.tag{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:999px;background:var(--soft);color:var(--muted);margin-left:6px;vertical-align:middle;white-space:nowrap}
-.tag.black{background:#2b2f2c;color:#f2f2ee}
-.tag.clear{background:#dcefff;color:#0c447c}
-.tag.gray{background:#d3d1c7;color:#2c2c2a}
-.tag.issue{background:var(--bad-bg);color:var(--bad)}
+.sub{color:var(--muted);font-size:13px;margin-top:3px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{font-size:12.5px;padding:4px 10px;border-radius:8px;background:var(--soft);color:var(--fg);border:1px solid var(--line)}
+.chip b{font-weight:500;color:var(--muted);margin-right:5px}
+.tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;background:var(--soft);color:var(--muted);margin-left:6px;vertical-align:middle;white-space:nowrap;border:1px solid transparent;font-weight:500}
+.tag.black{background:#050607;color:#e9eef1;border-color:#3a434a}
+.tag.clear{background:#d9ecff;color:#0c447c}
+.tag.gray{background:#cfd3d6;color:#2a2e31}
+.tag.issue,.tag.bad{background:var(--bad-bg);color:var(--bad)}
 .tag.action{background:var(--ok-bg);color:var(--ok)}
 .tag.memo{background:var(--warn-bg);color:var(--warn)}
 .tag.open{background:var(--warn-bg);color:var(--warn)}
 .tag.scan,.tag.receipt,.tag.inspection{background:var(--soft);color:var(--accent)}
 .tag.done{background:var(--ok-bg);color:var(--ok)}
-.tabs{display:flex;gap:4px;overflow-x:auto;margin:4px 0 10px;padding-bottom:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.tabs button{flex:0 0 auto;font:inherit;font-size:15px;padding:9px 14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px}
-.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
-.tabs button .cnt{font-size:11px;margin-left:5px;opacity:.8}
+.tag.st{background:transparent;border-color:var(--line2);color:var(--muted)}
+.tabs{display:flex;gap:2px;overflow-x:auto;margin:4px 0 12px;padding:3px;scrollbar-width:none;-webkit-overflow-scrolling:touch;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.tabs button{flex:1 0 auto;font:inherit;font-size:14.5px;padding:8px 14px;border:0;background:transparent;color:var(--muted);border-radius:9px;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{background:var(--soft);color:var(--fg);box-shadow:inset 0 -2px 0 var(--accent)}
+.tabs button .cnt{font-size:11px;margin-left:5px;opacity:.85;font-family:var(--mono)}
 .filters{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px}
-.filters button{font:inherit;font-size:13px;padding:4px 11px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px}
-.filters button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
-h2{font-size:16px;margin:0 0 8px;text-wrap:balance}
-h3{font-size:13px;margin:16px 0 6px;color:var(--muted);letter-spacing:.04em;font-weight:500}
+.filters button{font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--line2);background:transparent;color:var(--fg);border-radius:999px;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:500}
+h2{font-size:15px;margin:0 0 12px;text-wrap:balance;display:flex;align-items:center;gap:8px;letter-spacing:.03em}
+h2::before{content:"";width:3px;height:15px;border-radius:2px;background:linear-gradient(var(--accent),var(--accent2));flex:0 0 auto}
+h2 .sub{margin:0;font-weight:400;font-family:var(--mono)}
+h3{font-size:12px;margin:18px 0 8px;color:var(--muted);letter-spacing:.08em;font-weight:500}
 .kv{display:grid;grid-template-columns:minmax(90px,32%) 1fr;gap:6px 12px;font-size:14.5px;margin:0}
-.kv a{color:var(--accent)}
 .kv dt{color:var(--muted)}.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.price{font-family:var(--mono);font-size:28px;font-weight:600;color:var(--accent)}
+.price{font-family:var(--mono);font-size:30px;font-weight:600;color:var(--accent);letter-spacing:-.01em}
 .price small{font-size:13px;font-weight:400;color:var(--muted);font-family:var(--sans)}
 table{border-collapse:collapse;width:100%;font-size:14px}
 .tblwrap{overflow-x:auto}
 th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
-th{color:var(--muted);font-weight:500;font-size:12.5px}
+th{color:var(--muted);font-weight:500;font-size:12px;letter-spacing:.03em}
 td.num,th.num{text-align:right}
-.note{background:var(--soft);border-radius:8px;padding:10px 12px;font-size:14px;margin:0}
+.note{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;margin:0}
 .bul{margin:0;padding-left:18px;font-size:14.5px}
-.bul li{margin:2px 0}
+.bul li{margin:3px 0}
+.bul li::marker{color:var(--accent)}
 .flow{list-style:none;margin:0;padding:0;counter-reset:step}
-.flow li{position:relative;padding:0 0 14px 34px;counter-increment:step}
-.flow li::before{content:counter(step);position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-fg);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:var(--mono)}
-.flow li::after{content:"";position:absolute;left:11px;top:26px;bottom:0;width:2px;background:var(--line)}
+.flow li{position:relative;padding:0 0 14px 36px;counter-increment:step}
+.flow li::before{content:counter(step);position:absolute;left:0;top:0;width:25px;height:25px;border-radius:8px;background:var(--soft);border:1px solid var(--accent);color:var(--accent);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;font-family:var(--mono)}
+.flow li::after{content:"";position:absolute;left:12px;top:27px;bottom:0;width:1px;background:var(--line2)}
 .flow li:last-child::after{display:none}
 .flow .st{font-weight:500}.flow .sd{font-size:13.5px;color:var(--muted)}
 .docs{display:flex;flex-direction:column;gap:14px}
 .doc h4{font-size:14px;margin:0 0 6px;font-weight:500}
 .doc .pages{display:flex;flex-direction:column;gap:8px}
-.doc img{width:100%;max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;background:#fff;display:block}
+.doc img{width:100%;max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fff;display:block}
 .pagebar{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--muted);margin-top:4px}
-.pagebar button{font:inherit;font-size:12.5px;padding:4px 10px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:6px}
-.zoomwrap{overflow:auto;max-height:80vh;border-radius:6px}
+.pagebar button{font:inherit;font-size:12.5px;padding:4px 10px;border:1px solid var(--line2);background:var(--card);color:var(--fg);border-radius:6px}
+.zoomwrap{overflow:auto;max-height:80vh;border-radius:8px}
 .zoomwrap img.zoomed{width:200%;max-width:none}
 .list{list-style:none;margin:0;padding:0}
 .list li{border-bottom:1px solid var(--line)}
 .list li:last-child{border-bottom:0}
-.list a{display:block;padding:11px 2px;color:inherit;text-decoration:none}
+.list a{display:block;padding:11px 8px;margin:0 -8px;color:inherit;text-decoration:none;border-radius:8px;transition:background .12s}
 .list a:hover,.list a:focus-visible{background:var(--soft);outline:none}
-.list .no{font-family:var(--mono);font-weight:600}
-.list .meta{font-size:13px;color:var(--muted)}
-.cust{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
-.cust a{display:block;border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:inherit;text-decoration:none;background:var(--card)}
-.cust a:hover,.cust a:focus-visible{border-color:var(--accent);outline:none}
-.cust .nm{font-weight:700;font-size:16px}
-.cust .meta{font-size:12.5px;color:var(--muted)}
-.path{font-family:var(--mono);font-size:12px;overflow-wrap:anywhere;background:var(--soft);padding:8px 10px;border-radius:6px}
-.copy{font:inherit;font-size:12.5px;padding:4px 10px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:6px;margin-top:6px}
+.list .no{font-family:var(--mono);font-weight:600;letter-spacing:.01em}
+.list .meta{font-size:12.5px;color:var(--muted);margin-top:1px}
+.list .pr{float:right;font-family:var(--mono);font-size:13.5px;color:var(--accent);margin-left:8px}
+/* home */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:4px 0 14px}
+.stat{display:flex;flex-direction:column;gap:2px;text-align:left;font:inherit;color:inherit;background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;cursor:pointer;position:relative;overflow:hidden;box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
+.stat::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:.75}
+.stat.warn::after{background:linear-gradient(90deg,var(--warn),var(--bad))}
+.stat:hover,.stat:focus-visible{border-color:var(--accent);outline:none;transform:translateY(-1px)}
+.stat .lb{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.stat .v{font-family:var(--mono);font-size:32px;font-weight:600;line-height:1.15;letter-spacing:-.02em}
+.stat.warn .v{color:var(--warn)}
+.stat .go{font-size:11.5px;color:var(--accent)}
+.stat.warn .go{color:var(--warn)}
+@media (max-width:640px){ .stats{grid-template-columns:1fr 1fr} .stat .v{font-size:28px} }
+.cust{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.cust a,.cust .ct{min-width:0}
+@media (max-width:520px){ .cust{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px} .cust a{padding:10px;gap:9px} .mono{width:34px;height:34px;font-size:12.5px} .cust .nm{font-size:14px} }
+.cust a{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:12px;color:inherit;text-decoration:none;background:var(--card);transition:border-color .15s,background .15s}
+.cust a:hover,.cust a:focus-visible{border-color:var(--accent);background:var(--soft);outline:none}
+.mono{width:40px;height:40px;flex:0 0 auto;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:600;font-size:14px;color:var(--fg);background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 28%,var(--card)),color-mix(in srgb,var(--accent2) 22%,var(--card)));border:1px solid var(--line2);letter-spacing:.02em}
+.cust .ct{min-width:0}
+.cust .nm{font-weight:700;font-size:15px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cust .meta{font-size:12px;color:var(--muted)}
+.cust .meta .o{color:var(--warn)}
+.sechead{display:flex;align-items:baseline;gap:8px;justify-content:space-between}
+.sechead h2{margin-bottom:12px}
+body:not(.is-home) #hint{display:none}
+body:not(.is-home) .brand{flex-wrap:nowrap;margin-bottom:8px}
+.eyebrow{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:520px){ body:not(.is-home) .eyebrow{display:none} body:not(.is-home) .tools{gap:4px} body:not(.is-home) .tools .seg button{padding:3px 8px!important} body:not(.is-home) .search input{padding-top:8px;padding-bottom:8px} body:not(.is-home) .search button{padding:8px 14px} }
+.list .pr small{font-size:11px;color:var(--muted);font-family:var(--sans)}
+.howto{align-items:center;display:flex;gap:6px 18px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.howto span::before{content:attr(data-n);display:inline-flex;width:18px;height:18px;border-radius:50%;border:1px solid var(--line2);font-family:var(--mono);font-size:10.5px;align-items:center;justify-content:center;margin-right:6px;color:var(--accent)}
+.path{font-family:var(--mono);font-size:12px;overflow-wrap:anywhere;background:var(--soft);padding:8px 10px;border-radius:8px;border:1px solid var(--line)}
+.copy{font:inherit;font-size:12.5px;padding:4px 10px;border:1px solid var(--line2);background:var(--card);color:var(--fg);border-radius:6px;margin-top:6px;cursor:pointer}
 .doclist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
-.back{display:inline-block;margin-bottom:10px;color:var(--accent);text-decoration:none;font-size:15px}
+.back{display:inline-flex;align-items:center;gap:4px;margin-bottom:12px;color:var(--muted);text-decoration:none;font-size:14px}
+.back:hover{color:var(--accent)}
 .empty{color:var(--muted);text-align:center;padding:20px 0;margin:0}
 .loading{color:var(--muted);font-size:14px;padding:10px 0}
-.entry{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.entry{border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:10px;background:var(--card)}
 .entry.deleted{opacity:.5}
 .entry.deleted .txt{text-decoration:line-through}
-.entry .head{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;font-size:13px;color:var(--muted)}
+.entry .head{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;font-size:12.5px;color:var(--muted)}
 .entry .head .tag{margin-left:0}
 .entry .txt{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 0;font-size:15px}
 .entry .prod{font-family:var(--mono);font-size:13px;color:var(--accent);text-decoration:none}
@@ -131,40 +197,42 @@ td.num,th.num{text-align:right}
 .txtlink{color:inherit;text-decoration:none}
 .txtlink:hover{text-decoration:underline}
 .bimgs{display:flex;flex-direction:column;gap:10px;margin-top:12px}
-.bimgs img{width:100%;border-radius:8px;border:1px solid var(--line);display:block}
-.bimgs .wait{font-size:13px;color:var(--muted);background:var(--soft);border-radius:8px;padding:18px;text-align:center}
-.fgroup{margin:8px 0 2px}
-.flabel{display:block;font-size:12.5px;color:var(--muted);margin-bottom:2px}
+.bimgs img{width:100%;border-radius:10px;border:1px solid var(--line);display:block}
+.bimgs .wait{font-size:13px;color:var(--muted);background:var(--soft);border-radius:10px;padding:18px;text-align:center}
+.fgroup{margin:10px 0 2px}
+.flabel{display:block;font-size:12px;color:var(--muted);margin-bottom:3px;letter-spacing:.04em}
 .statusbox{display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;align-items:end;margin-top:10px}
 .statusbox .field{margin-bottom:0}
 @media (max-width:520px){ .statusbox{grid-template-columns:1fr} }
 .photos{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.photos .ph{width:88px;height:88px;border-radius:6px;border:1px solid var(--line);background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);overflow:hidden;padding:0;cursor:pointer}
+.photos .ph{width:88px;height:88px;border-radius:8px;border:1px solid var(--line);background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);overflow:hidden;padding:0;cursor:pointer}
 .photos .ph img{width:100%;height:100%;object-fit:cover;display:block}
 .bigphoto{margin-top:8px}
-.bigphoto img{width:100%;border-radius:8px;border:1px solid var(--line);display:block}
-.form{border:1px solid var(--accent);border-radius:10px;padding:12px;margin-bottom:12px;background:var(--card)}
-.field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;font-size:13.5px;color:var(--muted)}
+.bigphoto img{width:100%;border-radius:10px;border:1px solid var(--line);display:block}
+.form{border:1px solid var(--accent);border-radius:14px;padding:14px;margin-bottom:14px;background:var(--card);box-shadow:0 0 0 3px var(--glow)}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;font-size:13px;color:var(--muted)}
 .field textarea{min-height:110px;resize:vertical;font-family:var(--sans)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;align-items:center}
 .addbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .previews{display:flex;gap:6px;flex-wrap:wrap}
-.previews img{width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+.previews img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
 .linkbtn{font:inherit;font-size:12.5px;color:var(--muted);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
 .linkbtn.armed{color:var(--bad);font-weight:500}
 .jaonly{font-size:11.5px;color:var(--muted)}
-footer{color:var(--muted);font-size:12px;margin-top:20px;text-align:center}
-@media (max-width:420px){ .row2{grid-template-columns:1fr} .title .no{font-size:20px} }
-@media (prefers-reduced-motion:no-preference){ .card{animation:in .18s ease-out} @keyframes in{from{opacity:.6;transform:translateY(3px)}to{opacity:1;transform:none}} }
+details summary{cursor:pointer}
+footer{color:var(--muted);font-size:11.5px;margin-top:28px;text-align:center;letter-spacing:.02em}
+@media (max-width:420px){ .row2{grid-template-columns:1fr} .title .no{font-size:22px} body.is-home .brand h1{font-size:24px} body.is-home .search button{padding:0 16px} }
+@media (prefers-reduced-motion:no-preference){ .card,.stat{animation:in .22s ease-out both} @keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}} }
 </style>
 </head>
 <body>
 <div class="wrap">
 <header>
-  <div class="brand"><h1><a href="#" id="h1">製品カルテ</a></h1><small id="brandSub"></small>
-    <div class="tools"><button type="button" class="editbtn" id="editBtn" hidden></button><span role="group" aria-label="language" style="display:flex;gap:4px"><button type="button" data-lang="ja" aria-pressed="true">日本語</button><button type="button" data-lang="th" aria-pressed="false">ไทย</button></span></div></div>
-  <form class="search" id="form" hidden><input id="q" type="search" autocomplete="off" aria-label="search"><button type="submit" id="qbtn"></button></form>
+  <div class="brand"><a href="#" aria-label="home" style="display:block"><svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent2)"/></linearGradient></defs><rect x="1.5" y="1.5" width="45" height="45" rx="12" fill="var(--card2)" stroke="url(#lg)" stroke-width="1.5"/><path d="M12 31 L24 37 L36 31" fill="none" stroke="url(#lg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/><path d="M12 24 L24 30 L36 24" fill="none" stroke="url(#lg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/><path d="M12 17 L24 11 L36 17 L24 23 Z" fill="url(#lg)"/></svg></a>
+    <div class="bt"><span class="eyebrow">Dydo-tec · Product Records</span><h1><a href="#" id="h1">製品カルテ</a></h1><small id="brandSub"></small></div>
+    <div class="tools"><button type="button" class="editbtn" id="editBtn" hidden></button><button type="button" class="themebtn" id="themeBtn" aria-label="theme"></button><span role="group" aria-label="language" class="seg"><button type="button" data-lang="ja" aria-pressed="true">日本語</button><button type="button" data-lang="th" aria-pressed="false">ไทย</button></span></div></div>
+  <form class="search" id="form" hidden><svg class="sicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" autocomplete="off" aria-label="search"><button type="submit" id="qbtn"></button></form>
   <p class="hint" id="hint"></p>
 </header>
 <main id="main"></main>
@@ -172,7 +240,7 @@ footer{color:var(--muted);font-size:12px;margin-top:20px;text-align:center}
 </div>
 
 <script>
-const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", repoDir:"beta/", build:"2026-11-03" };
+const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", repoDir:"beta/", build:"2026-11-11" };
 let PW = null, DATA = null, FIELD = {entries:[]}, FLOWDOCS = null, FLOW_LOADING = null, EDIT = null;
 let CUSTOMERS = [], PRODUCTS = [], ISSUES = [], EVENTS = [], FLOWSTEPS = [], CAUTIONS = [];
 let byP = {}, byC = {}, byI = {};
@@ -187,7 +255,8 @@ const today = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.
 const ls = { get(k){ try{ return localStorage.getItem(k) }catch(e){ return null } }, set(k,v){ try{ localStorage.setItem(k,v) }catch(e){} }, del(k){ try{ localStorage.removeItem(k) }catch(e){} } };
 
 const T = {
-  ja:{ title:"製品カルテ", sub:"Dydo-tec アルマイト 製品・工程・問題の記録", ph:"図番・品名・モデル・会社名（例 R47、T1301）", search:"検索", hint:"図面のQRを読むと、その製品のページが直接開きます。", lock:"ロックする",
+  ja:{ openShort:"未完了", qtyTiers:"数量別の単価", qtyCol:"数量", quotedAt:"見積依頼日", stProducts:"登録製品", stQuoting:"見積中", stOpen:"未完了の問題", stWeek:"今週の現場記録", goFind:"条件で探す →", goQuote:"一覧を見る →", goOpen:"確認する →", goRecent:"記録を見る →", recentQuotes:"最近の見積・登録", howto:["図番・品名で検索","会社から探す","図面のQRで直接開く"], nCust:n=>`${n} 社`, themeDark:"暗い画面にする", themeLight:"明るい画面にする",
+    title:"製品カルテ",sub:"Dydo-tec アルマイト 製品・工程・問題の記録", ph:"図番・品名・会社名", search:"検索", hint:"図面のQRを読むと、その製品のページが直接開きます。", lock:"ロックする",
     lockTitle:"パスワード", lockMsg:"社内担当者から受け取ったパスワードを入力してください。", lockHint:"このページは社内専用です。", open:"開く", checking:"確認中…", wrong:"パスワードが違います。", pw:"パスワード",
     home:"ホーム", customers:"会社", nProducts:n=>`${n} 製品`, nOpen:n=>n?`未完了の問題 ${n}`:"", openIssues:"未完了の問題", recent:"最近の現場記録", noRecent:"まだ記録はありません。",
     hitN:n=>`検索結果 ${n} 件`, none:"見つかりません。図番の一部、品名、モデル（R47 など）、会社名で探してください。", products:"製品", issues:"問題", events:"できごと", all:"すべて",
@@ -219,7 +288,8 @@ const T = {
     fType:"種類", fDate:"日付", fLot:"ロット・T/T 番号", fQty:"数量（個）", fText:"内容", fTextPh:"何が起きたか・何をしたか・気をつけること", fPhotos:"写真（4 枚まで）", save:"保存する", saving:"保存中…", saved:"保存しました。ほかの人の画面には 1〜2 分で出ます。", needText:"内容を書いてください。", tooMany:"写真は 4 枚までです。", saveFail:"保存できませんでした：",
     photoWait:"写真は反映待ち（1〜2 分）", photoLoad:"写真", undo:"取り消す", undone:"取り消し済み", confirmUndo:"もう一度押すと取り消します（履歴には残ります）", by:"記録", jaText:"",
     foot:"社内専用・パスワードは社内の担当者へ ・ 現場の記録は GitHub に暗号化して保存され、履歴が残ります" },
-  th:{ title:"บัตรข้อมูลสินค้า", sub:"Dydo-tec ชุบอโนไดซ์ บันทึกสินค้า・ขั้นตอน・ปัญหา", ph:"เลขแบบ・ชื่อชิ้นงาน・รุ่น・ชื่อบริษัท (เช่น R47, T1301)", search:"ค้นหา", hint:"สแกน QR บนแบบ จะเปิดหน้าของสินค้านั้นโดยตรง", lock:"ล็อก",
+  th:{ openShort:"ค้าง", qtyTiers:"", qtyCol:"", quotedAt:"วันที่ขอใบเสนอราคา", stProducts:"สินค้าที่ลงทะเบียน", stQuoting:"กำลังเสนอราคา", stOpen:"ปัญหาที่ยังไม่เสร็จ", stWeek:"บันทึกหน้างานสัปดาห์นี้", goFind:"ค้นหาตามเงื่อนไข →", goQuote:"ดูรายการ →", goOpen:"ตรวจสอบ →", goRecent:"ดูบันทึก →", recentQuotes:"เสนอราคา・ลงทะเบียนล่าสุด", howto:["ค้นหาด้วยเลขแบบ・ชื่อชิ้นงาน","ค้นหาจากบริษัท","สแกน QR บนแบบเพื่อเปิดโดยตรง"], nCust:n=>`${n} บริษัท`, themeDark:"โหมดมืด", themeLight:"โหมดสว่าง",
+    title:"บัตรข้อมูลสินค้า",sub:"Dydo-tec ชุบอโนไดซ์ บันทึกสินค้า・ขั้นตอน・ปัญหา", ph:"เลขแบบ・ชื่อชิ้นงาน・บริษัท", search:"ค้นหา", hint:"สแกน QR บนแบบ จะเปิดหน้าของสินค้านั้นโดยตรง", lock:"ล็อก",
     lockTitle:"รหัสผ่าน", lockMsg:"กรุณาใส่รหัสผ่านที่ได้รับจากผู้รับผิดชอบ", lockHint:"หน้านี้ใช้ภายในบริษัทเท่านั้น", open:"เปิด", checking:"กำลังตรวจสอบ…", wrong:"รหัสผ่านไม่ถูกต้อง", pw:"รหัสผ่าน",
     home:"หน้าแรก", customers:"บริษัท", nProducts:n=>`${n} รายการ`, nOpen:n=>n?`ปัญหาที่ยังไม่เสร็จ ${n}`:"", openIssues:"ปัญหาที่ยังไม่เสร็จ", recent:"บันทึกล่าสุดจากหน้างาน", noRecent:"ยังไม่มีบันทึก",
     hitN:n=>`ผลการค้นหา ${n} รายการ`, none:"ไม่พบ ลองค้นด้วยบางส่วนของเลขแบบ ชื่อชิ้นงาน รุ่น (เช่น R47) หรือชื่อบริษัท", products:"สินค้า", issues:"ปัญหา", events:"เหตุการณ์", all:"ทั้งหมด",
@@ -370,8 +440,14 @@ const matchFilt = p => (!FILT.cust || p.customer===FILT.cust) && (!FILT.proc || 
 const fmtAt = iso => { const d = new Date(iso); if(isNaN(d)) return esc(iso||""); const p = n => String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
 
 /* ---------- chrome / lock ---------- */
+let THEME = ls.get("karte.theme") || "dark";
+const SUN = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`;
+const MOON = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>`;
+document.getElementById("themeBtn").addEventListener("click", ()=>{ THEME = THEME==="dark" ? "light" : "dark"; ls.set("karte.theme", THEME); applyChrome(); });
 function applyChrome(){
   document.documentElement.setAttribute("lang", LANG);
+  document.documentElement.setAttribute("data-theme", THEME);
+  const tb = document.getElementById("themeBtn"); tb.innerHTML = THEME==="dark" ? SUN : MOON; tb.title = t(THEME==="dark" ? "themeLight" : "themeDark"); tb.setAttribute("aria-label", tb.title);
   document.getElementById("h1").textContent = t("title"); document.getElementById("brandSub").textContent = t("sub");
   document.getElementById("q").placeholder = t("ph"); document.getElementById("qbtn").textContent = t("search");
   document.getElementById("foot").textContent = t("foot");
@@ -379,13 +455,14 @@ function applyChrome(){
   const eb = document.getElementById("editBtn");
   eb.hidden = !DATA; eb.textContent = EDIT ? t("editing")(EDIT.name) : t("edit"); eb.classList.toggle("on", !!EDIT);
   const h = document.getElementById("hint");
-  if(DATA){ h.innerHTML = `${esc(t("hint"))} <button type="button" class="linkbtn" id="lockBtn">${esc(t("lock"))}</button>`; document.getElementById("lockBtn").addEventListener("click", lock); }
+  if(DATA){ h.innerHTML = `<span class="howto">${t("howto").map((s,i)=>`<span data-n="${i+1}">${esc(s)}</span>`).join("")}<button type="button" class="linkbtn" id="lockBtn" style="margin-left:auto">${esc(t("lock"))}</button></span>`; document.getElementById("lockBtn").addEventListener("click", lock); }
   else h.textContent = t("lockHint");
 }
 document.querySelectorAll("[data-lang]").forEach(b => b.addEventListener("click", ()=>{ LANG = b.dataset.lang; ls.set("karte.lang", LANG); applyChrome(); if(DATA) route(); else renderLock(""); }));
 document.getElementById("editBtn").addEventListener("click", e=>{ const b = e.currentTarget; if(EDIT){ if(armed(b, t("editEnd")+"？")){ b.dataset.armed=""; EDIT=null; ls.del("karte.editpw"); applyChrome(); route(); } } else if(!document.getElementById("editLogin")) renderEditLogin(""); });
 
 function renderLock(msg){
+  document.body.classList.add("is-home");
   document.getElementById("form").hidden = true; applyChrome();
   main.innerHTML = `<div class="card lock"><h2>${esc(t("lockTitle"))}</h2><p>${esc(t("lockMsg"))}</p>
     <form id="lockForm"><input id="pw" type="password" autocomplete="current-password" autocapitalize="off" aria-label="${esc(t("pw"))}" placeholder="${esc(t("pw"))}"><button type="submit">${esc(t("open"))}</button></form>
@@ -486,15 +563,17 @@ function hydratePhotos(root){
 }
 
 /* ---------- small pieces ---------- */
+const monoOf = c => esc(String(c.name||c.id).replace(/[^A-Za-z0-9぀-ヿ一-鿿]/g,"").slice(0, /^[A-Za-z0-9]/.test(c.name||c.id) ? 2 : 1).toUpperCase());
 const colorTag = c => c ? `<span class="tag ${colorCls(c)}">${esc(colorTx(c))}</span>` : "";
 const statusTag = s => s ? `<span class="tag ${s==="完了"?"done":"open"}">${esc(statusTx(s))}</span>` : "";
 function productItem(p){
   const c = byC[p.customer];
-  const price = (JA() && p.price && p.price.current!=null) ? ` ・ <span class="num">${fmt(p.price.current)}</span> B` : (JA() && p.quote ? ` ・ <span class="num">${fmt(p.quote.price)}</span> ${esc(p.quote.unit||"")}` : "");
+  const unit = u => esc(String(u||"B").replace(/\/個$/,""));
+  const price = (JA() && p.price && p.price.current!=null) ? `<span class="pr">${fmt(p.price.current)} <small>${unit(p.price.unit)}</small></span>` : (JA() && p.quote && p.quote.price!=null ? `<span class="pr">${fmt(p.quote.price)} <small>${esc(p.quote.unit||"")}</small></span>` : "");
   const nEnt = entriesFor(p.id).filter(e=>!e.deleted).length;
   const nIss = (p.issueIds||[]).filter(id=>byI[id] && issueStatus(byI[id])!=="完了").length + openFieldIssues().filter(e=>e.product===p.id).length;
-  return `<li><a href="#${encodeURIComponent(p.id)}"><span class="no">${esc(p.id)}</span> ${esc(tx(p,"name"))}${colorTag(p.color)}${nIss?`<span class="tag issue">${esc(t("issues"))} ${nIss}</span>`:""}${nEnt?`<span class="tag memo">${esc(t("fieldRec"))} ${nEnt}</span>`:""}
-    <div class="meta">${esc(c ? tx(c,"name") : p.customer)}${p.model?` ・ ${esc(p.model)}`:""}${p.masking && !/^(なし|No Masking)/.test(p.masking)?` ・ ${esc(t("chips").masking)} ${esc(tx(p,"masking"))}`:""}${p.status?` ・ ${esc(statusTx(p.status))}`:""}${price}</div></a></li>`;
+  return `<li><a href="#${encodeURIComponent(p.id)}">${price}<span class="no">${esc(p.id)}</span> ${esc(tx(p,"name"))}${colorTag(p.color)}${p.status?`<span class="tag st">${esc(statusTx(p.status))}</span>`:""}${nIss?`<span class="tag issue">${esc(t("issues"))} ${nIss}</span>`:""}${nEnt?`<span class="tag memo">${esc(t("fieldRec"))} ${nEnt}</span>`:""}
+    <div class="meta">${esc(c ? tx(c,"name") : p.customer)}${p.model?` ・ ${esc(p.model)}`:""}${p.masking && !/^(なし|No Masking)/.test(p.masking)?` ・ ${esc(t("chips").masking)} ${esc(tx(p,"masking"))}`:""}</div></a></li>`;
 }
 function issueItem(i){
   return `<li><a href="#i/${encodeURIComponent(i.id)}"><span class="no">${esc(i.id)}</span> ${esc(tx(i,"title"))} ${statusTag(issueStatus(i))}<div class="meta">${esc(i.date||"")}${(i.products||[]).length?` ・ ${esc((i.products||[]).slice(0,4).join(", "))}${i.products.length>4?" …":""}`:""}</div></a></li>`;
@@ -665,6 +744,7 @@ function wireFind(){
   wireProductForm();
 }
 function renderHome(q){
+  document.body.classList.add("is-home");
   const words = (q||"").trim().toLowerCase().split(/\s+/).filter(Boolean);
   if(words.length){
     const hay = p => [p.id, p.oldNo, p.name, p.model, p.finish, p.color, procOf(p), p.material, p.thickness, p.masking, (byC[p.customer]||{}).name, (byC[p.customer]||{}).fullName, p.customer].join(" ").toLowerCase();
@@ -677,11 +757,24 @@ function renderHome(q){
   const recent = FIELD.entries.filter(e=>!e.deleted).sort(byNew).slice(0,8);
   const oi = openIssues(), ofi = openFieldIssues();
   const regForm = (FORM && FORM.pickProduct) ? formHTML() : (EDIT ? `<div class="addbar"><button type="button" class="btn small" id="regIssue">${esc(t("registerIssue"))}</button></div>` : "");
-  main.innerHTML = `<div class="card"><h2>${esc(t("customers"))}</h2><div class="cust">${CUSTOMERS.map(c=>{ const n = PRODUCTS.filter(p=>p.customer===c.id).length, o = openIssues(c.id).length + openFieldIssues(c.id).length; return `<a href="#c/${encodeURIComponent(c.id)}"><div class="nm">${esc(tx(c,"name"))}</div><div class="meta">${esc(t("nProducts")(n))}${o?` ・ ${esc(t("nOpen")(o))}`:""}</div></a>`; }).join("")}</div></div>
+  const weekAgo = new Date(Date.now() - 7*864e5).toISOString();
+  const nWeek = FIELD.entries.filter(e=>!e.deleted && String(e.createdAt||e.at||"") >= weekAgo).length;
+  const quoting = PRODUCTS.filter(p=>p.status==="見積中");
+  const latest = PRODUCTS.filter(p=>p.quotedAt || p.addedInField).sort((a,b)=>String(b.quotedAt||"").localeCompare(String(a.quotedAt||""))).slice(0,6);
+  const stat = (id, lb, v, go, warn) => `<button type="button" class="stat${warn?" warn":""}" data-go="${id}"><span class="lb">${esc(lb)}</span><span class="v">${v}</span><span class="go">${esc(go)}</span></button>`;
+  main.innerHTML = `<div class="stats">${stat("find", t("stProducts"), PRODUCTS.length, t("goFind"))}${stat("quoting", t("stQuoting"), quoting.length, t("goQuote"))}${stat("issues", t("stOpen"), oi.length+ofi.length, t("goOpen"), (oi.length+ofi.length)>0)}${stat("recent", t("stWeek"), nWeek, t("goRecent"))}</div>
+    <div class="card" id="custs"><h2>${esc(t("customers"))} <span class="sub">${esc(t("nCust")(CUSTOMERS.length))}</span></h2><div class="cust">${CUSTOMERS.map(c=>{ const n = PRODUCTS.filter(p=>p.customer===c.id).length, o = openIssues(c.id).length + openFieldIssues(c.id).length; return `<a href="#c/${encodeURIComponent(c.id)}"><span class="mono">${monoOf(c)}</span><span class="ct"><div class="nm">${esc(tx(c,"name"))}</div><div class="meta">${esc(t("nProducts")(n))}${o?` ・ <span class="o">${esc(t("openShort"))} ${o}</span>`:""}</div></span></a>`; }).join("")}</div></div>
+    ${latest.length?`<div class="card" id="latest"><h2>${esc(t("recentQuotes"))}</h2><ul class="list">${latest.map(productItem).join("")}</ul></div>`:""}
     ${findCard()}
-    ${(oi.length||ofi.length||EDIT)?`<div class="card"><h2>${esc(t("openIssues"))}</h2>${regForm}<ul class="list">${oi.map(issueItem).join("")}${ofi.map(fieldIssueItem).join("")}</ul></div>`:""}
+    ${(oi.length||ofi.length||EDIT)?`<div class="card" id="openIss"><h2>${esc(t("openIssues"))}</h2>${regForm}<ul class="list">${oi.map(issueItem).join("")}${ofi.map(fieldIssueItem).join("")}</ul></div>`:""}
     ${scanCardHTML()}
     <div class="card" id="recent"><h2>${esc(t("recent"))}</h2>${recent.length?recent.map(e=>entryCard(e,true)).join(""):`<p class="empty">${esc(t("noRecent"))}</p>`}</div>`;
+  main.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>{
+    const go = b.dataset.go;
+    if(go==="quoting"){ FILT = {cust:"", proc:"", mat:"", mask:"", status:"見積中"}; renderHome(""); }
+    const el = document.getElementById(go==="issues" ? "openIss" : go==="recent" ? "recent" : "find");
+    if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+  }));
   const rb = document.getElementById("regIssue");
   if(rb) rb.addEventListener("click", ()=>{ FORM = {pid:null, pickProduct:true, type:"issue", date:today(), files:[]}; renderHome(""); });
   wireFind(); wireScanForm(); wireForm(); wireEntries(main);
@@ -754,7 +847,7 @@ function renderCustomer(c){
   const is = ISSUES.filter(i=>i.customer===c.id), fis = fieldIssues(c.id);
   const ev = [...EVENTS.filter(e=>e.customer===c.id), ...FIELD.entries.filter(e=>e.type==="event" && !e.deleted && e.customer===c.id).map(e=>({date:e.date, title:e.title||firstLine(e.text), summary:e.title?e.text:"", entryId:e.id}))].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   main.innerHTML = `<a class="back" href="#">${esc(t("backHome"))}</a>
-    <div class="card"><div class="title"><span class="name" style="font-size:20px;font-weight:700">${esc(tx(c,"name"))}</span></div>${c.fullName?`<div class="sub">${esc(c.fullName)}${c.line?` ・ ${esc(t("chips").line)} ${esc(c.line)}`:""}</div>`:""}
+    <div class="card"><div class="title" style="align-items:center"><span class="mono" style="width:46px;height:46px;font-size:16px">${monoOf(c)}</span><span class="name" style="font-size:22px;font-weight:700">${esc(tx(c,"name"))}</span></div>${c.fullName?`<div class="sub">${esc(c.fullName)}${c.line?` ・ ${esc(t("chips").line)} ${esc(c.line)}`:""}</div>`:""}
       ${(JA() && (c.contacts||[]).length)?`<div class="chips">${c.contacts.map(x=>`<span class="chip"><b>${esc(t("contacts"))}</b>${esc(x.name)}${x.role?`（${esc(x.role)}）`:""}</span>`).join("")}</div>`:""}
       ${(JA() && (c.notes||[]).length)?`<details style="margin-top:12px"><summary style="cursor:pointer;font-size:14px;color:var(--muted)">${esc(t("notes"))}（${c.notes.length}）</summary><ul class="bul" style="margin-top:6px">${c.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></details>`:""}</div>
     <div class="card"><h2>${esc(t("products"))} <span class="sub">${ps.length}</span></h2>
@@ -800,6 +893,7 @@ function priceBlock(p){
   const hist = (pr.history||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   return `<h3>${esc(t("priceT"))}</h3><div class="price">${pr.current!=null?fmt(pr.current):"—"} <small>${esc(pr.unit||"B/個")}${pr.since?` ・ ${esc(t("since"))} ${esc(pr.since)}`:""}${pr.fixed?` ・ ${esc(t("fixed"))}`:""}</small></div>
     ${pr.sampleClass?`<p class="sub" style="margin:4px 0 0">${esc(t("sampleClass"))}：${esc(pr.sampleClass)}</p>`:""}
+    ${(pr.tiers||[]).length?`<h3>${esc(t("qtyTiers"))}</h3><div class="tblwrap"><table><tr><th>${esc(t("qtyCol"))}</th><th class="num">${esc(pr.unit||"B/個")}</th></tr>${pr.tiers.map(x=>`<tr><td>${esc(x.qty||x.label||"")}</td><td class="num">${x.price!=null?fmt(x.price):"—"}</td></tr>`).join("")}</table></div>`:""}
     ${pr.note?`<p class="note" style="margin-top:8px">${esc(pr.note)}</p>`:""}
     ${hist.length?`<h3>${esc(t("history"))}</h3><div class="tblwrap"><table><tr><th>${esc(t("date"))}</th><th class="num">${esc(t("perPc"))}</th><th></th></tr>${hist.map(h=>`<tr><td style="font-family:var(--mono);white-space:nowrap">${esc(h.date)}</td><td class="num">${h.price!=null?fmt(h.price):"—"}</td><td>${esc(h.label||"")}</td></tr>`).join("")}</table></div>`:""}
     ${(p.volume && p.volume.last12m!=null)?`<h3>${esc(t("volume"))}</h3><p style="margin:0"><span class="num">${fmt(p.volume.last12m)}</span> 個${p.volume.note?` <span class="sub">${esc(p.volume.note)}</span>`:""}</p>`:""}`;
@@ -882,7 +976,7 @@ function renderProduct(p){
       <h3>${esc(t("fieldRec"))}</h3>${issEnt.length?issEnt.map(e=>entryCard(e,false)).join(""):`<p class="empty">${esc(p.issuesNote ? tx(p,"issuesNote") : t("noIssue"))}</p>`}`,
     memo: () => `${formFor(["memo"])}${memoEnt.length?memoEnt.map(e=>entryCard(e,false)).join(""):`<p class="empty">${esc(t("noIssue"))}</p>`}
       ${(p.flowSteps && CAUTIONS.length)?`<h3>${esc(t("cautions"))}</h3><ul class="bul">${CAUTIONS.map(x=>`<li>${esc(JA()?x.ja:x.th)}</li>`).join("")}</ul>`:""}`,
-    docs: () => `${(p.received||p.rev||p.areaFormula)?`<dl class="kv" style="margin-bottom:12px">${p.received?`<dt>${esc(t("received"))}</dt><dd>${esc(p.received)}</dd>`:""}${p.rev?`<dt>${esc(t("rev"))}</dt><dd>${esc(p.rev)}</dd>`:""}${p.areaFormula?`<dt>${esc(t("areaF"))}</dt><dd class="num">${esc(p.areaFormula)}</dd>`:""}</dl>`:""}${docList(p.docs)}${changeLogHTML(p.id)}`
+    docs: () => `${(p.received||p.rev||p.areaFormula||p.quotedAt)?`<dl class="kv" style="margin-bottom:12px">${p.quotedAt?`<dt>${esc(t("quotedAt"))}</dt><dd class="num">${esc(p.quotedAt)}</dd>`:""}${p.received?`<dt>${esc(t("received"))}</dt><dd>${esc(p.received)}</dd>`:""}${p.rev?`<dt>${esc(t("rev"))}</dt><dd>${esc(p.rev)}</dd>`:""}${p.areaFormula?`<dt>${esc(t("areaF"))}</dt><dd class="num">${esc(p.areaFormula)}</dd>`:""}</dl>`:""}${docList(p.docs)}${changeLogHTML(p.id)}`
   };
   if(!panels[TAB]) TAB = "info";
   const tabs = ["info","flow","issues","memo","docs"];
@@ -923,6 +1017,7 @@ let lastRoute = "";
 function route(keepScroll){
   if(!DATA) return;
   const h = decodeURIComponent(location.hash.slice(1));
+  document.body.classList.remove("is-home");
   if(h !== lastRoute){ FORM = null; PFORM = null; SFORM = null; if(lastRoute) TAB = "info"; lastRoute = h; if(!keepScroll) window.scrollTo(0,0); }
   const p = byP[h] || PRODUCTS.find(x=>x.oldNo===h) || (/[A-Z]$/i.test(h) ? byP[h.slice(0,-1)] : null);
   if(h.startsWith("c/") && byC[h.slice(2)]) renderCustomer(byC[h.slice(2)]);
