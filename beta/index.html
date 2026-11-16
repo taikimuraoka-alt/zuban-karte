@@ -781,7 +781,7 @@ async function vlFlush(hiding){
   try{
     const pub = await vlPub(); if(!pub) return;
     const text = await vlSeal(buf, pub);
-    const body = {message:`view log: ${buf.length} by ${EDIT.name}`, content:u8b64(new TextEncoder().encode(text)), branch:VLBR};
+    const body = {message:"view log", content:u8b64(new TextEncoder().encode(text)), branch:VLBR};
     await ghJ("PUT", `contents/log/${today()}/${DEV}-${Date.now().toString(36)}.json`, body, hiding && text.length < 45000);
     vlSetBuf(vlBuf().slice(buf.length));
   }catch(_){ /* stays in the buffer; sent next time */ }
