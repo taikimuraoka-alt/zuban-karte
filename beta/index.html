@@ -277,6 +277,16 @@ footer{color:var(--muted);font-size:11.5px;margin-top:28px;text-align:center;let
 .list .pr.ngv{color:var(--bad)}
 .list .pr small{color:var(--muted);font-weight:400;font-size:11.5px}
 .ctbl td.tk{font-family:var(--mono);font-weight:600}
+.chart .wbar{fill:var(--accent);opacity:.22}
+.chart .wbar.ng{fill:var(--bad);opacity:.28}
+.chart .wavg{stroke-width:2.4}
+.chart .wng{fill:var(--bad);font-size:11px;font-weight:700;font-family:var(--mono)}
+.wkitem{border-top:1px solid var(--line);padding-top:4px;margin-top:6px}
+.wkitem:first-of-type{border-top:0}
+.wkitem h3{margin:10px 0 2px;color:var(--fg);font-size:13px;letter-spacing:.02em}
+.gran{display:inline-flex;gap:2px;margin-left:8px;vertical-align:middle}
+.gran button{font:inherit;font-size:11.5px;padding:2px 9px;border:1px solid var(--line2);background:transparent;color:var(--muted);border-radius:999px;cursor:pointer}
+.gran button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -1071,7 +1081,7 @@ function renderDocs(){
 
 /* ---------- 薬液の記録 (chem.enc.json: pH / titration / FF-250 / Hot Top Seal temperature, imported from FON's Excel) ---------- */
 let CHEM = null, CHEM_LOADING = null;
-const CH = { tab:"ph", date:"", line:"", ng:false, open:"" };
+const CH = { tab:"ph", date:"", line:"", ng:false, open:"", gran:"day", wkAll:false };
 const CT = {
   ja:{ chem:"薬液の記録", chemSub:"FONさんの日常点検（サーバーの Excel）から取り込んだ記録です。入力は今までどおり Excel へ。", tabs:{ph:"pH",tit:"滴定（濃度）",ff:"FF-250",temp:"封孔の温度"},
     built:"最終取り込み", range:"期間", stChem:"薬液の規格外", goChem:"薬液を見る →", latestNG:d=>`最新の記録（${d}）の規格外`, noNG:"規格外はありません。", allOk:"すべて規格内",
@@ -1084,7 +1094,10 @@ const CT = {
     ffBefore:"滴定（前）", ffAfter:"滴定（後）", level:"水位 前→後 cm", refill:"補給 FF-250 / Ammonium g", action:"処置",
     time:"時刻", meas:"実測", screen:"画面", noData:"この期間の記録はありません。", loading:"薬液の記録を読み込み中…", loadFail:"薬液の記録を読み込めませんでした。",
     notes:{ph:"10:00 と 15:00 の測定。規格は帳票のその日の Spec 欄の値で判定しています。", tit:"アルマイト槽の濃度と H-298 は、帳票に比べる規格が書かれていないため判定していません。", ff:"規格は帳票の「Spec 78-80」。", temp:"Hot Top Seal 温度記録表（Sealing Temperature Log）から。規格は 80〜95 °C、LINE 1 の L-100 槽は 20〜35 °C。"},
-    perDay:"1日ごと", latest:"最新" },
+    perDay:"1日ごと", latest:"最新", perWeek:"1週間ごと",
+    window:"直近 2 か月分だけ載せています（それより前の記録は自動で外れます）。毎日 17:30 に取り込み。",
+    weekly:"週ごとの推移（規格外があった槽）", weeklyFF:"週ごとの推移", weeklySub:"太線＝その週の平均、縦の帯＝その週の最低〜最高、赤い数字＝その週の規格外の回数。", noWeekly:"直近 2 か月に規格外があった槽はありません。",
+    showAll:n=>`すべて表示（${n} 槽）`, showLess:"少なく表示", wkOf:"週", ngIn:(n,m)=>`規格外 ${n} / ${m} 回` },
   th:{ chem:"บันทึกน้ำยา", chemSub:"ข้อมูลจากการตรวจเช็คประจำวันของคุณฝน (Excel บนเซิร์ฟเวอร์) การกรอกข้อมูลยังคงทำใน Excel เหมือนเดิม", tabs:{ph:"pH",tit:"ไตเตรท (ความเข้มข้น)",ff:"FF-250",temp:"อุณหภูมิซีล"},
     built:"นำเข้าล่าสุด", range:"ช่วงเวลา", stChem:"น้ำยานอกสเป็ก", goChem:"ดูน้ำยา →", latestNG:d=>`นอกสเป็กของบันทึกล่าสุด (${d})`, noNG:"ไม่มีค่านอกสเป็ก", allOk:"อยู่ในสเป็กทั้งหมด",
     prev:"← วันก่อน", next:"วันถัดไป →", allLines:"ทุกไลน์", ngOnly:"เฉพาะนอกสเป็ก", tank:"บ่อ", chemName:"น้ำยา・น้ำ", spec:"สเป็ก", remark:"หมายเหตุ", noSpec:"ไม่มีสเป็ก",
@@ -1096,7 +1109,10 @@ const CT = {
     ffBefore:"ไตเตรท (ก่อน)", ffAfter:"ไตเตรท (หลัง)", level:"ระดับน้ำ ก่อน→หลัง cm", refill:"เติม FF-250 / Ammonium g", action:"การแก้ไข",
     time:"เวลา", meas:"วัดจริง", screen:"หน้าจอ", noData:"ไม่มีบันทึกในช่วงนี้", loading:"กำลังโหลดบันทึกน้ำยา…", loadFail:"โหลดบันทึกน้ำยาไม่สำเร็จ",
     notes:{ph:"วัดเวลา 10:00 และ 15:00 ตัดสินตามค่า Spec ในแบบฟอร์มของวันนั้น", tit:"บ่ออโนไดซ์และ H-298 ไม่มีสเป็กในแบบฟอร์ม จึงไม่ได้ตัดสิน", ff:"สเป็กตามแบบฟอร์ม \"Spec 78-80\"", temp:"จากบันทึกอุณหภูมิ Hot Top Seal (Sealing Temperature Log) สเป็ก 80〜95 °C บ่อ L-100 ของ LINE 1 คือ 20〜35 °C"},
-    perDay:"รายวัน", latest:"ล่าสุด" }
+    perDay:"รายวัน", latest:"ล่าสุด", perWeek:"รายสัปดาห์",
+    window:"แสดงเฉพาะข้อมูล 2 เดือนล่าสุด (ข้อมูลเก่ากว่านั้นจะถูกตัดออกอัตโนมัติ) นำเข้าทุกวันเวลา 17:30",
+    weekly:"แนวโน้มรายสัปดาห์ (บ่อที่มีค่านอกสเป็ก)", weeklyFF:"แนวโน้มรายสัปดาห์", weeklySub:"เส้นหนา = ค่าเฉลี่ยของสัปดาห์ แถบแนวตั้ง = ต่ำสุด〜สูงสุดของสัปดาห์ ตัวเลขสีแดง = จำนวนครั้งที่นอกสเป็กในสัปดาห์นั้น", noWeekly:"2 เดือนล่าสุดไม่มีบ่อที่นอกสเป็ก",
+    showAll:n=>`แสดงทั้งหมด (${n} บ่อ)`, showLess:"แสดงน้อยลง", wkOf:"สัปดาห์", ngIn:(n,m)=>`นอกสเป็ก ${n} / ${m} ครั้ง` }
 };
 const ct = k => CT[LANG][k];
 async function loadChem(){
@@ -1121,9 +1137,11 @@ function prepChem(d){
 }
 const phNameAt = (ln, tk, d) => { const r = CHEM.ph.find(x=>x.d===d && x.l===ln && x.k===tk); return r ? r.c : ""; };
 
+/* drawing width follows the screen so charts stay readable on phones */
+const chartW = () => Math.max(330, Math.min(640, Math.round((window.innerWidth || 640) - 44)));
 /* simple SVG trend: points [{d, v, v2?}], optional spec band */
 function trendSVG(pts, lo, hi, label2){
-  const W = 640, H = 190, L = 40, R = 10, Tp = 12, B = 26;
+  const W = chartW(), H = 190, L = 40, R = 10, Tp = 12, B = 26;
   const vals = pts.flatMap(p=>[p.v, p.v2]).filter(isNum);
   if(!vals.length) return `<p class="empty">${esc(ct("noData"))}</p>`;
   let mn = Math.min(...vals, isNum(lo)?lo:Infinity), mx = Math.max(...vals, isNum(hi)?hi:-Infinity);
@@ -1135,7 +1153,7 @@ function trendSVG(pts, lo, hi, label2){
   const raw = (mx-mn)/4, mag = Math.pow(10, Math.floor(Math.log10(raw))), stp = [1,2,2.5,5,10].map(m=>m*mag).find(s=>s>=raw) || raw;
   const dec = Math.max(0, -Math.floor(Math.log10(stp) + 1e-9) + (stp/mag===2.5 ? 1 : 0));
   const ticks = []; for(let v = Math.ceil(mn/stp)*stp; v <= mx + 1e-9; v += stp){ ticks.push(`<text x="${L-5}" y="${(y(v)+3.5).toFixed(1)}" class="ctick" text-anchor="end">${v.toFixed(dec)}</text><line x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" class="cgrid"/>`); }
-  const step = Math.max(1, Math.ceil(days.length / 7));
+  const step = Math.max(1, Math.ceil(days.length / (W < 500 ? 4 : 7)));
   const xl = days.map((d,i)=> ((i % step === 0 && days.length-1-i >= step*0.6) || i === days.length-1) ? `<text x="${x(d).toFixed(1)}" y="${H-8}" class="ctick" text-anchor="${i===0?"start":i===days.length-1?"end":"middle"}">${md(d)}</text>` : "").join("");
   const series = (key, cls) => { const s = pts.filter(p=>isNum(p[key])); if(!s.length) return "";
     const path = s.map((p,i)=>`${i?"L":"M"}${x(p.d).toFixed(1)},${y(p[key]).toFixed(1)}`).join("");
@@ -1182,7 +1200,7 @@ function renderChem(sub){
   if(tab==="ph") body = chemPH(); else if(tab==="tit") body = chemTit(); else if(tab==="ff") body = chemFF(); else body = chemTemp();
   main.innerHTML = `<p><a href="#">${esc(t("backHome"))}</a></p>
     <div class="card"><h2>${esc(ct("chem"))}</h2><p class="sub" style="margin:0 0 4px">${esc(ct("chemSub"))}</p>
-    <p class="sub num" style="margin:0">${esc(ct("built"))} ${esc(CHEM.built)} ・ ${esc(ct("range"))} ${esc(CHEM.from)} 〜 ${esc(CHEM.to)}</p></div>
+    <p class="sub num" style="margin:0">${esc(ct("built"))} ${esc(CHEM.built)} ・ ${esc(ct("range"))} ${esc(CHEM.from)} 〜 ${esc(CHEM.to)}</p><p class="sub" style="margin:2px 0 0">${esc(ct("window"))}</p></div>
     <div class="tabs" role="tablist">${tabs}</div>${body}`;
   main.querySelectorAll("[data-ctab]").forEach(b=>b.addEventListener("click",()=>{ CH.tab = b.dataset.ctab; CH.open = ""; CH.date = ""; location.hash = "#chem/" + CH.tab; }));
   main.querySelectorAll("[data-cday]").forEach(b=>b.addEventListener("click",()=>{ location.hash = `#chem/${CH.tab}/${b.dataset.cday}`; }));
@@ -1190,6 +1208,8 @@ function renderChem(sub){
   main.querySelectorAll("[data-cline]").forEach(b=>b.addEventListener("click",()=>{ CH.line = CH.line===b.dataset.cline ? "" : b.dataset.cline; route(true); }));
   const ng = document.getElementById("cNg"); if(ng) ng.addEventListener("click",()=>{ CH.ng = !CH.ng; route(true); });
   main.querySelectorAll("[data-copen]").forEach(r=>r.addEventListener("click",()=>{ CH.open = CH.open===r.dataset.copen ? "" : r.dataset.copen; route(true); }));
+  main.querySelectorAll("[data-gran]").forEach(b=>b.addEventListener("click",e=>{ e.stopPropagation(); CH.gran = b.dataset.gran; route(true); }));
+  const wa = document.getElementById("wkAll"); if(wa) wa.addEventListener("click",()=>{ CH.wkAll = !CH.wkAll; route(true); });
 }
 function dayBar(){
   const days = CHEM.days[CH.tab], i = days.indexOf(CH.date);
@@ -1202,7 +1222,10 @@ function lineChips(lines){
   return `<div class="filters">${[["",ct("allLines")],...lines.map(l=>[l,l])].map(([v,lb])=>`<button type="button" data-cline="${esc(v)}" aria-pressed="${CH.line===v}">${esc(lb)}</button>`).join("")}<button type="button" id="cNg" aria-pressed="${CH.ng}">${esc(ct("ngOnly"))}</button></div>`;
 }
 function trendRow(cols, key, pts, lo, hi, labels){
-  return CH.open===key ? `<tr class="trow"><td colspan="${cols}"><div class="trendbox"><div class="sub">${esc(ct("trend"))}（${esc(ct("perDay"))}）<button type="button" class="linkbtn" data-copen="${esc(key)}" style="float:right">${esc(ct("close"))}</button></div>${trendSVG(pts, lo, hi, labels)}</div></td></tr>` : "";
+  if(CH.open!==key) return "";
+  const seg = `<span class="gran">${["day","week"].map(g=>`<button type="button" data-gran="${g}" aria-pressed="${CH.gran===g}">${esc(ct(g==="day"?"perDay":"perWeek"))}</button>`).join("")}</span>`;
+  const body = CH.gran==="week" ? weekSVG(weekAgg(pts.flatMap(p=>[{d:p.d, v:p.v, lo:p.lo??lo, hi:p.hi??hi}, {d:p.d, v:p.v2, lo:p.lo??lo, hi:p.hi??hi}])), lo, hi) : trendSVG(pts, lo, hi, labels);
+  return `<tr class="trow"><td colspan="${cols}"><div class="trendbox"><div class="sub">${esc(ct("trend"))} ${seg}<button type="button" class="linkbtn" data-copen="${esc(key)}" style="float:right">${esc(ct("close"))}</button></div>${body}</div></td></tr>`;
 }
 function chemPH(){
   const rows = CHEM.ph.filter(r=>r.d===CH.date);
@@ -1212,10 +1235,10 @@ function chemPH(){
   const byLine = lines.filter(l=>!CH.line || l===CH.line).map(l=>{
     const rs = shown.filter(r=>r.l===l).sort((a,b)=>tankNo(a.k)-tankNo(b.k)); if(!rs.length) return "";
     return `<h3>${esc(l)}</h3><div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(ct("tank"))}</th><th>${esc(ct("chemName"))}</th><th>${esc(ct("spec"))}</th><th class="num">10:00</th><th class="num">15:00</th><th>${esc(ct("remark"))}</th></tr></thead><tbody>${rs.map(r=>{
-      const pts = CHEM.ph.filter(x=>x.key===r.key).map(x=>({d:x.d, v:x.a, v2:x.b}));
+      const pts = CHEM.ph.filter(x=>x.key===r.key).map(x=>({d:x.d, v:x.a, v2:x.b, lo:x.lo, hi:x.hi}));
       return `<tr class="crow${r.ng?" isng":""}" data-copen="${esc(r.key)}"><td class="nowrap tk">${esc(r.k)}${oldTag(r)}</td><td>${esc(r.c)}</td><td class="num nowrap">${esc(specTx(r.s,r.lo,r.hi))}</td>${cell(r.a, outOf(r.a,r.lo,r.hi))}${cell(r.b, outOf(r.b,r.lo,r.hi))}<td class="rm">${esc(r.r||"")}</td></tr>${trendRow(6, r.key, pts, r.lo, r.hi, ["10:00","15:00"])}`; }).join("")}</tbody></table></div>`; }).join("");
   return `<div class="card">${dayBar()}<p class="cstat"><span class="${nN?"ngv":"okv"}">${esc(ct("ngCount")(nN, nM))}</span></p>${lineChips(lines)}<p class="sub">${esc(ct("tapTrend"))}</p>${byLine || `<p class="empty">${esc(CH.ng?ct("noNG"):ct("noData"))}</p>`}
-    <p class="note" style="margin-top:12px">${esc(ct("notes").ph)} ${CHEM.ph.some(r=>r.e)?esc(ct("oldNote")):""}</p></div>${phRanking()}`;
+    <p class="note" style="margin-top:12px">${esc(ct("notes").ph)} ${CHEM.ph.some(r=>r.e)?esc(ct("oldNote")):""}</p></div>${weeklyCard(phWeeklyItems())}${phRanking()}`;
 }
 function phRanking(){
   const last = CHEM.days.ph.slice(-30), set = new Set(last);
@@ -1232,16 +1255,16 @@ function chemTit(){
     const rs = shown.filter(r=>r.g===g).sort((a,b)=>lineSort(a.ln,b.ln) || tankNo(a.tk)-tankNo(b.tk)); if(!rs.length) return "";
     const isDye = g==="dye", hasAl = rs.some(r=>isNum(r.al));
     return `<h3>${esc(ct("groups")[g])}</h3><div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(ct("tank"))}</th><th>${esc(ct("chemName"))}</th><th class="num">${esc(isDye?ct("abs"):ct("reading")+" ml")}</th><th class="num">${esc(ct("conc"))}</th>${hasAl?`<th class="num">${esc(ct("al"))}</th>`:""}<th>${esc(ct("spec"))}</th><th>${esc(ct("freq"))}</th><th>${esc(ct("remark"))}</th></tr></thead><tbody>${rs.map(r=>{
-      const pts = CHEM.tit.filter(x=>x.key===r.key).map(x=>({d:x.d, v:x.v}));
+      const pts = CHEM.tit.filter(x=>x.key===r.key).map(x=>({d:x.d, v:x.v, lo:x.lo, hi:x.hi}));
       return `<tr class="crow${r.ng?" isng":""}" data-copen="${esc(r.key)}"><td class="nowrap">${esc(r.ln)} ${esc(r.tk)}${oldTag(r)}</td><td>${esc(r.c||phNameAt(r.ln,r.tk,r.d))}</td>${cell(r.ml,false)}${cell(isNum(r.v)?Math.round(r.v*100)/100:r.v, r.ng)}${hasAl?cell(isNum(r.al)?Math.round(r.al*100)/100:"",false):""}<td class="num nowrap">${esc(isNum(r.lo)?`${r.lo}〜${r.hi}`:"—")}</td><td class="nowrap">${esc(r.f||"")}</td><td class="rm">${esc(r.r||"")}</td></tr>${trendRow(hasAl?8:7, r.key, pts, r.lo, r.hi)}`; }).join("")}</tbody></table></div>`; }).join("");
   const nN = rows.filter(r=>r.ng).length;
-  return `<div class="card">${dayBar()}<p class="cstat"><span class="${nN?"ngv":"okv"}">${esc(ct("ngCount")(nN, rows.length))}</span></p>${lineChips(lines)}<p class="sub">${esc(ct("tapTrend"))}</p>${groups || `<p class="empty">${esc(CH.ng?ct("noNG"):ct("noData"))}</p>`}<p class="note" style="margin-top:12px">${esc(ct("notes").tit)} ${CHEM.tit.some(r=>r.e)?esc(ct("oldNote")):""}</p></div>`;
+  return `<div class="card">${dayBar()}<p class="cstat"><span class="${nN?"ngv":"okv"}">${esc(ct("ngCount")(nN, rows.length))}</span></p>${lineChips(lines)}<p class="sub">${esc(ct("tapTrend"))}</p>${groups || `<p class="empty">${esc(CH.ng?ct("noNG"):ct("noData"))}</p>`}<p class="note" style="margin-top:12px">${esc(ct("notes").tit)} ${CHEM.tit.some(r=>r.e)?esc(ct("oldNote")):""}</p></div>${weeklyCard(titWeeklyItems())}`;
 }
 function chemFF(){
   const rs = [...CHEM.ff].sort((a,b)=>b.d.localeCompare(a.d)).filter(r=>!CH.ng || r.ng);
   const pts = CHEM.ff.map(r=>({d:r.d, v:r.v}));
   const nN = CHEM.ff.filter(r=>r.ng).length;
-  return `<div class="card"><h2>${esc(ct("trend"))} <span class="sub">FF-250 ・ Ammonium</span></h2>${trendSVG(pts, 78, 80)}
+  return `<div class="card"><h2>${esc(ct("trend"))} <span class="sub">FF-250 ・ Ammonium</span></h2>${trendSVG(pts, 78, 80)}<h3>${esc(ct("weeklyFF"))}</h3>${weekSVG(weekAgg(CHEM.ff.map(r=>({d:r.d, v:r.v, lo:78, hi:80}))), 78, 80)}<p class="sub">${esc(ct("weeklySub"))}</p>
     <p class="cstat"><span class="${nN?"ngv":"okv"}">${esc(ct("ngCount")(nN, CHEM.ff.length))}</span></p><div class="filters"><button type="button" id="cNg" aria-pressed="${CH.ng}">${esc(ct("ngOnly"))}</button></div>
     <div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(t("date"))}</th><th class="num">${esc(ct("ffBefore"))}</th><th class="num">${esc(ct("level"))}</th><th class="num">${esc(ct("refill"))}</th><th class="num">${esc(ct("ffAfter"))}</th><th>${esc(ct("action"))}</th></tr></thead>
     <tbody>${rs.map(r=>`<tr class="${r.ng?"isng":""}"><td class="num nowrap">${esc(r.d)}</td>${cell(r.v, r.ng)}<td class="num nowrap">${isNum(r.lb)?r.lb:"-"} → ${isNum(r.la)?r.la:"-"}</td><td class="num nowrap">${isNum(r.ffg)||isNum(r.amg)?`${isNum(r.ffg)?r.ffg:"-"} / ${isNum(r.amg)?r.amg:"-"}`:""}</td>${cell(r.va, outOf(r.va,r.lo,r.hi))}<td class="rm">${esc(r.x||"")}</td></tr>`).join("")}</tbody></table></div>
@@ -1263,10 +1286,62 @@ function chemTemp(){
     <tbody>${times.map(tm=>`<tr><td class="num">${esc(tm)}</td>${tanks.map(k=>{ const r = get(tm,k); if(!r) return `<td class="num">—</td>`; return `<td class="num${r.ng?" ng":""}">${isNum(r.m)?r.m:"-"} <span class="sub">/ ${isNum(r.sc)?r.sc:"-"}</span></td>`; }).join("")}</tr>`).join("")}</tbody></table></div>
     ${rows.find(r=>r.r)?`<p class="sub">${esc(ct("remark"))}: ${esc(rows.filter(r=>r.r).map(r=>r.r).filter((v,i,a)=>a.indexOf(v)===i).join(" / "))}</p>`:""}
     <p class="note" style="margin-top:12px">${esc(ct("notes").temp)}</p></div>
+    ${weeklyCard(tempWeeklyItems())}
     <div class="card"><h2>${esc(ct("trend"))}</h2>${trends}</div>`;
 }
 
-/* ---------- routing ---------- */
+/* ---------- weekly view ---------- */
+const weekOf = d => { const x = new Date(d+"T00:00:00"); const k = (x.getDay()+6)%7; x.setDate(x.getDate()-k); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`; };
+/* vals: [{d, v, lo, hi}] -> [{w, avg, min, max, n, ng}] (Monday-start weeks) */
+function weekAgg(vals){
+  const m = {};
+  for(const p of vals){ if(!isNum(p.v)) continue; const w = weekOf(p.d); const a = m[w] || (m[w] = {w, sum:0, n:0, ng:0, min:Infinity, max:-Infinity}); a.sum += p.v; a.n++; a.min = Math.min(a.min, p.v); a.max = Math.max(a.max, p.v); if(outOf(p.v, p.lo, p.hi)) a.ng++; }
+  return Object.values(m).sort((a,b)=>a.w.localeCompare(b.w)).map(a=>({...a, avg: Math.round(a.sum/a.n*1000)/1000}));
+}
+function weekSVG(wk, lo, hi){
+  if(!wk.length) return `<p class="empty">${esc(ct("noData"))}</p>`;
+  const W = chartW(), H = 200, L = 40, R = 14, Tp = 22, B = 26;
+  let mn = Math.min(...wk.map(w=>w.min), isNum(lo)?lo:Infinity), mx = Math.max(...wk.map(w=>w.max), isNum(hi)?hi:-Infinity);
+  if(mx - mn < 1e-6){ mn -= 1; mx += 1; } const pad = (mx-mn)*0.08; mn -= pad; mx += pad;
+  const n = wk.length, slot = (W-L-R)/n, x = i => L + slot*(i+0.5), y = v => Tp + (H-Tp-B) * (1 - (v-mn)/(mx-mn));
+  const raw = (mx-mn)/4, mag = Math.pow(10, Math.floor(Math.log10(raw))), stp = [1,2,2.5,5,10].map(m=>m*mag).find(s=>s>=raw) || raw;
+  const dec = Math.max(0, -Math.floor(Math.log10(stp) + 1e-9) + (stp/mag===2.5 ? 1 : 0));
+  let g = ""; for(let v = Math.ceil(mn/stp)*stp; v <= mx + 1e-9; v += stp) g += `<text x="${L-5}" y="${(y(v)+3.5).toFixed(1)}" class="ctick" text-anchor="end">${v.toFixed(dec)}</text><line x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" class="cgrid"/>`;
+  const band = (isNum(lo) && isNum(hi)) ? `<rect x="${L}" y="${y(hi).toFixed(1)}" width="${W-L-R}" height="${Math.max(1,(y(lo)-y(hi))).toFixed(1)}" class="cband"/><line x1="${L}" x2="${W-R}" y1="${y(hi).toFixed(1)}" y2="${y(hi).toFixed(1)}" class="cspec"/><line x1="${L}" x2="${W-R}" y1="${y(lo).toFixed(1)}" y2="${y(lo).toFixed(1)}" class="cspec"/>` : "";
+  const bw = Math.min(18, slot*0.45);
+  const bars = wk.map((w,i)=>`<rect x="${(x(i)-bw/2).toFixed(1)}" y="${y(w.max).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(2, y(w.min)-y(w.max)).toFixed(1)}" rx="3" class="${w.ng?"wbar ng":"wbar"}"><title>${md(w.w)}〜  min ${w.min} / max ${w.max}</title></rect>`).join("");
+  const path = wk.map((w,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(w.avg).toFixed(1)}`).join("");
+  const dots = wk.map((w,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(w.avg).toFixed(1)}" r="${w.ng?4:3}" class="${w.ng?"cbad":"c1"}"><title>${md(w.w)}〜  avg ${w.avg}  (${ct("ngIn")(w.ng, w.n)})</title></circle>`).join("");
+  const ngl = wk.map((w,i)=> w.ng ? `<text x="${x(i).toFixed(1)}" y="${(Tp-8)}" class="wng" text-anchor="middle">${w.ng}</text>` : "").join("");
+  const step = Math.max(1, Math.ceil(n / (W < 500 ? 5 : 9)));
+  const xl = wk.map((w,i)=> (i % step === 0 || i === n-1) ? `<text x="${x(i).toFixed(1)}" y="${H-8}" class="ctick" text-anchor="middle">${md(w.w)}〜</text>` : "").join("");
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${esc(ct("perWeek"))}">${g}${band}${bars}<path d="${path}" class="cl c1 wavg" fill="none"/>${dots}${ngl}${xl}</svg>`;
+}
+/* items: [{key, title, sub, lo, hi, vals:[{d,v,lo,hi}]}] -> card with a weekly chart per item that had out-of-spec values */
+function weeklyCard(items){
+  const list = items.map(it=>({...it, wk: weekAgg(it.vals)})).map(it=>({...it, ng: it.wk.reduce((s,w)=>s+w.ng,0), n: it.wk.reduce((s,w)=>s+w.n,0)})).filter(it=>it.ng>0)
+    .sort((a,b)=> b.ng/b.n - a.ng/a.n || b.ng - a.ng);
+  if(!list.length) return `<div class="card"><h2>${esc(ct("weekly"))}</h2><p class="empty">${esc(ct("noWeekly"))}</p></div>`;
+  const show = CH.wkAll ? list : list.slice(0, 6);
+  return `<div class="card" id="weekly"><h2>${esc(ct("weekly"))} <span class="sub">${list.length}</span></h2><p class="sub" style="margin:-6px 0 6px">${esc(ct("weeklySub"))}</p>
+    ${show.map(it=>`<div class="wkitem"><h3>${esc(it.title)} <span class="sub">${esc(it.sub||"")} ・ ${esc(ct("spec"))} ${isNum(it.lo)?`${it.lo}〜${it.hi}`:"—"} ・ <span class="ngv">${esc(ct("ngIn")(it.ng, it.n))}</span></span></h3>${weekSVG(it.wk, it.lo, it.hi)}</div>`).join("")}
+    ${list.length > 6 ? `<div class="actions"><button type="button" class="btn small ghost" id="wkAll">${esc(CH.wkAll ? ct("showLess") : ct("showAll")(list.length))}</button></div>` : ""}</div>`;
+}
+const lastOf = rs => rs.reduce((a,b)=> a && a.d > b.d ? a : b, null);
+function phWeeklyItems(){
+  const by = {}; for(const r of CHEM.ph){ if(CH.line && r.l!==CH.line) continue; (by[r.key] = by[r.key] || []).push(r); }
+  return Object.entries(by).map(([key, rs])=>{ const z = lastOf(rs); return { key, title:`${z.l} ${z.k}${z.e?` (${ct("oldNo")})`:""}`, sub:`${z.c} ・ pH`, lo:z.lo, hi:z.hi,
+    vals: rs.flatMap(r=>[{d:r.d, v:r.a, lo:r.lo, hi:r.hi}, {d:r.d, v:r.b, lo:r.lo, hi:r.hi}]) }; });
+}
+function titWeeklyItems(){
+  const by = {}; for(const r of CHEM.tit){ if(CH.line && r.ln!==CH.line) continue; (by[r.key] = by[r.key] || []).push(r); }
+  return Object.entries(by).map(([key, rs])=>{ const z = lastOf(rs); return { key, title:`${z.ln} ${z.tk}${z.e?` (${ct("oldNo")})`:""}`, sub:`${z.c||phNameAt(z.ln,z.tk,z.d)} ・ ${ct("conc")}`, lo:z.lo, hi:z.hi,
+    vals: rs.map(r=>({d:r.d, v:r.v, lo:r.lo, hi:r.hi})) }; });
+}
+function tempWeeklyItems(){
+  const by = {}; for(const r of CHEM.temp) (by[r.k] = by[r.k] || []).push(r);
+  return Object.entries(by).map(([key, rs])=>({ key, title:key, sub:"°C", lo:rs[0].lo, hi:rs[0].hi, vals: rs.map(r=>({d:r.d, v:r.m, lo:r.lo, hi:r.hi})) }));
+}/* ---------- routing ---------- */
 let lastRoute = "";
 function route(keepScroll){
   if(!DATA) return;
