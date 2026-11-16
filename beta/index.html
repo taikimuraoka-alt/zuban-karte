@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0a0d12">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>製品カルテ</title>
+<title>DYDO NOTE</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
 <style>
 /* Layout: one column, phone first. Lock screen → header (search, language, edit) → home / customer / product / issue (from #hash).
@@ -163,7 +163,7 @@ td.num,th.num{text-align:right}
 .list .meta{font-size:12.5px;color:var(--muted);margin-top:1px}
 .list .pr{float:right;font-family:var(--mono);font-size:13.5px;color:var(--accent);margin-left:8px}
 /* home */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:4px 0 14px}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:4px 0 14px}
 .stat{display:flex;flex-direction:column;gap:2px;text-align:left;font:inherit;color:inherit;background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;cursor:pointer;position:relative;overflow:hidden;box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
 .stat::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:.75}
 .stat.warn::after{background:linear-gradient(90deg,var(--warn),var(--bad))}
@@ -173,7 +173,8 @@ td.num,th.num{text-align:right}
 .stat.warn .v{color:var(--warn)}
 .stat .go{font-size:11.5px;color:var(--accent)}
 .stat.warn .go{color:var(--warn)}
-@media (max-width:640px){ .stats{grid-template-columns:1fr 1fr} .stat .v{font-size:28px} }
+@media (max-width:820px){ .stats{grid-template-columns:repeat(3,1fr)} }
+@media (max-width:640px){ .stats{grid-template-columns:1fr 1fr} .stat .v{font-size:28px} .stats .stat:last-child:nth-child(odd){grid-column:1 / -1} }
 .cust{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
 .cust a,.cust .ct{min-width:0}
 @media (max-width:520px){ .cust{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px} .cust a{padding:10px;gap:9px} .mono{width:34px;height:34px;font-size:12.5px} .cust .nm{font-size:14px} }
@@ -239,6 +240,43 @@ details summary{cursor:pointer}
 footer{color:var(--muted);font-size:11.5px;margin-top:28px;text-align:center;letter-spacing:.02em}
 @media (max-width:420px){ .row2{grid-template-columns:1fr} .title .no{font-size:22px} body.is-home .brand h1{font-size:24px} body.is-home .search button{padding:0 16px} }
 @media (prefers-reduced-motion:no-preference){ .card,.stat{animation:in .22s ease-out both} @keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}} }
+/* header: keep the name from running under the buttons on phones */
+.brand h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:420px){ body:not(.is-home) .brand h1{font-size:14px;letter-spacing:0} body:not(.is-home) .logo{width:44px;height:17px} body:not(.is-home) .brand .bt{padding-left:8px} body:not(.is-home) .brand{gap:6px 8px} body:not(.is-home) .tools{gap:4px} body:not(.is-home) .tools button{padding:4px 8px} body:not(.is-home) .seg button{padding:3px 7px!important} }
+/* chem records */
+.daybar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.daybar select{font:inherit;font-family:var(--mono);font-size:15px;padding:7px 10px;border:1px solid var(--line2);border-radius:10px;background:var(--card);color:var(--fg)}
+.cstat{margin:10px 0 6px;font-family:var(--mono);font-size:14px}
+.ngv{color:var(--bad);font-weight:600}
+.okv{color:var(--ok);font-weight:600}
+.ctbl{font-size:13.5px}
+.ctbl td,.ctbl th{padding:6px 7px}
+.ctbl .nowrap,.nowrap{white-space:nowrap}
+.ctbl td.ng{background:var(--bad-bg);color:var(--bad);font-weight:700}
+.ctbl tr.crow{cursor:pointer}
+.ctbl tr.crow:hover td{background:var(--soft)}
+.ctbl tr.crow:hover td.ng{background:var(--bad-bg)}
+.ctbl tr.isng td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
+.ctbl td.rm{font-size:12px;color:var(--muted);min-width:80px}
+.ctbl tr.trow td{background:var(--card2);padding:4px 0 10px}
+.trendbox{padding:6px 8px}
+.chart{width:100%;height:auto;display:block;margin-top:4px}
+.chart .cgrid{stroke:var(--line);stroke-width:1}
+.chart .ctick{fill:var(--muted);font-size:10.5px;font-family:var(--mono)}
+.chart .cband{fill:var(--ok-bg);opacity:.9}
+.chart .cspec{stroke:var(--ok);stroke-width:1;stroke-dasharray:4 3;opacity:.8}
+.chart .cl{stroke-width:1.8}
+.chart .cl.c1{stroke:var(--accent)}
+.chart .cl.c2{stroke:var(--warn);stroke-dasharray:5 3;opacity:.85}
+.chart circle.c1{fill:var(--accent)}
+.chart circle.c2{fill:var(--warn)}
+.chart circle.cbad{fill:var(--bad);stroke:var(--card);stroke-width:1}
+.clegend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:4px}
+.clegend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.clegend i.c1{background:var(--accent)}.clegend i.c2{background:var(--warn)}.clegend i.cbandk{background:var(--ok-bg);height:10px;border:1px dashed var(--ok)}
+.list .pr.ngv{color:var(--bad)}
+.list .pr small{color:var(--muted);font-weight:400;font-size:11.5px}
+.ctbl td.tk{font-family:var(--mono);font-weight:600}
 </style>
 </head>
 <body>
@@ -246,7 +284,7 @@ footer{color:var(--muted);font-size:11.5px;margin-top:28px;text-align:center;let
 <div class="wrap">
 <header>
   <div class="brand"><a href="#" aria-label="home" style="display:block"><span class="logo" role="img" aria-label="DYDO"></span></a>
-    <div class="bt"><span class="eyebrow">Surface Finishing · Product Records</span><h1><a href="#" id="h1">製品カルテ</a></h1><small id="brandSub"></small></div>
+    <div class="bt"><span class="eyebrow">Surface Finishing · Shop Records</span><h1><a href="#" id="h1">DYDO NOTE</a></h1><small id="brandSub"></small></div>
     <div class="tools"><button type="button" class="editbtn" id="editBtn" hidden></button><button type="button" class="themebtn" id="themeBtn" aria-label="theme"></button><span role="group" aria-label="language" class="seg"><button type="button" data-lang="ja" aria-pressed="true">日本語</button><button type="button" data-lang="th" aria-pressed="false">ไทย</button></span></div></div>
   <form class="search" id="form" hidden><svg class="sicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" autocomplete="off" aria-label="search"><button type="submit" id="qbtn"></button></form>
   <p class="hint" id="hint"></p>
@@ -256,7 +294,7 @@ footer{color:var(--muted);font-size:11.5px;margin-top:28px;text-align:center;let
 </div>
 
 <script>
-const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", repoDir:"beta/", build:"2026-11-11" };
+const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", chem:"chem.enc.json", repoDir:"beta/", build:"2026-11-16" };
 let PW = null, DATA = null, FIELD = {entries:[]}, FLOWDOCS = null, FLOW_LOADING = null, EDIT = null;
 let CUSTOMERS = [], PRODUCTS = [], ISSUES = [], EVENTS = [], FLOWSTEPS = [], CAUTIONS = [];
 let byP = {}, byC = {}, byI = {};
@@ -272,7 +310,7 @@ const ls = { get(k){ try{ return localStorage.getItem(k) }catch(e){ return null 
 
 const T = {
   ja:{ openShort:"未完了", qtyTiers:"数量別の単価", qtyCol:"数量", quotedAt:"見積依頼日", stProducts:"登録製品", stQuoting:"見積中", stOpen:"未完了の問題", stWeek:"今週の現場記録", goFind:"条件で探す →", goQuote:"一覧を見る →", goOpen:"確認する →", goRecent:"記録を見る →", recentQuotes:"最近の見積・登録", howto:["図番・品名で検索","会社から探す","図面のQRで直接開く"], nCust:n=>`${n} 社`, themeDark:"暗い画面にする", themeLight:"明るい画面にする",
-    title:"製品カルテ",sub:"Dydo-tec アルマイト 製品・工程・問題の記録", ph:"図番・品名・会社名", search:"検索", hint:"図面のQRを読むと、その製品のページが直接開きます。", lock:"ロックする",
+    title:"DYDO NOTE",sub:"Dydo-tec アルマイト 製品・工程・問題・薬液の記録", ph:"図番・品名・会社名", search:"検索", hint:"図面のQRを読むと、その製品のページが直接開きます。", lock:"ロックする",
     lockTitle:"パスワード", lockMsg:"社内担当者から受け取ったパスワードを入力してください。", lockHint:"このページは社内専用です。", open:"開く", checking:"確認中…", wrong:"パスワードが違います。", pw:"パスワード",
     home:"ホーム", customers:"会社", nProducts:n=>`${n} 製品`, nOpen:n=>n?`未完了の問題 ${n}`:"", openIssues:"未完了の問題", recent:"最近の現場記録", noRecent:"まだ記録はありません。",
     hitN:n=>`検索結果 ${n} 件`, none:"見つかりません。図番の一部、品名、モデル（R47 など）、会社名で探してください。", products:"製品", issues:"問題", events:"できごと", all:"すべて",
@@ -305,7 +343,7 @@ const T = {
     photoWait:"写真は反映待ち（1〜2 分）", photoLoad:"写真", undo:"取り消す", undone:"取り消し済み", confirmUndo:"もう一度押すと取り消します（履歴には残ります）", by:"記録", jaText:"",
     foot:"社内専用・パスワードは社内の担当者へ ・ 現場の記録は GitHub に暗号化して保存され、履歴が残ります" },
   th:{ openShort:"ค้าง", qtyTiers:"", qtyCol:"", quotedAt:"วันที่ขอใบเสนอราคา", stProducts:"สินค้าที่ลงทะเบียน", stQuoting:"กำลังเสนอราคา", stOpen:"ปัญหาที่ยังไม่เสร็จ", stWeek:"บันทึกหน้างานสัปดาห์นี้", goFind:"ค้นหาตามเงื่อนไข →", goQuote:"ดูรายการ →", goOpen:"ตรวจสอบ →", goRecent:"ดูบันทึก →", recentQuotes:"เสนอราคา・ลงทะเบียนล่าสุด", howto:["ค้นหาด้วยเลขแบบ・ชื่อชิ้นงาน","ค้นหาจากบริษัท","สแกน QR บนแบบเพื่อเปิดโดยตรง"], nCust:n=>`${n} บริษัท`, themeDark:"โหมดมืด", themeLight:"โหมดสว่าง",
-    title:"บัตรข้อมูลสินค้า",sub:"Dydo-tec ชุบอโนไดซ์ บันทึกสินค้า・ขั้นตอน・ปัญหา", ph:"เลขแบบ・ชื่อชิ้นงาน・บริษัท", search:"ค้นหา", hint:"สแกน QR บนแบบ จะเปิดหน้าของสินค้านั้นโดยตรง", lock:"ล็อก",
+    title:"DYDO NOTE",sub:"Dydo-tec ชุบอโนไดซ์ บันทึกสินค้า・ขั้นตอน・ปัญหา・น้ำยา", ph:"เลขแบบ・ชื่อชิ้นงาน・บริษัท", search:"ค้นหา", hint:"สแกน QR บนแบบ จะเปิดหน้าของสินค้านั้นโดยตรง", lock:"ล็อก",
     lockTitle:"รหัสผ่าน", lockMsg:"กรุณาใส่รหัสผ่านที่ได้รับจากผู้รับผิดชอบ", lockHint:"หน้านี้ใช้ภายในบริษัทเท่านั้น", open:"เปิด", checking:"กำลังตรวจสอบ…", wrong:"รหัสผ่านไม่ถูกต้อง", pw:"รหัสผ่าน",
     home:"หน้าแรก", customers:"บริษัท", nProducts:n=>`${n} รายการ`, nOpen:n=>n?`ปัญหาที่ยังไม่เสร็จ ${n}`:"", openIssues:"ปัญหาที่ยังไม่เสร็จ", recent:"บันทึกล่าสุดจากหน้างาน", noRecent:"ยังไม่มีบันทึก",
     hitN:n=>`ผลการค้นหา ${n} รายการ`, none:"ไม่พบ ลองค้นด้วยบางส่วนของเลขแบบ ชื่อชิ้นงาน รุ่น (เช่น R47) หรือชื่อบริษัท", products:"สินค้า", issues:"ปัญหา", events:"เหตุการณ์", all:"ทั้งหมด",
@@ -486,7 +524,7 @@ function renderLock(msg){
   document.getElementById("lockForm").addEventListener("submit", async e => { e.preventDefault(); const pw = document.getElementById("pw").value; document.getElementById("err").textContent = t("checking"); try{ await unlock(pw); ls.set("karte.pw", pw); }catch(_){ document.getElementById("err").textContent = t("wrong"); } });
   setTimeout(()=>{ const p=document.getElementById("pw"); if(p) p.focus(); }, 50);
 }
-function lock(){ ls.del("karte.pw"); ls.del("karte.editpw"); PW=null; DATA=null; EDIT=null; FIELD={entries:[]}; FLOWDOCS=null; FLOW_LOADING=null; KEYS.clear(); renderLock(""); }
+function lock(){ ls.del("karte.pw"); ls.del("karte.editpw"); PW=null; DATA=null; EDIT=null; FIELD={entries:[]}; FLOWDOCS=null; FLOW_LOADING=null; CHEM=null; CHEM_LOADING=null; KEYS.clear(); renderLock(""); }
 async function unlock(pw){
   if(!(window.crypto && crypto.subtle)) throw new Error("no webcrypto");
   const e = await fetchEnc(CONF.data, true); if(!e) throw new Error("no data");
@@ -494,6 +532,7 @@ async function unlock(pw){
   PW = pw; DATA = data; normalize(data);
   document.getElementById("form").hidden = false; applyChrome(); route();
   await loadField(); route(true);
+  loadChem().then(()=>{ if(!location.hash || location.hash.startsWith("#chem")) route(true); }).catch(()=>{});
   const ep = ls.get("karte.editpw"), en = ls.get("karte.editname"); if(ep && en) startEdit(ep, en, true).catch(()=>{});
 }
 
@@ -778,8 +817,9 @@ function renderHome(q){
   const quoting = PRODUCTS.filter(p=>p.status==="見積中");
   const latest = PRODUCTS.filter(p=>p.quotedAt || p.addedInField).sort((a,b)=>String(b.quotedAt||"").localeCompare(String(a.quotedAt||""))).slice(0,6);
   const stat = (id, lb, v, go, warn) => `<button type="button" class="stat${warn?" warn":""}" data-go="${id}"><span class="lb">${esc(lb)}</span><span class="v">${v}</span><span class="go">${esc(go)}</span></button>`;
-  main.innerHTML = `<div class="stats">${stat("find", t("stProducts"), PRODUCTS.length, t("goFind"))}${stat("quoting", t("stQuoting"), quoting.length, t("goQuote"))}${stat("issues", t("stOpen"), oi.length+ofi.length, t("goOpen"), (oi.length+ofi.length)>0)}${stat("recent", t("stWeek"), nWeek, t("goRecent"))}</div>
+  main.innerHTML = `<div class="stats">${stat("find", t("stProducts"), PRODUCTS.length, t("goFind"))}${stat("quoting", t("stQuoting"), quoting.length, t("goQuote"))}${stat("issues", t("stOpen"), oi.length+ofi.length, t("goOpen"), (oi.length+ofi.length)>0)}${stat("recent", t("stWeek"), nWeek, t("goRecent"))}${chemStat()}</div>
     <div class="card" id="custs"><h2>${esc(t("customers"))} <span class="sub">${esc(t("nCust")(CUSTOMERS.length))}</span></h2><div class="cust">${CUSTOMERS.map(c=>{ const n = PRODUCTS.filter(p=>p.customer===c.id).length, o = openIssues(c.id).length + openFieldIssues(c.id).length; return `<a href="#c/${encodeURIComponent(c.id)}"><span class="mono">${monoOf(c)}</span><span class="ct"><div class="nm">${esc(tx(c,"name"))}</div><div class="meta">${esc(t("nProducts")(n))}${o?` ・ <span class="o">${esc(t("openShort"))} ${o}</span>`:""}</div></span></a>`; }).join("")}</div></div>
+    ${chemHomeCard()}
     ${latest.length?`<div class="card" id="latest"><h2>${esc(t("recentQuotes"))}</h2><ul class="list">${latest.map(productItem).join("")}</ul></div>`:""}
     ${findCard()}
     ${(oi.length||ofi.length||EDIT)?`<div class="card" id="openIss"><h2>${esc(t("openIssues"))}</h2>${regForm}<ul class="list">${oi.map(issueItem).join("")}${ofi.map(fieldIssueItem).join("")}</ul></div>`:""}
@@ -787,6 +827,7 @@ function renderHome(q){
     <div class="card" id="recent"><h2>${esc(t("recent"))}</h2>${recent.length?recent.map(e=>entryCard(e,true)).join(""):`<p class="empty">${esc(t("noRecent"))}</p>`}</div>`;
   main.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>{
     const go = b.dataset.go;
+    if(go==="chem"){ location.hash = "#chem"; return; }
     if(go==="quoting"){ FILT = {cust:"", proc:"", mat:"", mask:"", status:"見積中"}; renderHome(""); }
     const el = document.getElementById(go==="issues" ? "openIss" : go==="recent" ? "recent" : "find");
     if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
@@ -1028,6 +1069,203 @@ function renderDocs(){
   }).catch(()=>{ const b = document.getElementById("docs"); if(b) b.innerHTML = `<p class="note">${esc(t("loadFail"))}</p>`; });
 }
 
+/* ---------- 薬液の記録 (chem.enc.json: pH / titration / FF-250 / Hot Top Seal temperature, imported from FON's Excel) ---------- */
+let CHEM = null, CHEM_LOADING = null;
+const CH = { tab:"ph", date:"", line:"", ng:false, open:"" };
+const CT = {
+  ja:{ chem:"薬液の記録", chemSub:"FONさんの日常点検（サーバーの Excel）から取り込んだ記録です。入力は今までどおり Excel へ。", tabs:{ph:"pH",tit:"滴定（濃度）",ff:"FF-250",temp:"封孔の温度"},
+    built:"最終取り込み", range:"期間", stChem:"薬液の規格外", goChem:"薬液を見る →", latestNG:d=>`最新の記録（${d}）の規格外`, noNG:"規格外はありません。", allOk:"すべて規格内",
+    prev:"← 前の日", next:"次の日 →", allLines:"全ライン", ngOnly:"規格外だけ", tank:"槽", chemName:"薬品・水", spec:"規格", remark:"備考", noSpec:"規格なし",
+    ngCount:(n,m)=>`規格外 ${n} ／ 測定 ${m}`, trend:"推移", tapTrend:"行をタップすると推移グラフが出ます。", close:"閉じる",
+    oldNo:"旧番号", oldNote:"LINE 1 は 2026-10-27 にタンク番号が変わりました。それより前の記録は「旧番号」として別に扱っています。",
+    ranking:"規格外が多い槽（直近 30 日）", rankCol:"規格外 / 測定", noRank:"直近 30 日に規格外はありません。",
+    groups:{anod:"アルマイト槽（硫酸・シュウ酸）",degr:"脱脂",acid:"酸洗",seal:"封孔（Top Seal）",dye:"染料濃度"},
+    reading:"読み", conc:"濃度 g/L", al:"Al g/L", freq:"頻度", abs:"吸光度",
+    ffBefore:"滴定（前）", ffAfter:"滴定（後）", level:"水位 前→後 cm", refill:"補給 FF-250 / Ammonium g", action:"処置",
+    time:"時刻", meas:"実測", screen:"画面", noData:"この期間の記録はありません。", loading:"薬液の記録を読み込み中…", loadFail:"薬液の記録を読み込めませんでした。",
+    notes:{ph:"10:00 と 15:00 の測定。規格は帳票のその日の Spec 欄の値で判定しています。", tit:"アルマイト槽の濃度と H-298 は、帳票に比べる規格が書かれていないため判定していません。", ff:"規格は帳票の「Spec 78-80」。", temp:"Hot Top Seal 温度記録表（Sealing Temperature Log）から。規格は 80〜95 °C、LINE 1 の L-100 槽は 20〜35 °C。"},
+    perDay:"1日ごと", latest:"最新" },
+  th:{ chem:"บันทึกน้ำยา", chemSub:"ข้อมูลจากการตรวจเช็คประจำวันของคุณฝน (Excel บนเซิร์ฟเวอร์) การกรอกข้อมูลยังคงทำใน Excel เหมือนเดิม", tabs:{ph:"pH",tit:"ไตเตรท (ความเข้มข้น)",ff:"FF-250",temp:"อุณหภูมิซีล"},
+    built:"นำเข้าล่าสุด", range:"ช่วงเวลา", stChem:"น้ำยานอกสเป็ก", goChem:"ดูน้ำยา →", latestNG:d=>`นอกสเป็กของบันทึกล่าสุด (${d})`, noNG:"ไม่มีค่านอกสเป็ก", allOk:"อยู่ในสเป็กทั้งหมด",
+    prev:"← วันก่อน", next:"วันถัดไป →", allLines:"ทุกไลน์", ngOnly:"เฉพาะนอกสเป็ก", tank:"บ่อ", chemName:"น้ำยา・น้ำ", spec:"สเป็ก", remark:"หมายเหตุ", noSpec:"ไม่มีสเป็ก",
+    ngCount:(n,m)=>`นอกสเป็ก ${n} / วัด ${m}`, trend:"แนวโน้ม", tapTrend:"แตะที่แถวเพื่อดูกราฟแนวโน้ม", close:"ปิด",
+    oldNo:"เลขเดิม", oldNote:"LINE 1 เปลี่ยนเลขบ่อเมื่อ 2026-10-27 บันทึกก่อนหน้านั้นแยกเป็น \"เลขเดิม\"",
+    ranking:"บ่อที่นอกสเป็กบ่อย (30 วันล่าสุด)", rankCol:"นอกสเป็ก / วัด", noRank:"30 วันล่าสุดไม่มีค่านอกสเป็ก",
+    groups:{anod:"บ่ออโนไดซ์ (กำมะถัน・ออกซาลิก)",degr:"ล้างไขมัน",acid:"ล้างกรด",seal:"ซีล (Top Seal)",dye:"ความเข้มข้นสี"},
+    reading:"ค่าที่อ่าน", conc:"ความเข้มข้น g/L", al:"Al g/L", freq:"ความถี่", abs:"ค่าดูดกลืนแสง",
+    ffBefore:"ไตเตรท (ก่อน)", ffAfter:"ไตเตรท (หลัง)", level:"ระดับน้ำ ก่อน→หลัง cm", refill:"เติม FF-250 / Ammonium g", action:"การแก้ไข",
+    time:"เวลา", meas:"วัดจริง", screen:"หน้าจอ", noData:"ไม่มีบันทึกในช่วงนี้", loading:"กำลังโหลดบันทึกน้ำยา…", loadFail:"โหลดบันทึกน้ำยาไม่สำเร็จ",
+    notes:{ph:"วัดเวลา 10:00 และ 15:00 ตัดสินตามค่า Spec ในแบบฟอร์มของวันนั้น", tit:"บ่ออโนไดซ์และ H-298 ไม่มีสเป็กในแบบฟอร์ม จึงไม่ได้ตัดสิน", ff:"สเป็กตามแบบฟอร์ม \"Spec 78-80\"", temp:"จากบันทึกอุณหภูมิ Hot Top Seal (Sealing Temperature Log) สเป็ก 80〜95 °C บ่อ L-100 ของ LINE 1 คือ 20〜35 °C"},
+    perDay:"รายวัน", latest:"ล่าสุด" }
+};
+const ct = k => CT[LANG][k];
+async function loadChem(){
+  if(CHEM) return CHEM;
+  if(!CHEM_LOADING){ CHEM_LOADING = fetchEnc(CONF.chem, true).then(e=>{ if(!e) throw new Error("no chem"); return decryptJSON(e, PW); }).then(d=>{ CHEM = prepChem(d); return CHEM; }).catch(err=>{ CHEM_LOADING = null; throw err; }); }
+  return CHEM_LOADING;
+}
+const isNum = v => typeof v==="number" && isFinite(v);
+const outOf = (v, lo, hi) => isNum(v) && isNum(lo) && isNum(hi) && (v < lo - 1e-9 || v > hi + 1e-9);
+const md = d => d ? `${+d.slice(5,7)}/${+d.slice(8,10)}` : "";
+const LINES = ["LINE 1","LINE 2/1","LINE 2/2","LINE 3","LINE 5"];
+const lineSort = (a,b) => LINES.indexOf(a)-LINES.indexOf(b);
+const tankNo = k => { const m = String(k).match(/\d+/); return m ? +m[0] : 999; };
+function prepChem(d){
+  for(const r of d.ph){ r.key = `${r.l}|${r.k}|${r.e||0}`; r.ng = outOf(r.a, r.lo, r.hi) || outOf(r.b, r.lo, r.hi); }
+  for(const r of d.tit){ r.key = `${r.g}|${r.ln}|${r.tk}|${r.e||0}`; r.ng = outOf(r.v, r.lo, r.hi); }
+  for(const r of d.ff){ r.ng = outOf(r.v, r.lo, r.hi); }
+  for(const r of d.temp){ r.key = r.k; r.ng = outOf(r.m, r.lo, r.hi); }
+  const days = a => [...new Set(a.map(r=>r.d))].sort();
+  d.days = { ph:days(d.ph), tit:days(d.tit), ff:days(d.ff), temp:days(d.temp) };
+  return d;
+}
+const phNameAt = (ln, tk, d) => { const r = CHEM.ph.find(x=>x.d===d && x.l===ln && x.k===tk); return r ? r.c : ""; };
+
+/* simple SVG trend: points [{d, v, v2?}], optional spec band */
+function trendSVG(pts, lo, hi, label2){
+  const W = 640, H = 190, L = 40, R = 10, Tp = 12, B = 26;
+  const vals = pts.flatMap(p=>[p.v, p.v2]).filter(isNum);
+  if(!vals.length) return `<p class="empty">${esc(ct("noData"))}</p>`;
+  let mn = Math.min(...vals, isNum(lo)?lo:Infinity), mx = Math.max(...vals, isNum(hi)?hi:-Infinity);
+  if(mx - mn < 1e-6){ mn -= 1; mx += 1; } const pad = (mx-mn)*0.08; mn -= pad; mx += pad;
+  const days = [...new Set(pts.map(p=>p.d))].sort();
+  const x = d => days.length < 2 ? (L + (W-L-R)/2) : L + (W-L-R) * days.indexOf(d) / (days.length-1);
+  const y = v => Tp + (H-Tp-B) * (1 - (v-mn)/(mx-mn));
+  const band = (isNum(lo) && isNum(hi)) ? `<rect x="${L}" y="${y(hi).toFixed(1)}" width="${W-L-R}" height="${Math.max(1,(y(lo)-y(hi))).toFixed(1)}" class="cband"/><line x1="${L}" x2="${W-R}" y1="${y(hi).toFixed(1)}" y2="${y(hi).toFixed(1)}" class="cspec"/><line x1="${L}" x2="${W-R}" y1="${y(lo).toFixed(1)}" y2="${y(lo).toFixed(1)}" class="cspec"/>` : "";
+  const raw = (mx-mn)/4, mag = Math.pow(10, Math.floor(Math.log10(raw))), stp = [1,2,2.5,5,10].map(m=>m*mag).find(s=>s>=raw) || raw;
+  const dec = Math.max(0, -Math.floor(Math.log10(stp) + 1e-9) + (stp/mag===2.5 ? 1 : 0));
+  const ticks = []; for(let v = Math.ceil(mn/stp)*stp; v <= mx + 1e-9; v += stp){ ticks.push(`<text x="${L-5}" y="${(y(v)+3.5).toFixed(1)}" class="ctick" text-anchor="end">${v.toFixed(dec)}</text><line x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" class="cgrid"/>`); }
+  const step = Math.max(1, Math.ceil(days.length / 7));
+  const xl = days.map((d,i)=> ((i % step === 0 && days.length-1-i >= step*0.6) || i === days.length-1) ? `<text x="${x(d).toFixed(1)}" y="${H-8}" class="ctick" text-anchor="${i===0?"start":i===days.length-1?"end":"middle"}">${md(d)}</text>` : "").join("");
+  const series = (key, cls) => { const s = pts.filter(p=>isNum(p[key])); if(!s.length) return "";
+    const path = s.map((p,i)=>`${i?"L":"M"}${x(p.d).toFixed(1)},${y(p[key]).toFixed(1)}`).join("");
+    const dots = s.map(p=>{ const bad = outOf(p[key], lo, hi); return `<circle cx="${x(p.d).toFixed(1)}" cy="${y(p[key]).toFixed(1)}" r="${bad?3.6:2.4}" class="${bad?"cbad":cls}"><title>${md(p.d)} ${p.t?p.t+" ":""}${p[key]}</title></circle>`; }).join("");
+    return `<path d="${path}" class="cl ${cls}" fill="none"/>${dots}`; };
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${esc(ct("trend"))}">${ticks.join("")}${band}${series("v2","c2")}${series("v","c1")}${xl}</svg>
+    ${label2?`<div class="clegend"><span><i class="c1"></i>${esc(label2[0])}</span><span><i class="c2"></i>${esc(label2[1])}</span>${isNum(lo)?`<span><i class="cbandk"></i>${esc(ct("spec"))} ${lo}〜${hi}</span>`:""}</div>`:(isNum(lo)?`<div class="clegend"><span><i class="cbandk"></i>${esc(ct("spec"))} ${lo}〜${hi}</span></div>`:"")}`;
+}
+const specTx = (s, lo, hi) => isNum(lo) ? `${lo}〜${hi}` : (s && !/no ?spec/i.test(s) ? s : ct("noSpec"));
+const cell = (v, bad) => `<td class="num${bad?" ng":""}">${isNum(v) ? v : (v==null ? "" : esc(v))}</td>`;
+const oldTag = r => r.e ? ` <span class="tag st">${esc(ct("oldNo"))}</span>` : "";
+
+function chemStat(){
+  if(!CHEM) return `<button type="button" class="stat" data-go="chem"><span class="lb">${esc(ct("stChem"))}</span><span class="v">…</span><span class="go">${esc(ct("goChem"))}</span></button>`;
+  const d = CHEM.days.ph[CHEM.days.ph.length-1], n = CHEM.ph.filter(r=>r.d===d && r.ng).length;
+  return `<button type="button" class="stat${n?" warn":""}" data-go="chem"><span class="lb">${esc(ct("stChem"))} <span class="num">${esc(md(d))}</span></span><span class="v">${n}</span><span class="go">${esc(ct("goChem"))}</span></button>`;
+}
+function chemHomeCard(){
+  if(!CHEM) return "";
+  const d = CHEM.days.ph[CHEM.days.ph.length-1];
+  const ng = CHEM.ph.filter(r=>r.d===d && r.ng).sort((a,b)=>lineSort(a.l,b.l) || tankNo(a.k)-tankNo(b.k));
+  const td = CHEM.days.tit[CHEM.days.tit.length-1];
+  const ngT = CHEM.tit.filter(r=>r.d===td && r.ng);
+  const li = r => `<li><a href="#chem/ph/${r.d}"><span class="no">${esc(r.l)} ${esc(r.k)}</span> <span class="meta" style="display:inline">${esc(r.c)} ・ pH</span><span class="pr">${[r.a,r.b].filter(isNum).map(v=>`<span class="${outOf(v,r.lo,r.hi)?"ngv":""}">${v}</span>`).join(" / ")}<small> (${esc(specTx(r.s,r.lo,r.hi))})</small></span></a></li>`;
+  const liT = r => `<li><a href="#chem/tit/${r.d}"><span class="no">${esc(r.ln)} ${esc(r.tk)}</span> <span class="meta" style="display:inline">${esc(r.c||phNameAt(r.ln,r.tk,r.d))} ・ ${esc(ct("conc"))}</span><span class="pr ngv">${Math.round(r.v*100)/100}<small> (${esc(specTx(r.s,r.lo,r.hi))})</small></span></a></li>`;
+  return `<div class="card" id="chemHome"><h2>${esc(ct("chem"))} <span class="sub">${esc(ct("latestNG")(md(d)))}</span></h2>
+    ${ng.length || ngT.length ? `<ul class="list">${ng.slice(0,5).map(li).join("")}${ngT.slice(0,3).map(liT).join("")}</ul>${ng.length+ngT.length>8?`<p class="sub">… +${Math.max(0,ng.length-5)+Math.max(0,ngT.length-3)}</p>`:""}` : `<p class="empty">${esc(ct("allOk"))}</p>`}
+    <div class="actions"><a class="btn small ghost" href="#chem" style="text-decoration:none">${esc(ct("goChem"))}</a></div></div>`;
+}
+
+function renderChem(sub){
+  const parts = (sub||"").split("/").filter(Boolean);
+  if(parts[0] && ["ph","tit","ff","temp"].includes(parts[0])) CH.tab = parts[0];
+  if(parts[1]) CH.date = parts[1];
+  if(!CHEM){
+    main.innerHTML = `<div class="card"><p class="empty">${esc(ct("loading"))}</p></div>`;
+    loadChem().then(()=>{ if(location.hash.startsWith("#chem")) route(true); }).catch(()=>{ main.innerHTML = `<div class="card"><p class="note">${esc(ct("loadFail"))}</p></div>`; });
+    return;
+  }
+  const tab = CH.tab, days = CHEM.days[tab];
+  if(!CH.date || !days.includes(CH.date)) CH.date = days[days.length-1] || "";
+  const tabs = ["ph","tit","ff","temp"].map(k=>`<button type="button" role="tab" data-ctab="${k}" aria-selected="${k===tab}">${esc(ct("tabs")[k])}</button>`).join("");
+  let body = "";
+  if(tab==="ph") body = chemPH(); else if(tab==="tit") body = chemTit(); else if(tab==="ff") body = chemFF(); else body = chemTemp();
+  main.innerHTML = `<p><a href="#">${esc(t("backHome"))}</a></p>
+    <div class="card"><h2>${esc(ct("chem"))}</h2><p class="sub" style="margin:0 0 4px">${esc(ct("chemSub"))}</p>
+    <p class="sub num" style="margin:0">${esc(ct("built"))} ${esc(CHEM.built)} ・ ${esc(ct("range"))} ${esc(CHEM.from)} 〜 ${esc(CHEM.to)}</p></div>
+    <div class="tabs" role="tablist">${tabs}</div>${body}`;
+  main.querySelectorAll("[data-ctab]").forEach(b=>b.addEventListener("click",()=>{ CH.tab = b.dataset.ctab; CH.open = ""; CH.date = ""; location.hash = "#chem/" + CH.tab; }));
+  main.querySelectorAll("[data-cday]").forEach(b=>b.addEventListener("click",()=>{ location.hash = `#chem/${CH.tab}/${b.dataset.cday}`; }));
+  const sel = document.getElementById("cDate"); if(sel) sel.addEventListener("change",()=>{ location.hash = `#chem/${CH.tab}/${sel.value}`; });
+  main.querySelectorAll("[data-cline]").forEach(b=>b.addEventListener("click",()=>{ CH.line = CH.line===b.dataset.cline ? "" : b.dataset.cline; route(true); }));
+  const ng = document.getElementById("cNg"); if(ng) ng.addEventListener("click",()=>{ CH.ng = !CH.ng; route(true); });
+  main.querySelectorAll("[data-copen]").forEach(r=>r.addEventListener("click",()=>{ CH.open = CH.open===r.dataset.copen ? "" : r.dataset.copen; route(true); }));
+}
+function dayBar(){
+  const days = CHEM.days[CH.tab], i = days.indexOf(CH.date);
+  const opts = [...days].reverse().map(d=>`<option value="${d}"${d===CH.date?" selected":""}>${d}</option>`).join("");
+  return `<div class="daybar"><button type="button" class="btn small ghost" ${i>0?`data-cday="${days[i-1]}"`:"disabled"}>${esc(ct("prev"))}</button>
+    <select id="cDate" aria-label="date">${opts}</select>
+    <button type="button" class="btn small ghost" ${i<days.length-1?`data-cday="${days[i+1]}"`:"disabled"}>${esc(ct("next"))}</button></div>`;
+}
+function lineChips(lines){
+  return `<div class="filters">${[["",ct("allLines")],...lines.map(l=>[l,l])].map(([v,lb])=>`<button type="button" data-cline="${esc(v)}" aria-pressed="${CH.line===v}">${esc(lb)}</button>`).join("")}<button type="button" id="cNg" aria-pressed="${CH.ng}">${esc(ct("ngOnly"))}</button></div>`;
+}
+function trendRow(cols, key, pts, lo, hi, labels){
+  return CH.open===key ? `<tr class="trow"><td colspan="${cols}"><div class="trendbox"><div class="sub">${esc(ct("trend"))}（${esc(ct("perDay"))}）<button type="button" class="linkbtn" data-copen="${esc(key)}" style="float:right">${esc(ct("close"))}</button></div>${trendSVG(pts, lo, hi, labels)}</div></td></tr>` : "";
+}
+function chemPH(){
+  const rows = CHEM.ph.filter(r=>r.d===CH.date);
+  const lines = [...new Set(rows.map(r=>r.l))].sort(lineSort);
+  const shown = rows.filter(r=>(!CH.line || r.l===CH.line) && (!CH.ng || r.ng));
+  const nM = rows.filter(r=>isNum(r.a)||isNum(r.b)).length, nN = rows.filter(r=>r.ng).length;
+  const byLine = lines.filter(l=>!CH.line || l===CH.line).map(l=>{
+    const rs = shown.filter(r=>r.l===l).sort((a,b)=>tankNo(a.k)-tankNo(b.k)); if(!rs.length) return "";
+    return `<h3>${esc(l)}</h3><div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(ct("tank"))}</th><th>${esc(ct("chemName"))}</th><th>${esc(ct("spec"))}</th><th class="num">10:00</th><th class="num">15:00</th><th>${esc(ct("remark"))}</th></tr></thead><tbody>${rs.map(r=>{
+      const pts = CHEM.ph.filter(x=>x.key===r.key).map(x=>({d:x.d, v:x.a, v2:x.b}));
+      return `<tr class="crow${r.ng?" isng":""}" data-copen="${esc(r.key)}"><td class="nowrap tk">${esc(r.k)}${oldTag(r)}</td><td>${esc(r.c)}</td><td class="num nowrap">${esc(specTx(r.s,r.lo,r.hi))}</td>${cell(r.a, outOf(r.a,r.lo,r.hi))}${cell(r.b, outOf(r.b,r.lo,r.hi))}<td class="rm">${esc(r.r||"")}</td></tr>${trendRow(6, r.key, pts, r.lo, r.hi, ["10:00","15:00"])}`; }).join("")}</tbody></table></div>`; }).join("");
+  return `<div class="card">${dayBar()}<p class="cstat"><span class="${nN?"ngv":"okv"}">${esc(ct("ngCount")(nN, nM))}</span></p>${lineChips(lines)}<p class="sub">${esc(ct("tapTrend"))}</p>${byLine || `<p class="empty">${esc(CH.ng?ct("noNG"):ct("noData"))}</p>`}
+    <p class="note" style="margin-top:12px">${esc(ct("notes").ph)} ${CHEM.ph.some(r=>r.e)?esc(ct("oldNote")):""}</p></div>${phRanking()}`;
+}
+function phRanking(){
+  const last = CHEM.days.ph.slice(-30), set = new Set(last);
+  const agg = {};
+  for(const r of CHEM.ph){ if(!set.has(r.d) || !isNum(r.lo)) continue; const a = agg[r.key] || (agg[r.key] = {r, n:0, ng:0}); if(isNum(r.a)||isNum(r.b)){ a.n++; if(r.ng) a.ng++; } a.r = r; }
+  const list = Object.values(agg).filter(a=>a.ng>0).sort((a,b)=>b.ng/b.n - a.ng/a.n || b.ng-a.ng).slice(0,12);
+  return `<div class="card"><h2>${esc(ct("ranking"))}</h2>${list.length?`<div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(ct("tank"))}</th><th>${esc(ct("chemName"))}</th><th>${esc(ct("spec"))}</th><th class="num">${esc(ct("rankCol"))}</th><th class="num">%</th></tr></thead><tbody>${list.map(a=>`<tr><td class="nowrap">${esc(a.r.l)} ${esc(a.r.k)}${oldTag(a.r)}</td><td>${esc(a.r.c)}</td><td class="num nowrap">${esc(specTx(a.r.s,a.r.lo,a.r.hi))}</td><td class="num">${a.ng} / ${a.n}</td><td class="num ngv">${Math.round(100*a.ng/a.n)}</td></tr>`).join("")}</tbody></table></div>`:`<p class="empty">${esc(ct("noRank"))}</p>`}</div>`;
+}
+function chemTit(){
+  const rows = CHEM.tit.filter(r=>r.d===CH.date);
+  const lines = [...new Set(rows.map(r=>r.ln))].filter(Boolean).sort(lineSort);
+  const shown = rows.filter(r=>(!CH.line || r.ln===CH.line) && (!CH.ng || r.ng));
+  const groups = ["anod","degr","acid","seal","dye"].map(g=>{
+    const rs = shown.filter(r=>r.g===g).sort((a,b)=>lineSort(a.ln,b.ln) || tankNo(a.tk)-tankNo(b.tk)); if(!rs.length) return "";
+    const isDye = g==="dye", hasAl = rs.some(r=>isNum(r.al));
+    return `<h3>${esc(ct("groups")[g])}</h3><div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(ct("tank"))}</th><th>${esc(ct("chemName"))}</th><th class="num">${esc(isDye?ct("abs"):ct("reading")+" ml")}</th><th class="num">${esc(ct("conc"))}</th>${hasAl?`<th class="num">${esc(ct("al"))}</th>`:""}<th>${esc(ct("spec"))}</th><th>${esc(ct("freq"))}</th><th>${esc(ct("remark"))}</th></tr></thead><tbody>${rs.map(r=>{
+      const pts = CHEM.tit.filter(x=>x.key===r.key).map(x=>({d:x.d, v:x.v}));
+      return `<tr class="crow${r.ng?" isng":""}" data-copen="${esc(r.key)}"><td class="nowrap">${esc(r.ln)} ${esc(r.tk)}${oldTag(r)}</td><td>${esc(r.c||phNameAt(r.ln,r.tk,r.d))}</td>${cell(r.ml,false)}${cell(isNum(r.v)?Math.round(r.v*100)/100:r.v, r.ng)}${hasAl?cell(isNum(r.al)?Math.round(r.al*100)/100:"",false):""}<td class="num nowrap">${esc(isNum(r.lo)?`${r.lo}〜${r.hi}`:"—")}</td><td class="nowrap">${esc(r.f||"")}</td><td class="rm">${esc(r.r||"")}</td></tr>${trendRow(hasAl?8:7, r.key, pts, r.lo, r.hi)}`; }).join("")}</tbody></table></div>`; }).join("");
+  const nN = rows.filter(r=>r.ng).length;
+  return `<div class="card">${dayBar()}<p class="cstat"><span class="${nN?"ngv":"okv"}">${esc(ct("ngCount")(nN, rows.length))}</span></p>${lineChips(lines)}<p class="sub">${esc(ct("tapTrend"))}</p>${groups || `<p class="empty">${esc(CH.ng?ct("noNG"):ct("noData"))}</p>`}<p class="note" style="margin-top:12px">${esc(ct("notes").tit)} ${CHEM.tit.some(r=>r.e)?esc(ct("oldNote")):""}</p></div>`;
+}
+function chemFF(){
+  const rs = [...CHEM.ff].sort((a,b)=>b.d.localeCompare(a.d)).filter(r=>!CH.ng || r.ng);
+  const pts = CHEM.ff.map(r=>({d:r.d, v:r.v}));
+  const nN = CHEM.ff.filter(r=>r.ng).length;
+  return `<div class="card"><h2>${esc(ct("trend"))} <span class="sub">FF-250 ・ Ammonium</span></h2>${trendSVG(pts, 78, 80)}
+    <p class="cstat"><span class="${nN?"ngv":"okv"}">${esc(ct("ngCount")(nN, CHEM.ff.length))}</span></p><div class="filters"><button type="button" id="cNg" aria-pressed="${CH.ng}">${esc(ct("ngOnly"))}</button></div>
+    <div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(t("date"))}</th><th class="num">${esc(ct("ffBefore"))}</th><th class="num">${esc(ct("level"))}</th><th class="num">${esc(ct("refill"))}</th><th class="num">${esc(ct("ffAfter"))}</th><th>${esc(ct("action"))}</th></tr></thead>
+    <tbody>${rs.map(r=>`<tr class="${r.ng?"isng":""}"><td class="num nowrap">${esc(r.d)}</td>${cell(r.v, r.ng)}<td class="num nowrap">${isNum(r.lb)?r.lb:"-"} → ${isNum(r.la)?r.la:"-"}</td><td class="num nowrap">${isNum(r.ffg)||isNum(r.amg)?`${isNum(r.ffg)?r.ffg:"-"} / ${isNum(r.amg)?r.amg:"-"}`:""}</td>${cell(r.va, outOf(r.va,r.lo,r.hi))}<td class="rm">${esc(r.x||"")}</td></tr>`).join("")}</tbody></table></div>
+    <p class="note" style="margin-top:12px">${esc(ct("notes").ff)}</p></div>`;
+}
+function chemTemp(){
+  if(!CHEM.temp.length) return `<div class="card"><p class="empty">${esc(ct("noData"))}</p></div>`;
+  const rows = CHEM.temp.filter(r=>r.d===CH.date);
+  const tanks = [...new Set(CHEM.temp.map(r=>r.k))].sort((a,b)=>lineSort(a.replace(/LINE (\d)-(\d)/,"LINE $1/$2").replace(/ Tank.*/,""), b.replace(/LINE (\d)-(\d)/,"LINE $1/$2").replace(/ Tank.*/,"")));
+  const times = [...new Set(rows.map(r=>r.tm))].sort();
+  const get = (tm, k) => rows.find(r=>r.tm===tm && r.k===k);
+  const spec = k => { const r = CHEM.temp.find(x=>x.k===k); return r ? `${r.lo}〜${r.hi} °C` : ""; };
+  const nN = rows.filter(r=>r.ng).length;
+  const trends = tanks.map(k=>{ const rs = CHEM.temp.filter(r=>r.k===k); const days = [...new Set(rs.map(r=>r.d))].sort();
+    const pts = days.map(d=>{ const v = rs.filter(r=>r.d===d && isNum(r.m)).map(r=>r.m); return {d, v: v.length ? Math.min(...v) : null, v2: v.length ? Math.max(...v) : null}; });
+    return `<h3>${esc(k)} <span class="sub">${esc(spec(k))}</span></h3>${trendSVG(pts, rs[0].lo, rs[0].hi, [LANG==="ja"?"1日の最低":"ต่ำสุดของวัน", LANG==="ja"?"1日の最高":"สูงสุดของวัน"])}`; }).join("");
+  return `<div class="card">${dayBar()}<p class="cstat"><span class="${nN?"ngv":"okv"}">${esc(ct("ngCount")(nN, rows.filter(r=>isNum(r.m)).length))}</span></p>
+    <div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(ct("time"))}</th>${tanks.map(k=>`<th class="num">${esc(k)}<br><small>${esc(ct("meas"))} / ${esc(ct("screen"))}</small></th>`).join("")}</tr></thead>
+    <tbody>${times.map(tm=>`<tr><td class="num">${esc(tm)}</td>${tanks.map(k=>{ const r = get(tm,k); if(!r) return `<td class="num">—</td>`; return `<td class="num${r.ng?" ng":""}">${isNum(r.m)?r.m:"-"} <span class="sub">/ ${isNum(r.sc)?r.sc:"-"}</span></td>`; }).join("")}</tr>`).join("")}</tbody></table></div>
+    ${rows.find(r=>r.r)?`<p class="sub">${esc(ct("remark"))}: ${esc(rows.filter(r=>r.r).map(r=>r.r).filter((v,i,a)=>a.indexOf(v)===i).join(" / "))}</p>`:""}
+    <p class="note" style="margin-top:12px">${esc(ct("notes").temp)}</p></div>
+    <div class="card"><h2>${esc(ct("trend"))}</h2>${trends}</div>`;
+}
+
 /* ---------- routing ---------- */
 let lastRoute = "";
 function route(keepScroll){
@@ -1036,7 +1274,8 @@ function route(keepScroll){
   document.body.classList.remove("is-home");
   if(h !== lastRoute){ FORM = null; PFORM = null; SFORM = null; if(lastRoute) TAB = "info"; lastRoute = h; if(!keepScroll) window.scrollTo(0,0); }
   const p = byP[h] || PRODUCTS.find(x=>x.oldNo===h) || (/[A-Z]$/i.test(h) ? byP[h.slice(0,-1)] : null);
-  if(h.startsWith("c/") && byC[h.slice(2)]) renderCustomer(byC[h.slice(2)]);
+  if(h==="chem" || h.startsWith("chem/")) renderChem(h.slice(5));
+  else if(h.startsWith("c/") && byC[h.slice(2)]) renderCustomer(byC[h.slice(2)]);
   else if(h.startsWith("i/") && byI[h.slice(2)]) renderIssue(byI[h.slice(2)]);
   else if(h.startsWith("e/") && entryById(h.slice(2))) renderEntry(entryById(h.slice(2)));
   else if(p){ document.getElementById("q").value = ""; renderProduct(p); }
