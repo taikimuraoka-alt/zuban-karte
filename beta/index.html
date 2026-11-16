@@ -534,7 +534,7 @@ function applyChrome(){
   else h.textContent = t("lockHint");
 }
 document.querySelectorAll("[data-lang]").forEach(b => b.addEventListener("click", ()=>{ LANG = b.dataset.lang; ls.set("karte.lang", LANG); applyChrome(); if(DATA) route(); else renderLock(""); }));
-document.getElementById("editBtn").addEventListener("click", e=>{ const b = e.currentTarget; if(EDIT){ if(armed(b, t("editEnd")+"？")){ b.dataset.armed=""; EDIT=null; ls.del("karte.editpw"); applyChrome(); route(); } } else if(!document.getElementById("editLogin")) renderEditLogin(""); });
+document.getElementById("editBtn").addEventListener("click", e=>{ const b = e.currentTarget; if(EDIT){ if(EDIT.role==="admin") renderEditMenu(); else if(armed(b, t("editEnd")+"？")){ b.dataset.armed=""; endEdit(); } } else if(!document.getElementById("editLogin")) renderEditLogin(""); });
 
 function renderLock(msg){
   document.body.classList.add("is-home");
@@ -554,35 +554,169 @@ async function unlock(pw){
   document.getElementById("form").hidden = false; applyChrome(); route();
   await loadField(); route(true);
   loadChem().then(()=>{ if(!location.hash || location.hash.startsWith("#chem")) route(true); }).catch(()=>{});
-  const ep = ls.get("karte.editpw"), en = ls.get("karte.editname"); if(ep && en) startEdit(ep, en, true).catch(()=>{});
+  const ep = ls.get("karte.editpw"), en = ls.get("karte.editname"), ew = ls.get("karte.editwho") || "admin"; if(ep && (ew!=="admin" || en)) startEdit(ew, ep, en, true).catch(()=>{});
 }
 
 /* ---------- edit mode ---------- */
-async function startEdit(epw, name, quiet){
+/* editkey.enc.json
+   v1 (old): one encrypted {owner,repo,token,branch} under the edit password.
+   v2: {v:2,
+        admin: enc({owner,repo,token,branch,staff:[{id,name,pin}]}) under the edit (admin) password,
+        names: enc([{id,name}]) under the viewing password (so the public file shows no names),
+        keys:  {<id>: enc({owner,repo,token,branch,id,name}) under PW+"#pin#"+pin}}
+   Staff pick their name and type their PIN; the author name comes from the key, so nobody can write under another name. */
+const pinPass = pin => `${PW}#pin#${pin}`;
+const ST = {
+  ja:{ whoLabel:"誰が書きますか", pickName:"名前を選ぶ", adminOpt:"管理者（編集パスワード）", pin:"暗証番号", pinWrong:"暗証番号が違います。", staffGone:"この名前は登録がありません（管理者に確認してください）。", needWho:"名前を選んでください。",
+    editMsg2:"名前を選んで、自分の暗証番号を入れてください。記録には選んだ名前が入ります。", adminMsg:"管理者は編集パスワードと名前を入れます。",
+    menuTitle:"編集中", staffBtn:"担当者の管理", close:"閉じる",
+    staffTitle:"担当者の管理", staffMsg:"現場の人は「名前を選ぶ → 暗証番号」で書き込めます。記録には選んだ名前が自動で入り、ほかの人の名前では書けません。", staffNone:"まだ担当者がいません。下から追加してください。", adminOnly:"管理者（編集パスワード）で入ったときだけ使えます。",
+    addStaff:"担当者を追加", staffName:"名前", staffPin:"暗証番号（4〜8桁の数字）", autoPin:"おまかせ番号", add:"追加する", show:"番号を見る", hidePin:"隠す", changePin:"番号を変える", newPinQ:"新しい番号（4〜8桁）", setPin:"変える", del:"削除", delQ:"本当に削除？",
+    saving:"保存中…（人数が多いと数秒かかります）", saved:"保存しました。ほかの端末では 1〜2 分で使えるようになります。", saveFail:"保存できませんでした。もう一度お試しください。",
+    pinBad:"暗証番号は4〜8桁の数字にしてください。", nameDup:"同じ名前がもう登録されています。", nameEmpty:"名前を入れてください。",
+    adminPwTitle:"管理者の編集パスワードを変える", newPw:"新しい編集パスワード（8文字以上）", newPw2:"もう一度", pwMismatch:"2回の入力が違います。", pwShort:"8文字以上にしてください。", changePw:"変える", pwChanged:"編集パスワードを変えました。ほかの端末の管理者も新しいパスワードで入り直してください。",
+    count:n=>`${n} 人` },
+  th:{ whoLabel:"ใครเป็นผู้บันทึก", pickName:"เลือกชื่อ", adminOpt:"ผู้ดูแล (รหัสผ่านแก้ไข)", pin:"รหัส PIN", pinWrong:"รหัส PIN ไม่ถูกต้อง", staffGone:"ไม่พบชื่อนี้ (กรุณาติดต่อผู้ดูแล)", needWho:"กรุณาเลือกชื่อ",
+    editMsg2:"เลือกชื่อของคุณแล้วใส่รหัส PIN ของคุณ บันทึกจะแสดงชื่อที่เลือก", adminMsg:"ผู้ดูแลใส่รหัสผ่านแก้ไขและชื่อ",
+    menuTitle:"กำลังแก้ไข", staffBtn:"จัดการผู้บันทึก", close:"ปิด",
+    staffTitle:"จัดการผู้บันทึก", staffMsg:"พนักงานหน้างานบันทึกได้โดย \"เลือกชื่อ → ใส่รหัส PIN\" ชื่อที่เลือกจะถูกบันทึกอัตโนมัติ และไม่สามารถใช้ชื่อคนอื่นได้", staffNone:"ยังไม่มีผู้บันทึก กรุณาเพิ่มด้านล่าง", adminOnly:"ใช้ได้เฉพาะเมื่อเข้าด้วยรหัสผ่านผู้ดูแล",
+    addStaff:"เพิ่มผู้บันทึก", staffName:"ชื่อ", staffPin:"รหัส PIN (ตัวเลข 4-8 หลัก)", autoPin:"สุ่มรหัสให้", add:"เพิ่ม", show:"ดูรหัส", hidePin:"ซ่อน", changePin:"เปลี่ยนรหัส", newPinQ:"รหัสใหม่ (4-8 หลัก)", setPin:"เปลี่ยน", del:"ลบ", delQ:"ยืนยันการลบ?",
+    saving:"กำลังบันทึก… (ถ้ามีหลายคนอาจใช้เวลาหลายวินาที)", saved:"บันทึกแล้ว เครื่องอื่นจะใช้ได้ภายใน 1-2 นาที", saveFail:"บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง",
+    pinBad:"รหัส PIN ต้องเป็นตัวเลข 4-8 หลัก", nameDup:"มีชื่อนี้อยู่แล้ว", nameEmpty:"กรุณาใส่ชื่อ",
+    adminPwTitle:"เปลี่ยนรหัสผ่านแก้ไขของผู้ดูแล", newPw:"รหัสผ่านใหม่ (8 ตัวขึ้นไป)", newPw2:"ใส่อีกครั้ง", pwMismatch:"รหัสที่ใส่สองครั้งไม่ตรงกัน", pwShort:"กรุณาใช้ 8 ตัวขึ้นไป", changePw:"เปลี่ยน", pwChanged:"เปลี่ยนรหัสผ่านแล้ว ผู้ดูแลที่เครื่องอื่นต้องเข้าใหม่ด้วยรหัสใหม่",
+    count:n=>`${n} คน` }
+};
+const stt = k => (ST[LANG]||ST.ja)[k] ?? ST.ja[k];
+const okPin = p => /^\d{4,8}$/.test(p);
+
+async function startEdit(who, pw, name, quiet){
   const e = await fetchEnc(CONF.editkey, true);
   if(!e) throw new Error("notReady");
-  let k; try{ k = await decryptJSON(e, epw); }catch(_){ throw new Error("editWrong"); }
+  let k, role = "admin";
+  if(!who || who==="admin"){
+    try{ k = await decryptJSON(e.v===2 ? e.admin : e, pw); }catch(_){ throw new Error("editWrong"); }
+  } else {
+    if(e.v!==2 || !e.keys || !e.keys[who]) throw new Error("staffGone");
+    try{ k = await decryptJSON(e.keys[who], pinPass(pw)); }catch(_){ throw new Error("pinWrong"); }
+    role = "staff"; name = k.name;
+  }
   const r = await fetch(`https://api.github.com/repos/${k.owner}/${k.repo}`, {headers:{Authorization:`Bearer ${k.token}`, Accept:"application/vnd.github+json"}});
   if(!r.ok) throw new Error("tokenBad");
-  EDIT = {token:k.token, owner:k.owner, repo:k.repo, branch:k.branch||"main", name};
+  EDIT = {token:k.token, owner:k.owner, repo:k.repo, branch:k.branch||"main", name, role, who:role==="admin"?"admin":who, apw:role==="admin"?pw:null, staff:role==="admin"?(k.staff||[]):null};
   applyChrome(); if(!quiet) route();
 }
-function renderEditLogin(msg){
-  const last = ls.get("karte.editname") || "";
-  main.insertAdjacentHTML("afterbegin", `<div class="form" id="editLogin"><h2>${esc(t("editTitle"))}</h2><p class="sub" style="margin:0 0 10px">${esc(t("editMsg"))}</p>
-    <label class="field">${esc(t("editPw"))}<input id="epw" type="password" autocomplete="off" autocapitalize="off"></label>
-    <label class="field">${esc(t("yourName"))}<input id="ename" type="text" value="${esc(last)}" autocomplete="name"></label>
+async function staffNames(){
+  try{ const e = await fetchEnc(CONF.editkey, true); if(e && e.v===2 && e.names) return await decryptJSON(e.names, PW); }catch(_){}
+  return [];
+}
+async function renderEditLogin(msg){
+  const names = await staffNames();
+  if(document.getElementById("editLogin")) return;
+  const lastWho = ls.get("karte.editwho") || "", last = ls.get("karte.editname") || "";
+  const sel = names.some(n=>n.id===lastWho) ? lastWho : (lastWho==="admin" || !names.length ? "admin" : "");
+  main.insertAdjacentHTML("afterbegin", `<div class="form" id="editLogin"><h2>${esc(t("editTitle"))}</h2>
+    <label class="field">${esc(stt("whoLabel"))}<select id="ewho"><option value="">${esc(stt("pickName"))}</option>${names.map(n=>`<option value="${esc(n.id)}"${n.id===sel?" selected":""}>${esc(n.name)}</option>`).join("")}<option value="admin"${sel==="admin"?" selected":""}>${esc(stt("adminOpt"))}</option></select></label>
+    <div id="eStaffBox"><p class="sub" style="margin:0 0 8px">${esc(stt("editMsg2"))}</p><label class="field">${esc(stt("pin"))}<input id="epin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off"></label></div>
+    <div id="eAdminBox"><p class="sub" style="margin:0 0 8px">${esc(stt("adminMsg"))}</p><label class="field">${esc(t("editPw"))}<input id="epw" type="password" autocomplete="off" autocapitalize="off"></label>
+      <label class="field">${esc(t("yourName"))}<input id="ename" type="text" value="${esc(last)}" autocomplete="name"></label></div>
     <label style="font-size:13.5px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="erem" checked> ${esc(t("remember"))}</label>
     <div class="actions"><button class="btn" id="estart" type="button">${esc(t("start"))}</button><button class="btn ghost" id="ecancel" type="button">${esc(t("cancel"))}</button></div>
     <div class="err" id="eerr">${esc(msg)}</div></div>`);
   window.scrollTo(0,0);
-  document.getElementById("ecancel").addEventListener("click", ()=>document.getElementById("editLogin").remove());
-  document.getElementById("estart").addEventListener("click", async ()=>{
-    const epw = document.getElementById("epw").value, name = document.getElementById("ename").value.trim(), err = document.getElementById("eerr");
-    if(!name){ err.textContent = t("yourName"); return; }
+  const $ = id => document.getElementById(id);
+  const sync = () => { const w = $("ewho").value; $("eAdminBox").hidden = w!=="admin"; $("eStaffBox").hidden = w==="admin"; };
+  sync(); $("ewho").addEventListener("change", ()=>{ sync(); const f = $("ewho").value==="admin" ? $("epw") : $("epin"); if($("ewho").value) f.focus(); });
+  $("ecancel").addEventListener("click", ()=>$("editLogin").remove());
+  const go = async ()=>{
+    const who = $("ewho").value, err = $("eerr");
+    if(!who){ err.textContent = stt("needWho"); return; }
+    const pw = who==="admin" ? $("epw").value : $("epin").value.trim(), name = who==="admin" ? $("ename").value.trim() : "";
+    if(who==="admin" && !name){ err.textContent = t("yourName"); return; }
     err.textContent = t("checking");
-    try{ await startEdit(epw, name); ls.set("karte.editname", name); if(document.getElementById("erem").checked) ls.set("karte.editpw", epw); }
-    catch(x){ err.textContent = t(["notReady","editWrong","tokenBad"].includes(x.message) ? x.message : "tokenBad"); }
+    try{
+      await startEdit(who, pw, name);
+      ls.set("karte.editwho", who); ls.set("karte.editname", EDIT.name);
+      if($("erem").checked) ls.set("karte.editpw", pw); else ls.del("karte.editpw");
+    }catch(x){
+      if(x.message==="pinWrong" || x.message==="staffGone" || x.message==="needWho") err.textContent = stt(x.message);
+      else err.textContent = t(["notReady","editWrong","tokenBad"].includes(x.message) ? x.message : "tokenBad");
+    }
+  };
+  $("estart").addEventListener("click", go);
+  ["epin","epw","ename"].forEach(id => $(id).addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); go(); } }));
+}
+function endEdit(){ EDIT = null; ls.del("karte.editpw"); applyChrome(); route(); }
+/* admin: small menu under the header button (担当者の管理 / 編集を終える) */
+function renderEditMenu(){
+  if(document.getElementById("editMenu")) return;
+  main.insertAdjacentHTML("afterbegin", `<div class="form" id="editMenu"><h2>${esc(stt("menuTitle"))}：${esc(EDIT.name)}</h2>
+    <div class="actions"><a class="btn" href="#staff" id="emStaff" style="text-decoration:none">${esc(stt("staffBtn"))}</a><button class="btn ghost" id="emEnd" type="button">${esc(t("editEnd"))}</button><button class="btn ghost" id="emClose" type="button">${esc(stt("close"))}</button></div></div>`);
+  window.scrollTo(0,0);
+  document.getElementById("emClose").addEventListener("click", ()=>document.getElementById("editMenu").remove());
+  document.getElementById("emStaff").addEventListener("click", ()=>{ const m = document.getElementById("editMenu"); if(m) m.remove(); });
+  document.getElementById("emEnd").addEventListener("click", e=>{ if(armed(e.currentTarget, t("editEnd")+"？")) endEdit(); });
+}
+async function writeEditKey(staff, adminPw){
+  const base = {owner:EDIT.owner, repo:EDIT.repo, token:EDIT.token, branch:EDIT.branch};
+  const out = {v:2, admin: await encryptJSON({...base, staff}, adminPw), names: await encryptJSON(staff.map(s=>({id:s.id, name:s.name})), PW), keys:{}};
+  for(const s of staff) out.keys[s.id] = await encryptJSON({...base, id:s.id, name:s.name}, pinPass(s.pin));
+  const cur = await gh("GET", CONF.editkey);
+  await putFile(CONF.editkey, JSON.stringify(out), cur && cur.sha, `editkey: staff list by ${EDIT.name}`);
+  EDIT.staff = staff; EDIT.apw = adminPw;
+}
+let STAFF_SHOW = new Set();
+function renderStaff(msg, isErr){
+  document.getElementById("q").value = "";
+  if(!EDIT || EDIT.role!=="admin"){ main.innerHTML = `<div class="card"><h2>${esc(stt("staffTitle"))}</h2><p class="sub">${esc(stt("adminOnly"))}</p></div>`; return; }
+  const staff = EDIT.staff || [];
+  const row = s => `<li style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 2px" data-sid="${esc(s.id)}">
+      <b style="min-width:8em">${esc(s.name)}</b><span class="num" style="min-width:6em">${STAFF_SHOW.has(s.id) ? esc(s.pin) : "••••"}</span>
+      <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn small ghost" data-act="show">${esc(stt(STAFF_SHOW.has(s.id)?"hidePin":"show"))}</button><button type="button" class="btn small ghost" data-act="pin">${esc(stt("changePin"))}</button><button type="button" class="btn small ghost" data-act="del">${esc(stt("del"))}</button></span>
+      <div class="pinrow" hidden style="flex-basis:100%;display:flex;gap:6px"><input type="text" inputmode="numeric" maxlength="8" placeholder="${esc(stt("newPinQ"))}" style="flex:1;min-width:0;font:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--line2);border-radius:10px;background:var(--card);color:var(--fg)"><button type="button" class="btn small" data-act="setpin">${esc(stt("setPin"))}</button></div></li>`;
+  main.innerHTML = `<div class="card"><h2>${esc(stt("staffTitle"))} <span class="sub" style="font-size:14px">${esc(stt("count")(staff.length))}</span></h2>
+    <p class="sub" style="margin:0 0 10px">${esc(stt("staffMsg"))}</p>
+    ${msg?`<p class="${isErr?"err":"okmsg"}" id="stMsg">${esc(msg)}</p>`:`<p class="err" id="stMsg"></p>`}
+    ${staff.length?`<ul class="list" id="stList">${staff.map(row).join("")}</ul>`:`<p class="sub">${esc(stt("staffNone"))}</p>`}</div>
+    <div class="card"><h3 style="margin-top:0">${esc(stt("addStaff"))}</h3>
+      <label class="field">${esc(stt("staffName"))}<input id="stName" type="text" autocomplete="off"></label>
+      <label class="field">${esc(stt("staffPin"))}<input id="stPin" type="text" inputmode="numeric" maxlength="8" autocomplete="off"></label>
+      <div class="actions"><button type="button" class="btn ghost small" id="stAuto">${esc(stt("autoPin"))}</button><button type="button" class="btn" id="stAdd">${esc(stt("add"))}</button></div></div>
+    <div class="card"><h3 style="margin-top:0">${esc(stt("adminPwTitle"))}</h3>
+      <label class="field">${esc(stt("newPw"))}<input id="stPw1" type="password" autocomplete="new-password" autocapitalize="off"></label>
+      <label class="field">${esc(stt("newPw2"))}<input id="stPw2" type="password" autocomplete="new-password" autocapitalize="off"></label>
+      <div class="actions"><button type="button" class="btn" id="stPwGo">${esc(stt("changePw"))}</button></div></div>`;
+  const $ = id => document.getElementById(id), say = (m, bad) => { const el = $("stMsg"); el.className = bad ? "err" : "okmsg"; el.textContent = m; el.scrollIntoView({block:"center"}); };
+  let busy = false;
+  const save = async (staffNew, pw, okText) => {
+    if(busy) return; busy = true; say(stt("saving"));
+    try{ await writeEditKey(staffNew, pw); renderStaff(okText || stt("saved")); }
+    catch(e){ say(stt("saveFail") + ` (${e.message})`, true); }
+    finally{ busy = false; }
+  };
+  $("stAuto").addEventListener("click", ()=>{ const a = crypto.getRandomValues(new Uint32Array(1))[0] % 10000; $("stPin").value = String(a).padStart(4,"0"); });
+  $("stAdd").addEventListener("click", ()=>{
+    const name = $("stName").value.trim(), pin = $("stPin").value.trim();
+    if(!name) return say(stt("nameEmpty"), true);
+    if(staff.some(s=>s.name===name)) return say(stt("nameDup"), true);
+    if(!okPin(pin)) return say(stt("pinBad"), true);
+    const id = "s" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    STAFF_SHOW.add(id);
+    save([...staff, {id, name, pin}], EDIT.apw);
+  });
+  const ls_ = $("stList");
+  if(ls_) ls_.addEventListener("click", e=>{
+    const b = e.target.closest("button[data-act]"); if(!b) return;
+    const li = b.closest("li[data-sid]"), id = li.dataset.sid, s = staff.find(x=>x.id===id); if(!s) return;
+    if(b.dataset.act==="show"){ STAFF_SHOW.has(id) ? STAFF_SHOW.delete(id) : STAFF_SHOW.add(id); renderStaff(); }
+    else if(b.dataset.act==="pin"){ const r = li.querySelector(".pinrow"); r.hidden = !r.hidden; if(!r.hidden) r.querySelector("input").focus(); }
+    else if(b.dataset.act==="setpin"){ const pin = li.querySelector(".pinrow input").value.trim(); if(!okPin(pin)) return say(stt("pinBad"), true); STAFF_SHOW.add(id); save(staff.map(x=>x.id===id?{...x, pin}:x), EDIT.apw); }
+    else if(b.dataset.act==="del"){ if(armed(b, stt("delQ"))) save(staff.filter(x=>x.id!==id), EDIT.apw); }
+  });
+  $("stPwGo").addEventListener("click", ()=>{
+    const a = $("stPw1").value, b = $("stPw2").value;
+    if(a.length < 8) return say(stt("pwShort"), true);
+    if(a !== b) return say(stt("pwMismatch"), true);
+    save(staff, a, stt("pwChanged")).then(()=>{ if(EDIT && EDIT.apw===a && (ls.get("karte.editwho")||"admin")==="admin" && ls.get("karte.editpw")) ls.set("karte.editpw", a); });
   });
 }
 async function gh(method, path, body){
@@ -1093,13 +1227,13 @@ function renderDocs(){
 
 /* ---------- ホームの記録欄（問題を記録する／AIにお願い） ---------- */
 const QT = {
-  ja:{ quick:"記録する・AIにお願い", qIssue:"問題を記録する", qAI:"AIにお願い", needEdit:"書き込むには編集パスワードが必要です。", openEdit:"編集パスワードを入れて書く",
+  ja:{ quick:"記録する・AIにお願い", qIssue:"問題を記録する", qAI:"AIにお願い", needEdit:"書き込むには、名前を選んで暗証番号を入れてください。", openEdit:"名前と暗証番号で書く",
     prodQ:"製品（図番・品名で探す）", prodPh:"例：R47、T150165300、Rotor …　分からなければ空欄でOK", noProd:"製品は選ばれていません。分からなければこのまま保存すると、AI が内容や写真から製品を探してリンクします。", clearProd:"外す",
     found:"本文から見つけた製品", useIt:"これにする", autoLinked:"本文の図番から自動でリンクしました。", aiWillLink:"製品は AI が探してリンクします（平日 9・11・13・15・17 時）。",
     aiAsk:"AI にやってほしいこと", aiPh:"例：\n・R47 のホワイトドットの対策として「硝酸濃度を上げた」を記録して\n・この写真の検査表を記録にして\n・この不良票の内容を問題として登録して", aiKind:"種類", aiProd:"関連の製品（分かれば）", aiFiles:"ファイル（PDF・Excel・メールなど、1つ8MBまで）", aiNeed:"やってほしいことを書くか、写真・ファイルを付けてください。",
     aiWhen:"お願いは平日の 9・11・13・15・17 時に AI が処理して、結果と返事をここに出します。", aiPending:"AI の処理待ち", aiDone:"処理済み（最近）", noReq:"お願いはまだありません。", reply:"AI の返事", send:"AI に送る",
     linkAI:"製品のリンク", linkWait:"AI が製品を探しています", linkNF:"AI が探しましたが製品が見つかりませんでした", linkOK:"AI がリンクしました", linkAuto:"本文の図番から自動リンク" },
-  th:{ quick:"บันทึก・ขอให้ AI ช่วย", qIssue:"บันทึกปัญหา", qAI:"ขอให้ AI ช่วย", needEdit:"ต้องใช้รหัสผ่านสำหรับแก้ไขเพื่อบันทึก", openEdit:"ใส่รหัสผ่านแก้ไขเพื่อเขียน",
+  th:{ quick:"บันทึก・ขอให้ AI ช่วย", qIssue:"บันทึกปัญหา", qAI:"ขอให้ AI ช่วย", needEdit:"เลือกชื่อและใส่รหัส PIN เพื่อบันทึก", openEdit:"เขียนด้วยชื่อและรหัส PIN",
     prodQ:"สินค้า (ค้นด้วยเลขแบบ・ชื่อ)", prodPh:"เช่น R47, T150165300, Rotor … ถ้าไม่ทราบเว้นว่างได้", noProd:"ยังไม่ได้เลือกสินค้า ถ้าไม่ทราบให้บันทึกไปได้เลย AI จะหาสินค้าจากเนื้อหาและรูปแล้วเชื่อมให้", clearProd:"ยกเลิก",
     found:"สินค้าที่พบในข้อความ", useIt:"ใช้อันนี้", autoLinked:"เชื่อมกับสินค้าจากเลขแบบในข้อความโดยอัตโนมัติ", aiWillLink:"AI จะหาสินค้าและเชื่อมให้ (วันทำงาน 9・11・13・15・17 น.)",
     aiAsk:"สิ่งที่อยากให้ AI ทำ", aiPh:"เช่น\n・บันทึกการแก้ไข White dot ของ R47 ว่า \"เพิ่มความเข้มข้นกรดไนตริก\"\n・ทำตารางตรวจสอบจากรูปนี้\n・ลงทะเบียนปัญหาจากใบแจ้งของเสียนี้", aiKind:"ประเภท", aiProd:"สินค้าที่เกี่ยวข้อง (ถ้าทราบ)", aiFiles:"ไฟล์ (PDF・Excel・อีเมล ไม่เกิน 8MB ต่อไฟล์)", aiNeed:"กรุณาเขียนสิ่งที่ต้องการ หรือแนบรูป・ไฟล์",
@@ -1526,7 +1660,8 @@ function route(keepScroll){
   document.body.classList.remove("is-home");
   if(h !== lastRoute){ FORM = null; PFORM = null; SFORM = null; if(lastRoute) TAB = "info"; lastRoute = h; if(!keepScroll) window.scrollTo(0,0); }
   const p = byP[h] || PRODUCTS.find(x=>x.oldNo===h) || (/[A-Z]$/i.test(h) ? byP[h.slice(0,-1)] : null);
-  if(h==="chem" || h.startsWith("chem/")) renderChem(h.slice(5));
+  if(h==="staff") renderStaff();
+  else if(h==="chem" || h.startsWith("chem/")) renderChem(h.slice(5));
   else if(h.startsWith("c/") && byC[h.slice(2)]) renderCustomer(byC[h.slice(2)]);
   else if(h.startsWith("i/") && byI[h.slice(2)]) renderIssue(byI[h.slice(2)]);
   else if(h.startsWith("e/") && entryById(h.slice(2))) renderEntry(entryById(h.slice(2)));
