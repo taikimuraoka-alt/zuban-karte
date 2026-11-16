@@ -243,6 +243,17 @@ footer{color:var(--muted);font-size:11.5px;margin-top:28px;text-align:center;let
 /* header: keep the name from running under the buttons on phones */
 .brand h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:420px){ body:not(.is-home) .brand h1{font-size:14px;letter-spacing:0} body:not(.is-home) .logo{width:44px;height:17px} body:not(.is-home) .brand .bt{padding-left:8px} body:not(.is-home) .brand{gap:6px 8px} body:not(.is-home) .tools{gap:4px} body:not(.is-home) .tools button{padding:4px 8px} body:not(.is-home) .seg button{padding:3px 7px!important} }
+/* quick records (home) */
+.quick .qtabs{margin:0 0 12px}
+.quick .field>span{display:block}
+.psugg{display:flex;flex-direction:column;gap:4px;margin:-4px 0 10px}
+.psugg button{font:inherit;font-size:13.5px;text-align:left;padding:7px 10px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:9px;cursor:pointer}
+.psugg button:hover{border-color:var(--accent);background:var(--soft)}
+.psugg .no,.pchosen .no{font-family:var(--mono);font-weight:600}
+.pchosen{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:9px 12px;border:1px solid var(--accent);border-radius:10px;background:var(--soft);font-size:14px;margin-top:4px}
+.pchosen .linkbtn{margin-left:auto}
+.pfound{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:2px 0 10px}
+.qreply{font-size:12.5px;color:var(--ok);margin-top:3px}
 /* chem records */
 .daybar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .daybar select{font:inherit;font-family:var(--mono);font-size:15px;padding:7px 10px;border:1px solid var(--line2);border-radius:10px;background:var(--card);color:var(--fg)}
@@ -335,7 +346,7 @@ const T = {
     issueMaster:"登録済みの問題", fieldRec:"現場の記録", cautions:"この仕上げで注意する点", noIssue:"記録はありません。",
     addIssue:"＋ 問題・不良を記録", addAction:"＋ 対策・処置を記録", addMemo:"＋ メモ・注意点を書く",
     types:{issue:"問題・不良",action:"対策・処置",memo:"作業メモ・注意点",scan:"AIで読む資料",receipt:"受入・現品票",inspection:"検査表",event:"できごと"},
-    scanCard:"AIで読む資料（写真・メール・書類）", sendScan:"＋ 資料を送る", scanKind:"資料の種類", kinds:{drawing:"図面",defect:"不良の写真・不良票",label:"現品票・ラベル",inspection:"検査表・記録用紙",document:"メール・書類"},
+    scanCard:"AIで読む資料（写真・メール・書類）", sendScan:"＋ 資料を送る", scanKind:"資料の種類", kinds:{request:"お願い（記録・記入など）",drawing:"図面",defect:"不良の写真・不良票",label:"現品票・ラベル",inspection:"検査表・記録用紙",document:"メール・書類"},
     docText:"メールの本文・書類の内容（そのまま貼り付けてOK）", fFiles:"ファイル（PDF・Word・Excel・メールなど、1つ8MBまで）", needDoc:"本文を貼り付けるか、写真・ファイルを付けてください。", tooBig:"8MBを超えるファイルは送れません：", attachments:"添付ファイル", download:"開く・保存", scanPending:"取り込み待ち", scanDone:"取込済",
     scanHint:"送った写真は、管理者が「取り込んで」と頼んだときに Claude が読んで、製品・問題・受入・検査の記録にします。", scanMemo:"メモ（分かれば：何の写真か、気になる点）", scanNeedPhoto:"写真を1枚以上選んでください。", fromScan:"写真から作成", results:"この写真から作った記録", noScan:"取り込み待ちの写真はありません。",
     status:{"未対応":"未対応","対策中":"対策中","完了":"完了","調査中":"調査中","量産":"量産","サンプル":"サンプル","見積中":"見積中"},
@@ -368,7 +379,7 @@ const T = {
     issueMaster:"ปัญหาที่ลงทะเบียนไว้", fieldRec:"บันทึกจากหน้างาน", cautions:"ข้อควรระวังสำหรับผิวเคลือบนี้", noIssue:"ยังไม่มีบันทึก",
     addIssue:"＋ บันทึกปัญหา/ของเสีย", addAction:"＋ บันทึกการแก้ไข", addMemo:"＋ เขียนบันทึก/ข้อควรระวัง",
     types:{issue:"ปัญหา/ของเสีย",action:"การแก้ไข",memo:"บันทึกงาน/ข้อควรระวัง",scan:"เอกสารให้ AI อ่าน",receipt:"รับเข้า・ป้ายสินค้า",inspection:"ตารางตรวจสอบ",event:"เหตุการณ์"},
-    scanCard:"เอกสารให้ AI อ่าน (รูป・อีเมล・เอกสาร)", sendScan:"＋ ส่งเอกสาร", scanKind:"ประเภทเอกสาร", kinds:{drawing:"แบบ (Drawing)",defect:"รูปของเสีย・ใบแจ้งของเสีย",label:"ป้ายสินค้า・ฉลาก",inspection:"ตารางตรวจสอบ・ใบบันทึก",document:"อีเมล・เอกสาร"},
+    scanCard:"เอกสารให้ AI อ่าน (รูป・อีเมล・เอกสาร)", sendScan:"＋ ส่งเอกสาร", scanKind:"ประเภทเอกสาร", kinds:{request:"ขอให้ช่วย (บันทึก・กรอกข้อมูล)",drawing:"แบบ (Drawing)",defect:"รูปของเสีย・ใบแจ้งของเสีย",label:"ป้ายสินค้า・ฉลาก",inspection:"ตารางตรวจสอบ・ใบบันทึก",document:"อีเมล・เอกสาร"},
     docText:"เนื้อหาอีเมล・เอกสาร (วางได้เลย)", fFiles:"ไฟล์ (PDF・Word・Excel・อีเมล ฯลฯ ไม่เกิน 8MB ต่อไฟล์)", needDoc:"กรุณาวางข้อความ หรือแนบรูป・ไฟล์", tooBig:"ไฟล์เกิน 8MB ส่งไม่ได้: ", attachments:"ไฟล์แนบ", download:"เปิด・บันทึก", scanPending:"รอนำเข้า", scanDone:"นำเข้าแล้ว",
     scanHint:"รูปที่ส่งมา Claude จะอ่านและสร้างเป็นบันทึกสินค้า・ปัญหา・รับเข้า・ตรวจสอบ เมื่อผู้ดูแลสั่งให้นำเข้า", scanMemo:"หมายเหตุ (ถ้าทราบ: รูปอะไร จุดที่สงสัย)", scanNeedPhoto:"กรุณาเลือกรูปอย่างน้อย 1 รูป", fromScan:"สร้างจากรูป", results:"บันทึกที่สร้างจากรูปนี้", noScan:"ไม่มีรูปที่รอนำเข้า",
     status:{"未対応":"ยังไม่ดำเนินการ","対策中":"กำลังแก้ไข","完了":"เสร็จสิ้น","調査中":"กำลังตรวจสอบ","量産":"ผลิตจริง","サンプル":"ตัวอย่าง","見積中":"กำลังเสนอราคา"},
@@ -828,12 +839,12 @@ function renderHome(q){
   const latest = PRODUCTS.filter(p=>p.quotedAt || p.addedInField).sort((a,b)=>String(b.quotedAt||"").localeCompare(String(a.quotedAt||""))).slice(0,6);
   const stat = (id, lb, v, go, warn) => `<button type="button" class="stat${warn?" warn":""}" data-go="${id}"><span class="lb">${esc(lb)}</span><span class="v">${v}</span><span class="go">${esc(go)}</span></button>`;
   main.innerHTML = `<div class="stats">${stat("find", t("stProducts"), PRODUCTS.length, t("goFind"))}${stat("quoting", t("stQuoting"), quoting.length, t("goQuote"))}${stat("issues", t("stOpen"), oi.length+ofi.length, t("goOpen"), (oi.length+ofi.length)>0)}${stat("recent", t("stWeek"), nWeek, t("goRecent"))}${chemStat()}</div>
+    ${quickCardHTML()}
     <div class="card" id="custs"><h2>${esc(t("customers"))} <span class="sub">${esc(t("nCust")(CUSTOMERS.length))}</span></h2><div class="cust">${CUSTOMERS.map(c=>{ const n = PRODUCTS.filter(p=>p.customer===c.id).length, o = openIssues(c.id).length + openFieldIssues(c.id).length; return `<a href="#c/${encodeURIComponent(c.id)}"><span class="mono">${monoOf(c)}</span><span class="ct"><div class="nm">${esc(tx(c,"name"))}</div><div class="meta">${esc(t("nProducts")(n))}${o?` ・ <span class="o">${esc(t("openShort"))} ${o}</span>`:""}</div></span></a>`; }).join("")}</div></div>
     ${chemHomeCard()}
     ${latest.length?`<div class="card" id="latest"><h2>${esc(t("recentQuotes"))}</h2><ul class="list">${latest.map(productItem).join("")}</ul></div>`:""}
     ${findCard()}
-    ${(oi.length||ofi.length||EDIT)?`<div class="card" id="openIss"><h2>${esc(t("openIssues"))}</h2>${regForm}<ul class="list">${oi.map(issueItem).join("")}${ofi.map(fieldIssueItem).join("")}</ul></div>`:""}
-    ${scanCardHTML()}
+    ${(oi.length||ofi.length||EDIT)?`<div class="card" id="openIss"><h2>${esc(t("openIssues"))}</h2><ul class="list">${oi.map(issueItem).join("")}${ofi.map(fieldIssueItem).join("")}</ul></div>`:""}
     <div class="card" id="recent"><h2>${esc(t("recent"))}</h2>${recent.length?recent.map(e=>entryCard(e,true)).join(""):`<p class="empty">${esc(t("noRecent"))}</p>`}</div>`;
   main.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>{
     const go = b.dataset.go;
@@ -844,7 +855,7 @@ function renderHome(q){
   }));
   const rb = document.getElementById("regIssue");
   if(rb) rb.addEventListener("click", ()=>{ FORM = {pid:null, pickProduct:true, type:"issue", date:today(), files:[]}; renderHome(""); });
-  wireFind(); wireScanForm(); wireForm(); wireEntries(main);
+  wireFind(); wireScanForm(); wireForm(); wireEntries(main); wireQuick();
 }
 /* Product register / edit. Saved as overlays in FIELD.products (+ FIELD.productLog); prices are never editable here. */
 const PF_KEYS = ["name","customer","model","oldNo","process","color","finish","material","thickness","masking","area_mm2","status","drawingPath"];
@@ -950,6 +961,7 @@ function renderEntry(e){
       ${e.text?`<p class="txt" style="white-space:pre-wrap;overflow-wrap:anywhere;margin:14px 0 0;font-size:15.5px">${esc(e.text)}</p>`:""}${tableHTML(e.table)}${filesHTML(e.files)}
       ${(e.photos||[]).length?`<div class="bimgs">${e.photos.map(id=>`<div data-bimg="${esc(id)}"><div class="wait">${esc(t("loading"))}</div></div>`).join("")}</div>`:""}
       ${(EDIT && !e.deleted)?`<div class="actions" style="margin-top:12px"><button type="button" class="linkbtn" data-undo="${esc(e.id)}">${esc(t("undo"))}</button></div>`:""}</div>
+    ${entryAIExtra(e)}
     ${(e.type==="issue" && !e.deleted)?`<div class="card">${statusPanel(key)}</div><div class="card">${linkedPanel(key, e.product, e.customer)}</div>`:""}
     ${(e.type==="scan" && (e.results||[]).length)?`<div class="card"><h2>${esc(t("results"))}</h2><ul class="list">${e.results.map(r=>r.kind==="product" ? (byP[r.id] ? productItem(byP[r.id]) : "") : (entryById(r.id) ? `<li style="border:0">${entryCard(entryById(r.id), true)}</li>` : "")).join("")}</ul></div>`:""}`;
   main.querySelectorAll("[data-bimg]").forEach(async box => { const url = await photoURL(box.dataset.bimg).catch(()=>null); box.innerHTML = url ? `<img src="${url}" alt="">` : `<div class="wait">${esc(t("photoWait"))}</div>`; });
@@ -1077,6 +1089,171 @@ function renderDocs(){
     b.innerHTML = docs.map((d,i)=>`<div class="doc"><h4>${esc(d.title[LANG]||d.title.ja)}</h4><div class="pages">${d.pages.map((p,j)=>`<div><div class="zoomwrap"><img src="${p}" alt="${esc(d.id)} p${j+1}" loading="lazy"></div><div class="pagebar"><span>${esc(t("page"))} ${j+1}/${d.pages.length}</span><button type="button" class="zoombtn">${esc(t("zoom"))}</button></div></div>`).join("")}</div></div>`).join("");
     b.querySelectorAll(".zoombtn").forEach(btn=>btn.addEventListener("click",()=>{ const img = btn.closest("div").previousElementSibling.querySelector("img"); const z = img.classList.toggle("zoomed"); btn.textContent = z ? t("unzoom") : t("zoom"); }));
   }).catch(()=>{ const b = document.getElementById("docs"); if(b) b.innerHTML = `<p class="note">${esc(t("loadFail"))}</p>`; });
+}
+
+/* ---------- ホームの記録欄（問題を記録する／AIにお願い） ---------- */
+const QT = {
+  ja:{ quick:"記録する・AIにお願い", qIssue:"問題を記録する", qAI:"AIにお願い", needEdit:"書き込むには編集パスワードが必要です。", openEdit:"編集パスワードを入れて書く",
+    prodQ:"製品（図番・品名で探す）", prodPh:"例：R47、T150165300、Rotor …　分からなければ空欄でOK", noProd:"製品は選ばれていません。分からなければこのまま保存すると、AI が内容や写真から製品を探してリンクします。", clearProd:"外す",
+    found:"本文から見つけた製品", useIt:"これにする", autoLinked:"本文の図番から自動でリンクしました。", aiWillLink:"製品は AI が探してリンクします（平日 9・11・13・15・17 時）。",
+    aiAsk:"AI にやってほしいこと", aiPh:"例：\n・R47 のホワイトドットの対策として「硝酸濃度を上げた」を記録して\n・この写真の検査表を記録にして\n・この不良票の内容を問題として登録して", aiKind:"種類", aiProd:"関連の製品（分かれば）", aiFiles:"ファイル（PDF・Excel・メールなど、1つ8MBまで）", aiNeed:"やってほしいことを書くか、写真・ファイルを付けてください。",
+    aiWhen:"お願いは平日の 9・11・13・15・17 時に AI が処理して、結果と返事をここに出します。", aiPending:"AI の処理待ち", aiDone:"処理済み（最近）", noReq:"お願いはまだありません。", reply:"AI の返事", send:"AI に送る",
+    linkAI:"製品のリンク", linkWait:"AI が製品を探しています", linkNF:"AI が探しましたが製品が見つかりませんでした", linkOK:"AI がリンクしました", linkAuto:"本文の図番から自動リンク" },
+  th:{ quick:"บันทึก・ขอให้ AI ช่วย", qIssue:"บันทึกปัญหา", qAI:"ขอให้ AI ช่วย", needEdit:"ต้องใช้รหัสผ่านสำหรับแก้ไขเพื่อบันทึก", openEdit:"ใส่รหัสผ่านแก้ไขเพื่อเขียน",
+    prodQ:"สินค้า (ค้นด้วยเลขแบบ・ชื่อ)", prodPh:"เช่น R47, T150165300, Rotor … ถ้าไม่ทราบเว้นว่างได้", noProd:"ยังไม่ได้เลือกสินค้า ถ้าไม่ทราบให้บันทึกไปได้เลย AI จะหาสินค้าจากเนื้อหาและรูปแล้วเชื่อมให้", clearProd:"ยกเลิก",
+    found:"สินค้าที่พบในข้อความ", useIt:"ใช้อันนี้", autoLinked:"เชื่อมกับสินค้าจากเลขแบบในข้อความโดยอัตโนมัติ", aiWillLink:"AI จะหาสินค้าและเชื่อมให้ (วันทำงาน 9・11・13・15・17 น.)",
+    aiAsk:"สิ่งที่อยากให้ AI ทำ", aiPh:"เช่น\n・บันทึกการแก้ไข White dot ของ R47 ว่า \"เพิ่มความเข้มข้นกรดไนตริก\"\n・ทำตารางตรวจสอบจากรูปนี้\n・ลงทะเบียนปัญหาจากใบแจ้งของเสียนี้", aiKind:"ประเภท", aiProd:"สินค้าที่เกี่ยวข้อง (ถ้าทราบ)", aiFiles:"ไฟล์ (PDF・Excel・อีเมล ไม่เกิน 8MB ต่อไฟล์)", aiNeed:"กรุณาเขียนสิ่งที่ต้องการ หรือแนบรูป・ไฟล์",
+    aiWhen:"AI จะดำเนินการในวันทำงานเวลา 9・11・13・15・17 น. และแสดงผลกับคำตอบที่นี่", aiPending:"รอ AI ดำเนินการ", aiDone:"ดำเนินการแล้ว (ล่าสุด)", noReq:"ยังไม่มีคำขอ", reply:"คำตอบจาก AI", send:"ส่งให้ AI",
+    linkAI:"การเชื่อมสินค้า", linkWait:"AI กำลังหาสินค้า", linkNF:"AI หาแล้วแต่ไม่พบสินค้า", linkOK:"AI เชื่อมให้แล้ว", linkAuto:"เชื่อมอัตโนมัติจากเลขแบบในข้อความ" }
+};
+const qt = k => QT[LANG][k];
+const QF = { mode:"issue", issue:null, ai:null };
+const newQIssue = () => ({ pid:null, q:"", title:"", text:"", status:"未対応", date:today(), lot:"", qty:"", files:[] });
+const newQAI = () => ({ pid:null, q:"", kind:"request", text:"", files:[], docs:[] });
+
+/* product search: id / old no / name / model / customer; also finds part numbers written in free text */
+const normId = s => String(s||"").toUpperCase().replace(/[\s\-_.]/g, "");
+function searchProducts(q, n){
+  const w = String(q||"").trim().toLowerCase().split(/\s+/).filter(Boolean); if(!w.length) return [];
+  const hay = p => [p.id, p.oldNo, p.name, p.model, (byC[p.customer]||{}).name, p.customer].join(" ").toLowerCase();
+  const nq = normId(q);
+  return PRODUCTS.map(p => { const h = hay(p); if(!w.every(x => h.includes(x)) && !(nq.length >= 4 && normId(p.id).includes(nq))) return null;
+    const score = (normId(p.id)===nq ? 0 : normId(p.id).startsWith(nq) ? 1 : 2); return {p, score}; }).filter(Boolean).sort((a,b)=>a.score-b.score || a.p.id.localeCompare(b.p.id)).slice(0, n||6).map(x=>x.p);
+}
+function productsInText(s){
+  const T_ = normId(s); if(T_.length < 4) return [];
+  const hits = [];
+  for(const p of PRODUCTS){
+    const ids = [p.id, p.oldNo].filter(Boolean).map(normId).filter(x => x.length >= 6);
+    const alt = ids.map(x => /[A-Z]$/.test(x) ? x.slice(0,-1) : x).filter(x => x.length >= 6);
+    const m = [...ids, ...alt].find(x => T_.includes(x));
+    if(m) hits.push({p, len:m.length});
+  }
+  return hits.sort((a,b)=>b.len-a.len).map(h=>h.p).filter((p,i,a)=>a.indexOf(p)===i).slice(0,3);
+}
+function pickerHTML(pre, st){
+  const p = byP[st.pid];
+  if(p) return `<div class="field"><span>${esc(qt(pre==="qi"?"prodQ":"aiProd"))}</span><div class="pchosen"><span class="no">${esc(p.id)}</span> ${esc(tx(p,"name")||"")} <span class="sub">${esc(tx(byC[p.customer]||{},"name")||"")}</span><button type="button" class="linkbtn" id="${pre}Clear">${esc(qt("clearProd"))}</button></div></div>`;
+  return `<label class="field">${esc(qt(pre==="qi"?"prodQ":"aiProd"))}<input id="${pre}Q" type="search" autocomplete="off" value="${esc(st.q||"")}" placeholder="${esc(qt("prodPh"))}"></label><div class="psugg" id="${pre}Sugg"></div>`;
+}
+function wirePicker(pre, st){
+  const $ = id => document.getElementById(id);
+  const c = $(pre+"Clear"); if(c) c.addEventListener("click", ()=>{ st.pid = null; st.q = ""; route(true); });
+  const inp = $(pre+"Q"); if(!inp) return;
+  const draw = () => { const box = $(pre+"Sugg"); if(!box) return; const list = searchProducts(st.q, 6);
+    box.innerHTML = list.map(p=>`<button type="button" data-pick="${esc(p.id)}"><span class="no">${esc(p.id)}</span> ${esc(tx(p,"name")||"")} <span class="sub">${esc(tx(byC[p.customer]||{},"name")||"")}</span></button>`).join("");
+    box.querySelectorAll("[data-pick]").forEach(b=>b.addEventListener("click", ()=>{ st.pid = b.dataset.pick; st.q = ""; route(true); })); };
+  inp.addEventListener("input", ()=>{ st.q = inp.value; draw(); });
+  draw();
+}
+function foundHTML(st){
+  if(st.pid) return "";
+  const hits = productsInText(`${st.title||""} ${st.text||""}`);
+  return hits.length ? `<div class="pfound"><span class="sub">${esc(qt("found"))}：</span>${hits.map(p=>`<button type="button" class="btn small ghost" data-use="${esc(p.id)}">${esc(p.id)} ${esc(tx(p,"name")||"")} — ${esc(qt("useIt"))}</button>`).join("")}</div>` : `<p class="sub" style="margin:2px 0 8px">${esc(qt("noProd"))}</p>`;
+}
+
+function quickCardHTML(){
+  const mode = QF.mode;
+  const tabs = `<div class="tabs qtabs" role="tablist">${[["issue",qt("qIssue")],["ai",qt("qAI")]].map(([k,lb])=>`<button type="button" role="tab" data-qmode="${k}" aria-selected="${mode===k}">${esc(lb)}</button>`).join("")}</div>`;
+  let body;
+  if(!EDIT) body = `<p class="sub" style="margin:0 0 10px">${esc(qt("needEdit"))}${mode==="ai"?` ${esc(qt("aiWhen"))}`:""}</p><button type="button" class="btn" id="qLogin">${esc(qt("openEdit"))}</button>${mode==="ai"?aiListHTML():""}`;
+  else if(mode==="issue"){
+    const f = QF.issue || (QF.issue = newQIssue());
+    body = `<div class="form" id="qIssueForm" style="margin:0">
+      ${pickerHTML("qi", f)}
+      <div class="row2"><label class="field">${esc(t("fTitle"))}<input id="qiTitle" type="text" value="${esc(f.title)}"></label><label class="field">${esc(t("fStatus"))}<select id="qiStatus">${STATUSES.map(s=>`<option value="${esc(s)}"${s===f.status?" selected":""}>${esc(statusTx(s))}</option>`).join("")}</select></label></div>
+      <label class="field">${esc(t("fText"))}<textarea id="qiText" placeholder="${esc(t("fTextPh"))}">${esc(f.text)}</textarea></label>
+      <div id="qiFound">${foundHTML(f)}</div>
+      <div class="row2"><label class="field">${esc(t("fLot"))}<input id="qiLot" type="text" value="${esc(f.lot)}"></label><label class="field">${esc(t("fQty"))}<input id="qiQty" type="number" inputmode="numeric" min="0" value="${esc(f.qty)}"></label></div>
+      <div class="row2"><label class="field">${esc(t("fDate"))}<input id="qiDate" type="date" value="${esc(f.date)}"></label><label class="field">${esc(t("fPhotos"))}<input id="qiPhotos" type="file" accept="image/*" multiple></label></div><div class="previews" id="qiPrev"></div>
+      <div class="actions"><button class="btn" type="button" id="qiSave">${esc(t("save"))}</button><button class="btn ghost" type="button" id="qiReset">${esc(t("cancel"))}</button></div><div class="err" id="qiErr"></div></div>`;
+  } else {
+    const f = QF.ai || (QF.ai = newQAI()), isDoc = true;
+    body = `<p class="sub" style="margin:0 0 8px">${esc(qt("aiWhen"))}</p><div class="form" id="qAIForm" style="margin:0">
+      <label class="field">${esc(qt("aiAsk"))}<textarea id="qaText" style="min-height:120px" placeholder="${esc(qt("aiPh"))}">${esc(f.text)}</textarea></label>
+      <div class="row2"><label class="field">${esc(qt("aiKind"))}<select id="qaKind">${Object.keys(T.ja.kinds).map(k=>`<option value="${k}"${k===f.kind?" selected":""}>${esc(t("kinds")[k])}</option>`).join("")}</select></label><div>${pickerHTML("qa", f)}</div></div>
+      <div class="row2"><label class="field">${esc(t("fPhotos"))}<input id="qaPhotos" type="file" accept="image/*" multiple></label><label class="field">${esc(qt("aiFiles"))}<input id="qaFiles" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.xlsm,.ppt,.pptx,.msg,.eml,.txt,.csv,image/*,application/pdf"></label></div>
+      <div class="previews" id="qaPrev"></div><ul class="bul" id="qaFileList" style="margin-bottom:8px"></ul>
+      <div class="actions"><button class="btn" type="button" id="qaSave">${esc(qt("send"))}</button><button class="btn ghost" type="button" id="qaReset">${esc(t("cancel"))}</button></div><div class="err" id="qaErr"></div></div>${aiListHTML()}`;
+  }
+  return `<div class="card quick" id="quick"><h2>${esc(qt("quick"))}</h2>${tabs}${body}</div>`;
+}
+function aiListHTML(){
+  const scans = FIELD.entries.filter(e=>e.type==="scan" && !e.deleted).sort(byNew);
+  const pending = scans.filter(e=>e.scanStatus!=="取込済"), done = scans.filter(e=>e.scanStatus==="取込済").slice(0,5);
+  const li = e => `<li><a href="#e/${encodeURIComponent(e.id)}">${scanTag(e)} ${esc(t("kinds")[e.kind]||e.kind||"")}${e.text?` ・ ${esc(firstLine(e.text))}`:""}<div class="meta">${esc(e.date||"")} ・ ${esc(e.author||"")}${e.product?` ・ ${esc(e.product)}`:""}</div>${e.reply?`<div class="qreply">${esc(firstLine(tx(e,"reply")))}</div>`:""}</a></li>`;
+  return `<h3>${esc(qt("aiPending"))}</h3>${pending.length?`<ul class="list">${pending.map(li).join("")}</ul>`:`<p class="sub" style="margin:0">${esc(qt("noReq"))}</p>`}${done.length?`<h3>${esc(qt("aiDone"))}</h3><ul class="list">${done.map(li).join("")}</ul>`:""}`;
+}
+function wireQuick(){
+  const $ = id => document.getElementById(id);
+  document.querySelectorAll("[data-qmode]").forEach(b=>b.addEventListener("click", ()=>{ QF.mode = b.dataset.qmode; route(true); }));
+  const lg = $("qLogin"); if(lg) lg.addEventListener("click", ()=>{ if(!document.getElementById("editLogin")) renderEditLogin(""); });
+  if(!EDIT) return;
+  if(QF.mode==="issue" && $("qIssueForm")){
+    const f = QF.issue, files = f.files;
+    wirePicker("qi", f);
+    const prev = () => { $("qiPrev").innerHTML = files.map(x=>`<img src="${URL.createObjectURL(x)}" alt="">`).join(""); }; prev();
+    const keep = () => { f.title = $("qiTitle").value; f.text = $("qiText").value; f.status = $("qiStatus").value; f.lot = $("qiLot").value; f.qty = $("qiQty").value; f.date = $("qiDate").value; };
+    const refound = () => { const box = $("qiFound"); if(!box) return; box.innerHTML = foundHTML(f); box.querySelectorAll("[data-use]").forEach(b=>b.addEventListener("click", ()=>{ f.pid = b.dataset.use; route(true); })); };
+    refound();
+    ["qiTitle","qiText","qiStatus","qiLot","qiQty","qiDate"].forEach(id => $(id).addEventListener("input", ()=>{ keep(); $("qiErr").textContent = ""; if(id==="qiTitle"||id==="qiText") refound(); }));
+    $("qiPhotos").addEventListener("change", e => { const add = [...e.target.files]; if(files.length + add.length > 4) $("qiErr").textContent = t("tooMany"); files.push(...add.slice(0, 4-files.length)); e.target.value = ""; prev(); });
+    $("qiReset").addEventListener("click", ()=>{ QF.issue = newQIssue(); route(true); });
+    $("qiSave").addEventListener("click", async ()=>{
+      keep(); const err = $("qiErr"), btn = $("qiSave");
+      if(!f.text.trim()){ err.textContent = t("needText"); $("qiText").focus(); return; }
+      let pid = f.pid, aiLink = null;
+      if(!pid){ const hit = productsInText(`${f.title} ${f.text}`)[0]; if(hit){ pid = hit.id; aiLink = {status:"auto", note:qt("autoLinked"), at:new Date().toISOString()}; } }
+      const p = byP[pid];
+      btn.disabled = true; btn.textContent = t("saving"); err.textContent = "";
+      try{
+        const photoIds = [];
+        for(const file of files){ const id = newId(); const data = await shrinkPhoto(file); await putFile(`${CONF.photos}${id}.enc.json`, JSON.stringify(await encryptJSON({type:"image/jpeg", data}, PW)), null, `photo: issue by ${EDIT.name}`); PHOTOS.set(id, `data:image/jpeg;base64,${data}`); photoIds.push(id); }
+        const entry = {id:newId(), product:pid||null, customer:p ? p.customer : null, type:"issue", parent:null, title:f.title.trim()||null, status:f.status||"未対応",
+          date:f.date||today(), lot:f.lot.trim()||null, qty:f.qty?Number(f.qty):null, text:f.text.trim(), photos:photoIds, author:EDIT.name, createdAt:new Date().toISOString(), via:"home"};
+        if(aiLink) entry.aiLink = aiLink;
+        await updateField(d => d.entries.push(entry), `field: issue ${entry.product||"(no product)"} by ${EDIT.name}`);
+        QF.issue = newQIssue(); FLASH = t("saved") + (entry.product ? "" : " " + qt("aiWillLink"));
+        location.hash = "#e/" + encodeURIComponent(entry.id);
+      }catch(x){ btn.disabled = false; btn.textContent = t("save"); err.textContent = t("saveFail") + x.message; }
+    });
+  }
+  if(QF.mode==="ai" && $("qAIForm")){
+    const f = QF.ai, files = f.files, docs = f.docs;
+    wirePicker("qa", f);
+    const prev = () => { $("qaPrev").innerHTML = files.map(x=>`<img src="${URL.createObjectURL(x)}" alt="">`).join(""); $("qaFileList").innerHTML = docs.map(d=>`<li>${esc(d.name)} <span class="sub">${Math.ceil(d.size/1024)} KB</span></li>`).join(""); }; prev();
+    $("qaText").addEventListener("input", ()=>{ f.text = $("qaText").value; $("qaErr").textContent = ""; });
+    $("qaKind").addEventListener("change", ()=>{ f.kind = $("qaKind").value; });
+    $("qaPhotos").addEventListener("change", e => { const add = [...e.target.files]; if(files.length + add.length > 4) $("qaErr").textContent = t("tooMany"); files.push(...add.slice(0, 4-files.length)); e.target.value = ""; prev(); });
+    $("qaFiles").addEventListener("change", e => { for(const fl of e.target.files){ if(fl.size > MAX_FILE){ $("qaErr").textContent = t("tooBig") + fl.name; continue; } docs.push(fl); } e.target.value = ""; prev(); });
+    $("qaReset").addEventListener("click", ()=>{ QF.ai = newQAI(); route(true); });
+    $("qaSave").addEventListener("click", async ()=>{
+      f.text = $("qaText").value; f.kind = $("qaKind").value;
+      const err = $("qaErr"), btn = $("qaSave");
+      if(!f.text.trim() && !files.length && !docs.length){ err.textContent = qt("aiNeed"); return; }
+      btn.disabled = true; btn.textContent = t("saving"); err.textContent = "";
+      try{
+        const photoIds = [], fileRefs = [];
+        for(const file of files){ const id = newId(); const data = await shrinkPhoto(file); await putFile(`${CONF.photos}${id}.enc.json`, JSON.stringify(await encryptJSON({type:"image/jpeg", data}, PW)), null, `photo: ai request by ${EDIT.name}`); PHOTOS.set(id, `data:image/jpeg;base64,${data}`); photoIds.push(id); }
+        for(const file of docs){ const id = newId(); const data = u8b64(new Uint8Array(await file.arrayBuffer())); await putFile(`files/${id}.enc.json`, JSON.stringify(await encryptJSON({name:file.name, type:file.type||"application/octet-stream", data}, PW)), null, `file: ai request by ${EDIT.name}`); fileRefs.push({id, name:file.name, type:file.type||"", size:file.size}); }
+        const p = byP[f.pid];
+        const entry = {id:newId(), type:"scan", kind:f.kind, product:f.pid||null, customer:p?p.customer:null, text:f.text.trim(), photos:photoIds, files:fileRefs, scanStatus:"未取込", date:today(), author:EDIT.name, createdAt:new Date().toISOString(), via:"home"};
+        await updateField(d => d.entries.push(entry), `ai request: ${entry.kind} by ${EDIT.name}`);
+        QF.ai = newQAI(); FLASH = t("saved"); route(true);
+      }catch(x){ btn.disabled = false; btn.textContent = qt("send"); err.textContent = t("saveFail") + x.message; }
+    });
+  }
+}
+/* extra rows on the entry page: AI reply for requests, product-link status for problems */
+function entryAIExtra(e){
+  let h = "";
+  if(e.type==="scan" && e.reply) h += `<div class="card"><h2>${esc(qt("reply"))}</h2><p style="white-space:pre-wrap;margin:0;font-size:15px">${esc(tx(e,"reply"))}</p>${e.replyAt?`<p class="sub" style="margin:8px 0 0">${esc(fmtAt(e.replyAt))}</p>`:""}</div>`;
+  if(e.type==="issue" && !e.deleted){
+    const a = e.aiLink;
+    const msg = !e.product && !(a && a.status) ? qt("linkWait") : a && a.status==="notfound" ? qt("linkNF") : a && a.status==="linked" ? qt("linkOK") : a && a.status==="auto" ? qt("linkAuto") : "";
+    if(msg) h += `<div class="card"><h2>${esc(qt("linkAI"))}</h2><p style="margin:0">${esc(msg)}</p>${a && a.note && a.status!=="auto" ? `<p class="sub" style="margin:6px 0 0;white-space:pre-wrap">${esc(a.note)}</p>`:""}</div>`;
+  }
+  return h;
 }
 
 /* ---------- 薬液の記録 (chem.enc.json: pH / titration / FF-250 / Hot Top Seal temperature, imported from FON's Excel) ---------- */
