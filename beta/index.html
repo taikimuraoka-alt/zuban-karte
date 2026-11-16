@@ -528,7 +528,7 @@ function applyChrome(){
   document.getElementById("foot").textContent = t("foot");
   document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang===LANG)));
   const eb = document.getElementById("editBtn");
-  eb.hidden = !DATA; eb.textContent = EDIT ? t("editing")(EDIT.name) : t("edit"); eb.classList.toggle("on", !!EDIT);
+  eb.hidden = !DATA || !EDIT; eb.textContent = EDIT ? t("editing")(EDIT.name) : t("edit"); eb.classList.toggle("on", !!EDIT);
   const h = document.getElementById("hint");
   if(DATA){ h.innerHTML = `<span class="howto">${t("howto").map((s,i)=>`<span data-n="${i+1}">${esc(s)}</span>`).join("")}<button type="button" class="linkbtn" id="lockBtn" style="margin-left:auto">${esc(t("lock"))}</button></span>`; document.getElementById("lockBtn").addEventListener("click", lock); }
   else h.textContent = t("lockHint");
@@ -545,16 +545,16 @@ function renderLock(msg){
   document.getElementById("lockForm").addEventListener("submit", async e => { e.preventDefault(); const pw = document.getElementById("pw").value; document.getElementById("err").textContent = t("checking"); try{ await unlock(pw); ls.set("karte.pw", pw); }catch(_){ document.getElementById("err").textContent = t("wrong"); } });
   setTimeout(()=>{ const p=document.getElementById("pw"); if(p) p.focus(); }, 50);
 }
-function lock(){ ls.del("karte.pw"); ls.del("karte.editpw"); PW=null; DATA=null; EDIT=null; FIELD={entries:[]}; FLOWDOCS=null; FLOW_LOADING=null; CHEM=null; CHEM_LOADING=null; KEYS.clear(); renderLock(""); }
+function lock(){ ls.del("karte.pw"); ls.del("karte.editpw"); ls.del("karte.vlpw"); VLPRIV = null; VLPKCS8 = null; VL = null; VL_LOADING = null; PW=null; DATA=null; EDIT=null; FIELD={entries:[]}; FLOWDOCS=null; FLOW_LOADING=null; CHEM=null; CHEM_LOADING=null; KEYS.clear(); renderLock(""); }
 async function unlock(pw){
   if(!(window.crypto && crypto.subtle)) throw new Error("no webcrypto");
   const e = await fetchEnc(CONF.data, true); if(!e) throw new Error("no data");
   const data = await decryptJSON(e, pw);
   PW = pw; DATA = data; normalize(data);
-  document.getElementById("form").hidden = false; applyChrome(); route();
+  { const ep = ls.get("karte.editpw"), en = ls.get("karte.editname"), ew = ls.get("karte.editwho") || "admin"; if(ep && (ew!=="admin" || en)) await startEdit(ew, ep, en, true).catch(()=>{}); }
+  applyChrome(); route();
   await loadField(); route(true);
   loadChem().then(()=>{ if(!location.hash || location.hash.startsWith("#chem")) route(true); }).catch(()=>{});
-  const ep = ls.get("karte.editpw"), en = ls.get("karte.editname"), ew = ls.get("karte.editwho") || "admin"; if(ep && (ew!=="admin" || en)) startEdit(ew, ep, en, true).catch(()=>{});
 }
 
 /* ---------- edit mode ---------- */
@@ -569,7 +569,7 @@ const pinPass = pin => `${PW}#pin#${pin}`;
 const ST = {
   ja:{ whoLabel:"誰が書きますか", pickName:"名前を選ぶ", adminOpt:"管理者（編集パスワード）", pin:"暗証番号", pinWrong:"暗証番号が違います。", staffGone:"この名前は登録がありません（管理者に確認してください）。", needWho:"名前を選んでください。",
     editMsg2:"名前を選んで、自分の暗証番号を入れてください。記録には選んだ名前が入ります。", adminMsg:"管理者は編集パスワードと名前を入れます。",
-    menuTitle:"編集中", staffBtn:"担当者の管理", close:"閉じる",
+    menuTitle:"編集中", staffBtn:"担当者の管理", logBtn:"閲覧履歴", gateTitle:"だれが見ますか", gateMsg:"名前を選んで、自分の暗証番号を入れてください。", gateGo:"開く", gateNote:"開いたページと時刻は記録されます（閲覧履歴）。名前がない人は管理者に登録してもらってください。", close:"閉じる",
     staffTitle:"担当者の管理", staffMsg:"現場の人は「名前を選ぶ → 暗証番号」で書き込めます。記録には選んだ名前が自動で入り、ほかの人の名前では書けません。", staffNone:"まだ担当者がいません。下から追加してください。", adminOnly:"管理者（編集パスワード）で入ったときだけ使えます。",
     addStaff:"担当者を追加", staffName:"名前", staffPin:"暗証番号（4〜8桁の数字）", autoPin:"おまかせ番号", add:"追加する", show:"番号を見る", hidePin:"隠す", changePin:"番号を変える", newPinQ:"新しい番号（4〜8桁）", setPin:"変える", del:"削除", delQ:"本当に削除？",
     saving:"保存中…（人数が多いと数秒かかります）", saved:"保存しました。ほかの端末では 1〜2 分で使えるようになります。", saveFail:"保存できませんでした。もう一度お試しください。",
@@ -578,7 +578,7 @@ const ST = {
     count:n=>`${n} 人` },
   th:{ whoLabel:"ใครเป็นผู้บันทึก", pickName:"เลือกชื่อ", adminOpt:"ผู้ดูแล (รหัสผ่านแก้ไข)", pin:"รหัส PIN", pinWrong:"รหัส PIN ไม่ถูกต้อง", staffGone:"ไม่พบชื่อนี้ (กรุณาติดต่อผู้ดูแล)", needWho:"กรุณาเลือกชื่อ",
     editMsg2:"เลือกชื่อของคุณแล้วใส่รหัส PIN ของคุณ บันทึกจะแสดงชื่อที่เลือก", adminMsg:"ผู้ดูแลใส่รหัสผ่านแก้ไขและชื่อ",
-    menuTitle:"กำลังแก้ไข", staffBtn:"จัดการผู้บันทึก", close:"ปิด",
+    menuTitle:"กำลังแก้ไข", staffBtn:"จัดการผู้บันทึก", logBtn:"ประวัติการเปิดดู", gateTitle:"ใครกำลังเปิดดู", gateMsg:"เลือกชื่อของคุณแล้วใส่รหัส PIN ของคุณ", gateGo:"เปิด", gateNote:"ระบบจะบันทึกหน้าที่เปิดและเวลา (ประวัติการเปิดดู) ถ้าไม่มีชื่อ กรุณาให้ผู้ดูแลลงทะเบียนให้", close:"ปิด",
     staffTitle:"จัดการผู้บันทึก", staffMsg:"พนักงานหน้างานบันทึกได้โดย \"เลือกชื่อ → ใส่รหัส PIN\" ชื่อที่เลือกจะถูกบันทึกอัตโนมัติ และไม่สามารถใช้ชื่อคนอื่นได้", staffNone:"ยังไม่มีผู้บันทึก กรุณาเพิ่มด้านล่าง", adminOnly:"ใช้ได้เฉพาะเมื่อเข้าด้วยรหัสผ่านผู้ดูแล",
     addStaff:"เพิ่มผู้บันทึก", staffName:"ชื่อ", staffPin:"รหัส PIN (ตัวเลข 4-8 หลัก)", autoPin:"สุ่มรหัสให้", add:"เพิ่ม", show:"ดูรหัส", hidePin:"ซ่อน", changePin:"เปลี่ยนรหัส", newPinQ:"รหัสใหม่ (4-8 หลัก)", setPin:"เปลี่ยน", del:"ลบ", delQ:"ยืนยันการลบ?",
     saving:"กำลังบันทึก… (ถ้ามีหลายคนอาจใช้เวลาหลายวินาที)", saved:"บันทึกแล้ว เครื่องอื่นจะใช้ได้ภายใน 1-2 นาที", saveFail:"บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง",
@@ -604,29 +604,34 @@ async function startEdit(who, pw, name, quiet){
   if(!r.ok) throw new Error("tokenBad");
   EDIT = {token:k.token, owner:k.owner, repo:k.repo, branch:k.branch||"main", name, role, who:role==="admin"?"admin":who, apw:role==="admin"?pw:null, staff:role==="admin"?(k.staff||[]):null};
   applyChrome(); if(!quiet) route();
+  vlAfterLogin();
 }
 async function staffNames(){
   try{ const e = await fetchEnc(CONF.editkey, true); if(e && e.v===2 && e.names) return await decryptJSON(e.names, PW); }catch(_){}
   return [];
 }
-async function renderEditLogin(msg){
+async function renderEditLogin(msg, gate){
+  if(gate && document.getElementById("editLogin")) return;
+  if(gate){ document.getElementById("form").hidden = true; main.innerHTML = `<div class="card"><p class="sub">${esc(t("checking"))}</p></div>`; }
   const names = await staffNames();
   if(document.getElementById("editLogin")) return;
+  if(gate && EDIT) return;
   const lastWho = ls.get("karte.editwho") || "", last = ls.get("karte.editname") || "";
   const sel = names.some(n=>n.id===lastWho) ? lastWho : (lastWho==="admin" || !names.length ? "admin" : "");
-  main.insertAdjacentHTML("afterbegin", `<div class="form" id="editLogin"><h2>${esc(t("editTitle"))}</h2>
-    <label class="field">${esc(stt("whoLabel"))}<select id="ewho"><option value="">${esc(stt("pickName"))}</option>${names.map(n=>`<option value="${esc(n.id)}"${n.id===sel?" selected":""}>${esc(n.name)}</option>`).join("")}<option value="admin"${sel==="admin"?" selected":""}>${esc(stt("adminOpt"))}</option></select></label>
-    <div id="eStaffBox"><p class="sub" style="margin:0 0 8px">${esc(stt("editMsg2"))}</p><label class="field">${esc(stt("pin"))}<input id="epin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off"></label></div>
+  const html = `<div class="form" id="editLogin"><h2>${esc(gate ? stt("gateTitle") : t("editTitle"))}</h2>${gate ? `<p class="sub" style="margin:0 0 10px">${esc(stt("gateMsg"))}</p>` : ""}
+    <label class="field">${esc(gate ? stt("staffName") : stt("whoLabel"))}<select id="ewho"><option value="">${esc(stt("pickName"))}</option>${names.map(n=>`<option value="${esc(n.id)}"${n.id===sel?" selected":""}>${esc(n.name)}</option>`).join("")}<option value="admin"${sel==="admin"?" selected":""}>${esc(stt("adminOpt"))}</option></select></label>
+    <div id="eStaffBox">${gate ? "" : `<p class="sub" style="margin:0 0 8px">${esc(stt("editMsg2"))}</p>`}<label class="field">${esc(stt("pin"))}<input id="epin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off"></label></div>
     <div id="eAdminBox"><p class="sub" style="margin:0 0 8px">${esc(stt("adminMsg"))}</p><label class="field">${esc(t("editPw"))}<input id="epw" type="password" autocomplete="off" autocapitalize="off"></label>
       <label class="field">${esc(t("yourName"))}<input id="ename" type="text" value="${esc(last)}" autocomplete="name"></label></div>
     <label style="font-size:13.5px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="erem" checked> ${esc(t("remember"))}</label>
-    <div class="actions"><button class="btn" id="estart" type="button">${esc(t("start"))}</button><button class="btn ghost" id="ecancel" type="button">${esc(t("cancel"))}</button></div>
-    <div class="err" id="eerr">${esc(msg)}</div></div>`);
+    <div class="actions"><button class="btn" id="estart" type="button">${esc(gate ? stt("gateGo") : t("start"))}</button>${gate ? "" : `<button class="btn ghost" id="ecancel" type="button">${esc(t("cancel"))}</button>`}</div>
+    <div class="err" id="eerr">${esc(msg)}</div>${gate ? `<p class="sub" style="margin:10px 0 0;font-size:12.5px">${esc(stt("gateNote"))}</p>` : ""}</div>`;
+  if(gate) main.innerHTML = html; else main.insertAdjacentHTML("afterbegin", html);
   window.scrollTo(0,0);
   const $ = id => document.getElementById(id);
   const sync = () => { const w = $("ewho").value; $("eAdminBox").hidden = w!=="admin"; $("eStaffBox").hidden = w==="admin"; };
   sync(); $("ewho").addEventListener("change", ()=>{ sync(); const f = $("ewho").value==="admin" ? $("epw") : $("epin"); if($("ewho").value) f.focus(); });
-  $("ecancel").addEventListener("click", ()=>$("editLogin").remove());
+  if($("ecancel")) $("ecancel").addEventListener("click", ()=>$("editLogin").remove());
   const go = async ()=>{
     const who = $("ewho").value, err = $("eerr");
     if(!who){ err.textContent = stt("needWho"); return; }
@@ -645,15 +650,15 @@ async function renderEditLogin(msg){
   $("estart").addEventListener("click", go);
   ["epin","epw","ename"].forEach(id => $(id).addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); go(); } }));
 }
-function endEdit(){ EDIT = null; ls.del("karte.editpw"); applyChrome(); route(); }
+async function endEdit(){ try{ await vlFlush(); }catch(_){} EDIT = null; ls.del("karte.editpw"); applyChrome(); route(); }
 /* admin: small menu under the header button (担当者の管理 / 編集を終える) */
 function renderEditMenu(){
   if(document.getElementById("editMenu")) return;
   main.insertAdjacentHTML("afterbegin", `<div class="form" id="editMenu"><h2>${esc(stt("menuTitle"))}：${esc(EDIT.name)}</h2>
-    <div class="actions"><a class="btn" href="#staff" id="emStaff" style="text-decoration:none">${esc(stt("staffBtn"))}</a><button class="btn ghost" id="emEnd" type="button">${esc(t("editEnd"))}</button><button class="btn ghost" id="emClose" type="button">${esc(stt("close"))}</button></div></div>`);
+    <div class="actions"><a class="btn" href="#staff" id="emStaff" style="text-decoration:none">${esc(stt("staffBtn"))}</a><a class="btn ghost" href="#viewlog" id="emLog" style="text-decoration:none">${esc(stt("logBtn"))}</a><button class="btn ghost" id="emEnd" type="button">${esc(t("editEnd"))}</button><button class="btn ghost" id="emClose" type="button">${esc(stt("close"))}</button></div></div>`);
   window.scrollTo(0,0);
   document.getElementById("emClose").addEventListener("click", ()=>document.getElementById("editMenu").remove());
-  document.getElementById("emStaff").addEventListener("click", ()=>{ const m = document.getElementById("editMenu"); if(m) m.remove(); });
+  ["emStaff","emLog"].forEach(id=>document.getElementById(id).addEventListener("click", ()=>{ const m = document.getElementById("editMenu"); if(m) m.remove(); }));
   document.getElementById("emEnd").addEventListener("click", e=>{ if(armed(e.currentTarget, t("editEnd")+"？")) endEdit(); });
 }
 async function writeEditKey(staff, adminPw){
@@ -718,6 +723,232 @@ function renderStaff(msg, isErr){
     if(a !== b) return say(stt("pwMismatch"), true);
     save(staff, a, stt("pwChanged")).then(()=>{ if(EDIT && EDIT.apw===a && (ls.get("karte.editwho")||"admin")==="admin" && ls.get("karte.editpw")) ls.set("karte.editpw", a); });
   });
+}
+/* ---------- 閲覧履歴 ---------- */
+/* Every page a logged-in person opens is buffered on the device (localStorage karte.vlbuf) and sent every few minutes /
+   when the page is hidden as one small file on the separate branch "viewlog" (so GitHub Pages does not rebuild):
+     viewlog:key.json            {v:1, pub:<RSA-OAEP SPKI b64>, priv:enc({pkcs8}) under the history password}
+     viewlog:log/<YYYY-MM-DD>/<device>-<time>.json   {v:1, k:<RSA-wrapped AES-GCM key>, iv, ct:<events JSON>}
+   Writers only have the public key, so only the person who knows the history password (大輝) can read the log.
+   Opening the history page merges the small files of past days into one file per day (one commit). */
+const VLBR = "viewlog";
+let VLKEY = undefined, VLPUB = null, VLPUB_TRIED = 0, VLPRIV = null, VLPKCS8 = null, VL = null, VL_LOADING = null, VL_LAST = {key:"", at:0}, VL_TIMER = null, VL_BUSY = false;
+const VLCACHE = new Map();
+const DEV = (()=>{ let d = ls.get("karte.dev"); if(!d){ d = Math.random().toString(36).slice(2,10); ls.set("karte.dev", d); } return d; })();
+const vlBuf = () => { try{ return JSON.parse(ls.get("karte.vlbuf") || "[]"); }catch(_){ return []; } };
+const vlSetBuf = a => ls.set("karte.vlbuf", JSON.stringify(a.slice(-2000)));
+function logView(kind, id, tab){
+  if(!EDIT) return;
+  const key = `${EDIT.who}|${kind}|${id||""}|${tab||""}`, now = Date.now();
+  if(key===VL_LAST.key && now - VL_LAST.at < 10*60000) return;
+  VL_LAST = {key, at:now};
+  const b = vlBuf(); b.push({n:EDIT.name, w:EDIT.who, k:kind, id:id||"", tab:tab||null, at:new Date(now).toISOString()}); vlSetBuf(b);
+  if(!VL_TIMER) VL_TIMER = setTimeout(()=>{ VL_TIMER = null; vlFlush(); }, 3*60000);
+}
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden") vlFlush(true); });
+async function ghJ(method, p, body, keepalive){
+  const r = await fetch(`https://api.github.com/repos/${EDIT.owner}/${EDIT.repo}/${p}`, {method, headers:{Authorization:`Bearer ${EDIT.token}`, Accept:"application/vnd.github+json", "Content-Type":"application/json"}, body: body ? JSON.stringify(body) : undefined, cache:"no-store", keepalive:!!keepalive});
+  if(method==="GET" && r.status===404) return null;
+  if(!r.ok){ const e = new Error(`GitHub ${r.status}`); e.status = r.status; throw e; }
+  return r.status===204 ? null : r.json();
+}
+async function vlKeyFile(){ const j = await ghJ("GET", `contents/key.json?ref=${VLBR}&t=${Date.now()}`); VLKEY = j ? {...JSON.parse(ghText(j)), sha:j.sha} : null; return VLKEY; }
+async function vlPub(){
+  if(VLPUB) return VLPUB;
+  if(Date.now() - VLPUB_TRIED < 5*60000) return null;
+  VLPUB_TRIED = Date.now();
+  const k = await vlKeyFile(); if(!k) return null;
+  VLPUB = await crypto.subtle.importKey("spki", b64(k.pub), {name:"RSA-OAEP", hash:"SHA-256"}, false, ["encrypt"]);
+  return VLPUB;
+}
+async function vlSeal(events, pub){
+  const aes = await crypto.subtle.generateKey({name:"AES-GCM", length:256}, true, ["encrypt"]);
+  const k = new Uint8Array(await crypto.subtle.encrypt({name:"RSA-OAEP"}, pub, await crypto.subtle.exportKey("raw", aes)));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM", iv}, aes, new TextEncoder().encode(JSON.stringify(events))));
+  return JSON.stringify({v:1, k:u8b64(k), iv:u8b64(iv), ct:u8b64(ct)});
+}
+async function vlOpen(text){
+  const f = JSON.parse(text);
+  const raw = await crypto.subtle.decrypt({name:"RSA-OAEP"}, VLPRIV, b64(f.k));
+  const aes = await crypto.subtle.importKey("raw", raw, {name:"AES-GCM"}, false, ["decrypt"]);
+  return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM", iv:b64(f.iv)}, aes, b64(f.ct))));
+}
+async function vlFlush(hiding){
+  if(VL_BUSY || !EDIT) return;
+  const buf = vlBuf(); if(!buf.length) return;
+  VL_BUSY = true;
+  try{
+    const pub = await vlPub(); if(!pub) return;
+    const text = await vlSeal(buf, pub);
+    const body = {message:`view log: ${buf.length} by ${EDIT.name}`, content:u8b64(new TextEncoder().encode(text)), branch:VLBR};
+    await ghJ("PUT", `contents/log/${today()}/${DEV}-${Date.now().toString(36)}.json`, body, hiding && text.length < 45000);
+    vlSetBuf(vlBuf().slice(buf.length));
+  }catch(_){ /* stays in the buffer; sent next time */ }
+  finally{ VL_BUSY = false; }
+}
+function vlAfterLogin(){
+  setTimeout(()=>vlFlush(), 4000);
+  const pw = ls.get("karte.vlpw");
+  if(pw && !VLPRIV) vlUnlock(pw).then(()=>vlLoad()).then(()=>{ const h = decodeURIComponent(location.hash.slice(1)); if(h && h!=="viewlog" && !document.getElementById("editLogin")) route(true); }).catch(()=>{});
+}
+async function vlUnlock(pw){
+  const k = VLKEY || await vlKeyFile(); if(!k) throw new Error("nokey");
+  let p; try{ p = await decryptJSON(k.priv, pw); }catch(_){ throw new Error("wrong"); }
+  VLPRIV = await crypto.subtle.importKey("pkcs8", b64(p.pkcs8), {name:"RSA-OAEP", hash:"SHA-256"}, false, ["decrypt"]);
+  VLPKCS8 = p.pkcs8;
+}
+async function vlSetup(pw){
+  const kp = await crypto.subtle.generateKey({name:"RSA-OAEP", modulusLength:2048, publicExponent:new Uint8Array([1,0,1]), hash:"SHA-256"}, true, ["encrypt","decrypt"]);
+  const pub = u8b64(new Uint8Array(await crypto.subtle.exportKey("spki", kp.publicKey)));
+  const pkcs8 = u8b64(new Uint8Array(await crypto.subtle.exportKey("pkcs8", kp.privateKey)));
+  const cur = await vlKeyFile(); if(cur) throw new Error("exists");
+  await ghJ("PUT", "contents/key.json", {message:"view log: key", content:u8b64(new TextEncoder().encode(JSON.stringify({v:1, pub, priv: await encryptJSON({pkcs8}, pw)}))), branch:VLBR});
+  VLPUB = null; VLPUB_TRIED = 0; VLKEY = undefined;
+  await vlUnlock(pw);
+}
+async function vlChangePw(pw){
+  const k = await vlKeyFile();
+  await ghJ("PUT", "contents/key.json", {message:"view log: password", content:u8b64(new TextEncoder().encode(JSON.stringify({v:1, pub:k.pub, priv: await encryptJSON({pkcs8:VLPKCS8}, pw)}))), branch:VLBR, sha:k.sha});
+  VLKEY = undefined;
+}
+async function pool(items, n, fn){ const out = []; let i = 0; await Promise.all(Array.from({length:Math.min(n, items.length)}, async()=>{ while(i < items.length){ const j = i++; out[j] = await fn(items[j]); } })); return out; }
+async function vlLoad(force){
+  if(VL_LOADING && !force) return VL_LOADING;
+  VL_LOADING = (async()=>{
+    const ref = await ghJ("GET", `git/ref/heads/${VLBR}`);
+    const commit = ref.object.sha;
+    const tr = await ghJ("GET", `git/trees/${commit}?recursive=1`);
+    const files = (tr.tree||[]).filter(x=>x.type==="blob" && /^log\/\d{4}-\d{2}-\d{2}\//.test(x.path));
+    const rows = await pool(files, 6, async f => {
+      if(!VLCACHE.has(f.sha)){ const b = await ghJ("GET", `git/blobs/${f.sha}`); try{ VLCACHE.set(f.sha, await vlOpen(new TextDecoder().decode(b64(b.content.replace(/\s/g,""))))); }catch(_){ VLCACHE.set(f.sha, []); } }
+      return {f, ev:VLCACHE.get(f.sha)};
+    });
+    VL = rows.flatMap(r=>r.ev).sort((a,b)=>b.at.localeCompare(a.at));
+    vlCompact(commit, tr.sha, rows).catch(()=>{});
+    return VL;
+  })();
+  try{ return await VL_LOADING; }catch(e){ VL_LOADING = null; throw e; }
+}
+/* merge the small files of each past day into one (single commit through the git data API) */
+async function vlCompact(commit, treeSha, rows){
+  const byDay = {};
+  rows.forEach(r=>{ const d = r.f.path.split("/")[1]; if(d < today()) (byDay[d] = byDay[d] || []).push(r); });
+  const days = Object.entries(byDay).filter(([,rs])=>rs.length > 1);
+  if(!days.length) return;
+  const pub = await vlPub(); if(!pub) return;
+  const tree = [];
+  for(const [d, rs] of days){
+    const ev = rs.flatMap(r=>r.ev).sort((a,b)=>a.at.localeCompare(b.at));
+    const blob = await ghJ("POST", "git/blobs", {content: await vlSeal(ev, pub), encoding:"utf-8"});
+    VLCACHE.set(blob.sha, ev);
+    tree.push({path:`log/${d}/day-${Date.now().toString(36)}.json`, mode:"100644", type:"blob", sha:blob.sha});
+    rs.forEach(r=>tree.push({path:r.f.path, mode:"100644", type:"blob", sha:null}));
+  }
+  const nt = await ghJ("POST", "git/trees", {base_tree:treeSha, tree});
+  const nc = await ghJ("POST", "git/commits", {message:`view log: merge ${days.length} day(s)`, tree:nt.sha, parents:[commit]});
+  await ghJ("PATCH", `git/refs/heads/${VLBR}`, {sha:nc.sha, force:false});
+}
+function vlLabel(e){
+  if(e.k==="p"){ const p = byP[e.id]; return {href:`#${encodeURIComponent(e.id)}`, text:`${e.id}${p?` ${p.name||""}`:""}`, sub:e.tab ? (t("tabs")[e.tab]||e.tab) : ""}; }
+  if(e.k==="c"){ const c = byC[e.id]; return {href:`#c/${encodeURIComponent(e.id)}`, text:`会社：${c?c.name:e.id}`, sub:""}; }
+  if(e.k==="i"){ const i = byI[e.id]; return {href:`#i/${encodeURIComponent(e.id)}`, text:`問題：${i?(i.title||e.id):e.id}`, sub:""}; }
+  if(e.k==="e"){ const x = entryById(e.id); return {href:`#e/${encodeURIComponent(e.id)}`, text:`記録：${x?(x.title||firstLine(x.text)||e.id):e.id}`, sub:""}; }
+  if(e.k==="chem") return {href:`#chem${e.id?"/"+e.id:""}`, text:`薬液の記録${e.id?`（${e.id}）`:""}`, sub:""};
+  if(e.k==="home") return {href:"#", text:"ホーム", sub:""};
+  if(e.k==="staff") return {href:"#staff", text:"担当者の管理", sub:""};
+  return {href:"#", text:`${e.k} ${e.id}`, sub:""};
+}
+let VLF = {who:"", days:"30", kind:"", q:""};
+function renderViewlog(msg, isErr){
+  document.getElementById("q").value = "";
+  const head = `<a class="back" href="#">← ホーム</a><div class="card"><h2>閲覧履歴</h2><p class="sub" style="margin:0">だれが・いつ・どのページを開いたか。履歴パスワードを知っている人だけが見られます（ほかの人のスマホでは中身を開けない形で保存しています）。</p></div>`;
+  const note = msg ? `<p class="${isErr?"err":"okmsg"}">${esc(msg)}</p>` : "";
+  if(!EDIT){ main.innerHTML = head; return; }
+  if(!VLPRIV){
+    main.innerHTML = head + `<div class="card"><p class="sub">確認中…</p></div>`;
+    (VLKEY !== undefined ? Promise.resolve(VLKEY) : vlKeyFile()).then(k=>{
+      if(decodeURIComponent(location.hash.slice(1))!=="viewlog") return;
+      if(!k){
+        main.innerHTML = head + `<div class="form"><h3 style="margin-top:0">はじめに：履歴パスワードを決める</h3><p class="sub" style="margin:0 0 10px">このパスワードで履歴を開きます。決めた本人しか知らない言葉にしてください（8文字以上）。忘れると過去の履歴は開けなくなります。</p>${note}
+          <label class="field">履歴パスワード<input id="vlP1" type="password" autocomplete="new-password" autocapitalize="off"></label>
+          <label class="field">もう一度<input id="vlP2" type="password" autocomplete="new-password" autocapitalize="off"></label>
+          <label style="font-size:13.5px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="vlRem" checked> この端末で覚える</label>
+          <div class="actions"><button class="btn" id="vlSet" type="button">決める</button></div><div class="err" id="vlErr"></div></div>`;
+        document.getElementById("vlSet").addEventListener("click", async ()=>{
+          const a = document.getElementById("vlP1").value, b = document.getElementById("vlP2").value, err = document.getElementById("vlErr");
+          if(a.length < 8){ err.textContent = "8文字以上にしてください。"; return; }
+          if(a !== b){ err.textContent = "2回の入力が違います。"; return; }
+          err.textContent = "鍵を作っています…";
+          try{ await vlSetup(a); if(document.getElementById("vlRem").checked) ls.set("karte.vlpw", a); vlFlush(); await vlLoad(true); renderViewlog("履歴パスワードを決めました。これから開かれたページが記録されます。"); }
+          catch(x){ err.textContent = x.message==="exists" ? "もう鍵があります。画面を開き直してください。" : `作れませんでした（${x.message}）`; }
+        });
+      } else {
+        main.innerHTML = head + `<div class="form"><h3 style="margin-top:0">履歴パスワード</h3>${note}
+          <label class="field">履歴パスワード<input id="vlPw" type="password" autocomplete="off" autocapitalize="off"></label>
+          <label style="font-size:13.5px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="vlRem" checked> この端末で覚える</label>
+          <div class="actions"><button class="btn" id="vlGo" type="button">開く</button></div><div class="err" id="vlErr"></div></div>`;
+        const go = async ()=>{ const pw = document.getElementById("vlPw").value, err = document.getElementById("vlErr"); err.textContent = "確認中…";
+          try{ await vlUnlock(pw); if(document.getElementById("vlRem").checked) ls.set("karte.vlpw", pw); err.textContent = "読み込み中…"; await vlLoad(true); renderViewlog(); }
+          catch(x){ err.textContent = x.message==="wrong" ? "履歴パスワードが違います。" : `開けませんでした（${x.message}）`; } };
+        document.getElementById("vlGo").addEventListener("click", go);
+        document.getElementById("vlPw").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); go(); } });
+        setTimeout(()=>{ const f = document.getElementById("vlPw"); if(f) f.focus(); }, 50);
+      }
+    }).catch(x=>{ main.innerHTML = head + `<div class="card"><p class="err">読み込めませんでした（${esc(x.message)}）</p></div>`; });
+    return;
+  }
+  if(!VL){
+    main.innerHTML = head + `<div class="card"><p class="sub">読み込み中…</p></div>`;
+    vlLoad().then(()=>{ if(decodeURIComponent(location.hash.slice(1))==="viewlog") renderViewlog(msg, isErr); }).catch(x=>{ main.innerHTML = head + `<div class="card"><p class="err">読み込めませんでした（${esc(x.message)}）</p></div>`; });
+    return;
+  }
+  const cutoff = VLF.days ? new Date(Date.now() - Number(VLF.days)*86400000).toISOString() : "";
+  const q = VLF.q.trim().toLowerCase();
+  const base = VL.filter(e => (!cutoff || e.at >= cutoff) && (!VLF.kind || e.k===VLF.kind) && (!q || `${e.id} ${vlLabel(e).text}`.toLowerCase().includes(q)));
+  const shown = base.filter(e => !VLF.who || e.n===VLF.who);
+  const people = {}; base.forEach(e=>{ const p = people[e.n] = people[e.n] || {n:e.n, c:0, last:"", prods:new Set()}; p.c++; if(e.at > p.last) p.last = e.at; if(e.k==="p") p.prods.add(e.id); });
+  const plist = Object.values(people).sort((a,b)=>b.last.localeCompare(a.last));
+  const names = [...new Set(VL.map(e=>e.n))].sort();
+  const opt = (v, l, cur) => `<option value="${esc(v)}"${v===cur?" selected":""}>${esc(l)}</option>`;
+  const pending = vlBuf().length;
+  main.innerHTML = head + note + `<div class="card">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end">
+        <label class="field" style="flex:1 1 140px;margin:0">人<select id="vfWho">${opt("","全員",VLF.who)}${names.map(n=>opt(n,n,VLF.who)).join("")}</select></label>
+        <label class="field" style="flex:1 1 110px;margin:0">期間<select id="vfDays">${opt("1","24時間",VLF.days)}${opt("7","7日",VLF.days)}${opt("30","30日",VLF.days)}${opt("90","90日",VLF.days)}${opt("","すべて",VLF.days)}</select></label>
+        <label class="field" style="flex:1 1 110px;margin:0">ページ<select id="vfKind">${opt("","すべて",VLF.kind)}${opt("p","製品",VLF.kind)}${opt("c","会社",VLF.kind)}${opt("i","問題",VLF.kind)}${opt("e","記録",VLF.kind)}${opt("chem","薬液",VLF.kind)}${opt("home","ホーム",VLF.kind)}</select></label>
+        <label class="field" style="flex:2 1 160px;margin:0">図番・品名<input id="vfQ" type="text" value="${esc(VLF.q)}" placeholder="例 T150173630"></label>
+        <button type="button" class="btn small ghost" id="vfReload">読み込み直す</button></div>
+      <p class="sub" style="margin:10px 0 0">記録 ${base.length} 件・${plist.length} 人${pending?` ・ この端末で未送信 ${pending} 件`:""}。スマホからは数分ごと（画面を閉じたとき）に送られます。</p></div>
+    <div class="card"><h3 style="margin-top:0">人ごとのまとめ</h3>${plist.length?`<ul class="list">${plist.map(p=>`<li><a href="#viewlog" data-who="${esc(p.n)}"><b>${esc(p.n)}</b> ・ ${p.c} 回 ・ 製品 ${p.prods.size} 品<div class="meta">最後に見た日時 ${fmtAt(p.last)}</div></a></li>`).join("")}</ul>`:`<p class="empty">まだ記録がありません。</p>`}</div>
+    <div class="card"><h3 style="margin-top:0">履歴${VLF.who?`：${esc(VLF.who)}`:""}</h3>${shown.length?`<ul class="list">${shown.slice(0,500).map(e=>{ const l = vlLabel(e); return `<li><a href="${l.href}">${esc(l.text)}${l.sub?` <span class="sub">（${esc(l.sub)}）</span>`:""}<div class="meta">${fmtAt(e.at)} ・ ${esc(e.n)}</div></a></li>`; }).join("")}</ul>${shown.length>500?`<p class="sub">新しい順に500件まで表示しています。</p>`:""}`:`<p class="empty">条件に合う記録がありません。</p>`}</div>
+    <div class="card"><h3 style="margin-top:0">履歴パスワードを変える</h3>
+      <label class="field">新しい履歴パスワード（8文字以上）<input id="vlN1" type="password" autocomplete="new-password" autocapitalize="off"></label>
+      <label class="field">もう一度<input id="vlN2" type="password" autocomplete="new-password" autocapitalize="off"></label>
+      <div class="actions"><button type="button" class="btn small" id="vlChg">変える</button><button type="button" class="btn small ghost" id="vlForget">この端末で忘れる</button></div><div class="err" id="vlCErr"></div></div>`;
+  const set = (k, v) => { VLF[k] = v; renderViewlog(); };
+  document.getElementById("vfWho").addEventListener("change", e=>set("who", e.target.value));
+  document.getElementById("vfDays").addEventListener("change", e=>set("days", e.target.value));
+  document.getElementById("vfKind").addEventListener("change", e=>set("kind", e.target.value));
+  document.getElementById("vfQ").addEventListener("change", e=>set("q", e.target.value));
+  document.getElementById("vfReload").addEventListener("click", async e=>{ e.currentTarget.textContent = "読み込み中…"; await vlFlush(); try{ await vlLoad(true); renderViewlog(); }catch(x){ renderViewlog(`読み込めませんでした（${x.message}）`, true); } });
+  main.querySelectorAll("[data-who]").forEach(a=>a.addEventListener("click", e=>{ e.preventDefault(); set("who", VLF.who===a.dataset.who ? "" : a.dataset.who); }));
+  document.getElementById("vlChg").addEventListener("click", async ()=>{
+    const a = document.getElementById("vlN1").value, b = document.getElementById("vlN2").value, err = document.getElementById("vlCErr");
+    if(a.length < 8){ err.textContent = "8文字以上にしてください。"; return; }
+    if(a !== b){ err.textContent = "2回の入力が違います。"; return; }
+    err.textContent = "保存中…";
+    try{ await vlChangePw(a); if(ls.get("karte.vlpw")) ls.set("karte.vlpw", a); renderViewlog("履歴パスワードを変えました。"); }catch(x){ err.textContent = `変えられませんでした（${x.message}）`; }
+  });
+  document.getElementById("vlForget").addEventListener("click", ()=>{ ls.del("karte.vlpw"); VLPRIV = null; VLPKCS8 = null; VL = null; VL_LOADING = null; location.hash = "#"; });
+}
+/* product page: who viewed this product (only when the history is open on this device) */
+function vlProductCard(p){
+  if(!VL || !VLPRIV) return;
+  const ev = VL.filter(e=>e.k==="p" && e.id===p.id);
+  const by = {}; ev.forEach(e=>{ const x = by[e.n] = by[e.n] || {n:e.n, c:0, last:""}; x.c++; if(e.at > x.last) x.last = e.at; });
+  const list = Object.values(by).sort((a,b)=>b.last.localeCompare(a.last));
+  main.insertAdjacentHTML("beforeend", `<div class="card"><h3 style="margin-top:0">見た人 <span class="sub" style="font-size:12.5px">（履歴パスワードを入れた端末だけに表示）</span></h3>${list.length?`<ul class="list">${list.slice(0,15).map(x=>`<li style="padding:8px 2px"><b>${esc(x.n)}</b> ・ ${x.c} 回<div class="meta">最後 ${fmtAt(x.last)}</div></li>`).join("")}</ul>`:`<p class="empty">まだだれも見ていません。</p>`}<div class="actions"><a class="btn small ghost" href="#viewlog" style="text-decoration:none">閲覧履歴をすべて見る</a></div></div>`);
 }
 async function gh(method, path, body){
   const url = `https://api.github.com/repos/${EDIT.owner}/${EDIT.repo}/contents/${CONF.repoDir}${path}` + (method==="GET" ? `?ref=${EDIT.branch}&t=${Date.now()}` : "");
@@ -1192,6 +1423,7 @@ function renderProduct(p){
     docs: () => `${(p.received||p.rev||p.areaFormula||p.quotedAt)?`<dl class="kv" style="margin-bottom:12px">${p.quotedAt?`<dt>${esc(t("quotedAt"))}</dt><dd class="num">${esc(p.quotedAt)}</dd>`:""}${p.received?`<dt>${esc(t("received"))}</dt><dd>${esc(p.received)}</dd>`:""}${p.rev?`<dt>${esc(t("rev"))}</dt><dd>${esc(p.rev)}</dd>`:""}${p.areaFormula?`<dt>${esc(t("areaF"))}</dt><dd class="num">${esc(p.areaFormula)}</dd>`:""}</dl>`:""}${docList(p.docs)}${changeLogHTML(p.id)}`
   };
   if(!panels[TAB]) TAB = "info";
+  logView("p", p.id, TAB);
   const tabs = ["info","flow","issues","memo","docs"];
   main.innerHTML = `<a class="back" href="#c/${encodeURIComponent(p.customer)}">${esc(t("back"))} ${esc(tx(c,"name"))}</a>
     <div class="card"><div class="title"><span class="no">${esc(p.id)}</span><span class="name">${esc(tx(p,"name"))}</span></div>
@@ -1201,6 +1433,7 @@ function renderProduct(p){
     <div class="card" id="panel">${panels[TAB]()}</div>`;
   main.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{ TAB=b.dataset.tab; ls.set("karte.tab2",TAB); renderProduct(p); }));
   main.querySelectorAll("[data-add]").forEach(b=>b.addEventListener("click",()=>{ FORM = {pid:p.id, type:b.dataset.add, date:today(), files:[]}; renderProduct(p); const tx_ = document.getElementById("fText"); if(tx_) tx_.focus(); }));
+  vlProductCard(p);
   if(TAB==="flow") renderDocs();
   const ep = document.getElementById("editProd");
   if(ep) ep.addEventListener("click", ()=>{ PFORM = {isNew:false, pid:p.id, data:{...p, drawingPath:((p.docs||[])[0]||{}).path||""}}; renderProduct(p); });
@@ -1657,16 +1890,19 @@ let lastRoute = "";
 function route(keepScroll){
   if(!DATA) return;
   const h = decodeURIComponent(location.hash.slice(1));
+  if(!EDIT){ renderEditLogin("", true); return; }
+  document.getElementById("form").hidden = false;
   document.body.classList.remove("is-home");
   if(h !== lastRoute){ FORM = null; PFORM = null; SFORM = null; if(lastRoute) TAB = "info"; lastRoute = h; if(!keepScroll) window.scrollTo(0,0); }
   const p = byP[h] || PRODUCTS.find(x=>x.oldNo===h) || (/[A-Z]$/i.test(h) ? byP[h.slice(0,-1)] : null);
-  if(h==="staff") renderStaff();
-  else if(h==="chem" || h.startsWith("chem/")) renderChem(h.slice(5));
-  else if(h.startsWith("c/") && byC[h.slice(2)]) renderCustomer(byC[h.slice(2)]);
-  else if(h.startsWith("i/") && byI[h.slice(2)]) renderIssue(byI[h.slice(2)]);
-  else if(h.startsWith("e/") && entryById(h.slice(2))) renderEntry(entryById(h.slice(2)));
+  if(h==="staff"){ renderStaff(); logView("staff", ""); }
+  else if(h==="viewlog") renderViewlog();
+  else if(h==="chem" || h.startsWith("chem/")){ renderChem(h.slice(5)); logView("chem", h.slice(5)); }
+  else if(h.startsWith("c/") && byC[h.slice(2)]){ renderCustomer(byC[h.slice(2)]); logView("c", h.slice(2)); }
+  else if(h.startsWith("i/") && byI[h.slice(2)]){ renderIssue(byI[h.slice(2)]); logView("i", h.slice(2)); }
+  else if(h.startsWith("e/") && entryById(h.slice(2))){ renderEntry(entryById(h.slice(2))); logView("e", h.slice(2)); }
   else if(p){ document.getElementById("q").value = ""; renderProduct(p); }
-  else renderHome(document.getElementById("q").value);
+  else { renderHome(document.getElementById("q").value); logView("home", ""); }
   if(FLASH){ main.insertAdjacentHTML("afterbegin", `<p class="okmsg">${esc(FLASH)}</p>`); FLASH = ""; }
 }
 document.getElementById("form").addEventListener("submit",e=>{ e.preventDefault(); const v=document.getElementById("q").value.trim(); const exact=PRODUCTS.find(p=>p.id.toLowerCase()===v.toLowerCase()); if(exact){ location.hash=encodeURIComponent(exact.id); } else { if(location.hash) history.replaceState(null,"",location.pathname); lastRoute=""; renderHome(v); } });
