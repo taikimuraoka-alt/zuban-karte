@@ -565,10 +565,13 @@ async function unlock(pw){
    mid = first 32 hex of SHA-256(PW+"#mail#"+email) so the public file shows no e-mail addresses.
    The admin adds name + e-mail and gets a first-time code; on first login with that code the person must choose their own password,
    which nobody else can see. The author name comes from the key, so nobody can write under another name. */
-const pinPass = pw => `${PW}#pw#${pw}`;
-const normMail = m => String(m||"").trim().toLowerCase();
+const normPw = p => String(p||"").normalize("NFKC").trim();   // full-width digits/letters typed with the Japanese IME count as normal ones
+const pinPass = pw => `${PW}#pw#${normPw(pw)}`;
+const normMail = m => String(m||"").normalize("NFKC").replace(/[ー‐‑–—−]/g,"-").replace(/\s+/g,"").toLowerCase();
 const okMail = m => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m);
-const okPw = p => String(p||"").length >= 6;
+const okPw = p => normPw(p).length >= 6;
+const pwInput = (id, ac) => `<span style="display:flex;gap:6px;align-items:center"><input id="${id}" type="password" autocomplete="${ac}" autocapitalize="off" spellcheck="false" style="flex:1;min-width:0"><button type="button" class="btn small ghost" data-peek="${id}" style="flex:none">${esc(stt("show"))}</button></span>`;
+document.addEventListener("click", e=>{ const b = e.target.closest("[data-peek]"); if(!b) return; e.preventDefault(); const i = document.getElementById(b.dataset.peek); if(!i) return; const show = i.type==="password"; i.type = show ? "text" : "password"; b.textContent = stt(show ? "hide" : "show"); i.focus(); });
 async function mailId(email){
   const h = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${PW}#mail#${normMail(email)}`)));
   return Array.from(h.slice(0,16), b=>b.toString(16).padStart(2,"0")).join("");
@@ -591,7 +594,7 @@ const ST = {
     setPwTitle:"自分のパスワードを決める", setPwMsg:"初回コードでログインしました。これからは自分で決めたパスワードでログインします。6文字以上で、管理者にも見えません。",
     changeTitle:"自分のパスワードを変える", changeMsg:"新しいパスワードを2回入れてください。管理者にも見えません。",
     newPw:"新しいパスワード（6文字以上）", newPw2:"もう一度", pwShort:"6文字以上にしてください。", pwMismatch:"2回の入力が違います。", samePw:"初回コードとは違うパスワードにしてください。",
-    pwSet:"パスワードを決めました。次からはこのパスワードでログインしてください（ほかの端末では1〜2分後から使えます）。", setPwGo:"決める", busy:"混み合っています。もう一度お試しください。" },
+    pwSet:"パスワードを決めました。次からはこのパスワードでログインしてください（ほかの端末では1〜2分後から使えます）。", setPwGo:"決める", busy:"混み合っています。もう一度お試しください。", show:"表示", hide:"隠す" },
   th:{ loginTitle:"เข้าสู่ระบบ", loginMsg:"ใส่อีเมลและรหัสผ่านของคุณ ถ้าเข้าครั้งแรก ให้ใส่ \"รหัสครั้งแรก\" ที่ได้รับจากผู้ดูแลในช่องรหัสผ่าน",
     mail:"อีเมล", password:"รหัสผ่าน", loginGo:"เข้าสู่ระบบ", needMail:"กรุณาใส่อีเมล", noUser:"ไม่พบอีเมลนี้ กรุณาให้ผู้ดูแลลงทะเบียนให้",
     pwWrong:"รหัสผ่านไม่ถูกต้อง", pwWrong2:"รหัสผ่านไม่ถูกต้อง ถ้าเพิ่งเปลี่ยนรหัสผ่าน กรุณารอ 1-2 นาทีแล้วลองใหม่",
@@ -608,7 +611,7 @@ const ST = {
     setPwTitle:"ตั้งรหัสผ่านของคุณ", setPwMsg:"คุณเข้าด้วยรหัสครั้งแรก ต่อไปจะเข้าด้วยรหัสผ่านที่คุณตั้งเอง (6 ตัวขึ้นไป ผู้ดูแลก็มองไม่เห็น)",
     changeTitle:"เปลี่ยนรหัสผ่านของคุณ", changeMsg:"ใส่รหัสผ่านใหม่ 2 ครั้ง ผู้ดูแลก็มองไม่เห็น",
     newPw:"รหัสผ่านใหม่ (6 ตัวขึ้นไป)", newPw2:"ใส่อีกครั้ง", pwShort:"กรุณาใช้ 6 ตัวขึ้นไป", pwMismatch:"รหัสที่ใส่สองครั้งไม่ตรงกัน", samePw:"กรุณาใช้รหัสที่ต่างจากรหัสครั้งแรก",
-    pwSet:"ตั้งรหัสผ่านแล้ว ครั้งต่อไปให้เข้าด้วยรหัสนี้ (เครื่องอื่นใช้ได้หลังจาก 1-2 นาที)", setPwGo:"ตั้งรหัส", busy:"ระบบไม่ว่าง กรุณาลองอีกครั้ง" }
+    pwSet:"ตั้งรหัสผ่านแล้ว ครั้งต่อไปให้เข้าด้วยรหัสนี้ (เครื่องอื่นใช้ได้หลังจาก 1-2 นาที)", setPwGo:"ตั้งรหัส", busy:"ระบบไม่ว่าง กรุณาลองอีกครั้ง", show:"แสดง", hide:"ซ่อน" }
 };
 const stt = k => (ST[LANG]||ST.ja)[k] ?? ST.ja[k];
 
@@ -633,7 +636,7 @@ async function renderEditLogin(msg, gate){
   if(gate) document.getElementById("form").hidden = true;
   const html = `<div class="form" id="editLogin"><h2>${esc(stt("loginTitle"))}</h2><p class="sub" style="margin:0 0 10px">${esc(stt("loginMsg"))}</p>
     <label class="field">${esc(stt("mail"))}<input id="email" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" value="${esc(ls.get("karte.editemail")||"")}"></label>
-    <label class="field">${esc(stt("password"))}<input id="epw" type="password" autocomplete="current-password" autocapitalize="off"></label>
+    <label class="field">${esc(stt("password"))}${pwInput("epw","current-password")}</label>
     <label style="font-size:13.5px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="erem" checked> ${esc(t("remember"))}</label>
     <div class="actions"><button class="btn" id="estart" type="button">${esc(stt("loginGo"))}</button>${gate ? "" : `<button class="btn ghost" id="ecancel" type="button">${esc(t("cancel"))}</button>`}</div>
     <div class="err" id="eerr">${esc(msg)}</div><p class="sub" style="margin:10px 0 0;font-size:12.5px">${esc(stt("gateNote"))}</p></div>`;
@@ -652,7 +655,8 @@ async function renderEditLogin(msg, gate){
       if(rem) ls.set("karte.editpw", pw); else ls.del("karte.editpw");
     }catch(x){
       if(!document.body.contains(err)) return;
-      if(["noUser","pwWrong","pwWrong2"].includes(x.message)) err.textContent = stt(x.message);
+      if(x.message==="noUser") err.textContent = `${stt("noUser")}（${email}）`;
+      else if(["pwWrong","pwWrong2"].includes(x.message)) err.textContent = stt(x.message);
       else err.textContent = t(["notReady","tokenBad"].includes(x.message) ? x.message : "tokenBad");
     }
   };
@@ -708,16 +712,16 @@ function renderSetPin(){
   document.getElementById("form").hidden = first;
   main.innerHTML = `<div class="form"><h2>${esc(stt(first ? "setPwTitle" : "changeTitle"))}</h2><p class="sub" style="margin:0 0 10px">${esc(stt(first ? "setPwMsg" : "changeMsg"))}</p>
     <input type="email" autocomplete="username" value="${esc(EDIT.email||"")}" hidden>
-    <label class="field">${esc(stt("newPw"))}<input id="np1" type="password" autocomplete="new-password" autocapitalize="off"></label>
-    <label class="field">${esc(stt("newPw2"))}<input id="np2" type="password" autocomplete="new-password" autocapitalize="off"></label>
+    <label class="field">${esc(stt("newPw"))}${pwInput("np1","new-password")}</label>
+    <label class="field">${esc(stt("newPw2"))}${pwInput("np2","new-password")}</label>
     <div class="actions"><button class="btn" id="npGo" type="button">${esc(stt("setPwGo"))}</button>${first ? "" : `<a class="btn ghost" href="#" style="text-decoration:none">${esc(t("cancel"))}</a>`}</div><div class="err" id="npErr"></div></div>`;
   const $ = id => document.getElementById(id);
   setTimeout(()=>{ const f = $("np1"); if(f) f.focus(); }, 50);
   const go = async ()=>{
     const a = $("np1").value, b = $("np2").value, err = $("npErr");
     if(!okPw(a)) return err.textContent = stt("pwShort");
-    if(a !== b) return err.textContent = stt("pwMismatch");
-    if(EDIT.code && a === EDIT.code) return err.textContent = stt("samePw");
+    if(normPw(a) !== normPw(b)) return err.textContent = stt("pwMismatch");
+    if(EDIT.code && normPw(a) === normPw(EDIT.code)) return err.textContent = stt("samePw");
     err.textContent = stt("saving");
     try{ await setOwnPin(a); FLASH = stt("pwSet"); if(location.hash==="#mypin") location.hash = "#"; else route(); }
     catch(x){ err.textContent = x.message==="noUser" ? stt("noUser") : x.message==="busy" ? stt("busy") : `${stt("saveFail")} (${x.message})`; }
