@@ -315,7 +315,7 @@ footer{color:var(--muted);font-size:11.5px;margin-top:28px;text-align:center;let
 </div>
 
 <script>
-const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", chem:"chem.enc.json", repoDir:"beta/", build:"2026-11-16" };
+const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", chem:"chem.enc.json", repoDir:"beta/", build:"2026-11-17" };
 let PW = null, DATA = null, FIELD = {entries:[]}, FLOWDOCS = null, FLOW_LOADING = null, EDIT = null;
 let CUSTOMERS = [], PRODUCTS = [], ISSUES = [], EVENTS = [], FLOWSTEPS = [], CAUTIONS = [];
 let byP = {}, byC = {}, byI = {};
@@ -359,7 +359,7 @@ const T = {
     changeStatus:"状態を変える", statusNote:"ひとこと（任意）", statusSame:"今と同じ状態です。", statusSaved:"状態を変えました。ほかの人の画面には 1〜2 分で出ます。", statusHistory:"状態の履歴", noHistory:"まだ変更はありません。", linked:"この問題への対策・記録", product:"製品", author:"記録した人", createdAt:"登録日時", parentIssue:"どの問題への記録か", detail:"記録の詳細",
     symptom:"症状", cause:"原因", action:"対策", date:"日付", related:"対象の製品", docs:"資料",
     received:"入手日", rev:"リビジョン", areaF:"面積式", pdf:"図面 PDF", copy:"パスをコピー", copied:"コピーしました", selected:"選択しました", noDocs:"登録された資料はありません。",
-    edit:"編集", editing:n=>`編集中：${n}`, editTitle:"編集モード", editMsg:"記録を書き込むには、編集パスワードと名前を入れてください。", editPw:"編集パスワード", yourName:"名前（記録に残ります）", remember:"この端末で覚える", start:"始める", cancel:"やめる", editEnd:"編集を終える", notReady:"編集の準備がまだできていません（管理者が鍵を設定します）。", editWrong:"編集パスワードが違います。", tokenBad:"書き込みの鍵が使えません（期限切れの可能性）。管理者に連絡してください。",
+    edit:"編集", editing:n=>`${n} ▾`, editTitle:"編集モード", editMsg:"記録を書き込むには、編集パスワードと名前を入れてください。", editPw:"編集パスワード", yourName:"名前（記録に残ります）", remember:"この端末で覚える", start:"始める", cancel:"やめる", editEnd:"ログアウト", notReady:"編集の準備がまだできていません（管理者が鍵を設定します）。", editWrong:"編集パスワードが違います。", tokenBad:"書き込みの鍵が使えません（期限切れの可能性）。管理者に連絡してください。",
     fType:"種類", fDate:"日付", fLot:"ロット・T/T 番号", fQty:"数量（個）", fText:"内容", fTextPh:"何が起きたか・何をしたか・気をつけること", fPhotos:"写真（4 枚まで）", save:"保存する", saving:"保存中…", saved:"保存しました。ほかの人の画面には 1〜2 分で出ます。", needText:"内容を書いてください。", tooMany:"写真は 4 枚までです。", saveFail:"保存できませんでした：",
     photoWait:"写真は反映待ち（1〜2 分）", photoLoad:"写真", undo:"取り消す", undone:"取り消し済み", confirmUndo:"もう一度押すと取り消します（履歴には残ります）", by:"記録", jaText:"",
     foot:"社内専用・パスワードは社内の担当者へ ・ 現場の記録は GitHub に暗号化して保存され、履歴が残ります" },
@@ -392,7 +392,7 @@ const T = {
     changeStatus:"เปลี่ยนสถานะ", statusNote:"หมายเหตุ (ไม่บังคับ)", statusSame:"สถานะเหมือนเดิม", statusSaved:"เปลี่ยนสถานะแล้ว คนอื่นจะเห็นภายใน 1-2 นาที", statusHistory:"ประวัติสถานะ", noHistory:"ยังไม่มีการเปลี่ยนแปลง", linked:"การแก้ไข・บันทึกของปัญหานี้", product:"สินค้า", author:"ผู้บันทึก", createdAt:"วันเวลาที่บันทึก", parentIssue:"บันทึกของปัญหา", detail:"รายละเอียดบันทึก",
     symptom:"อาการ", cause:"สาเหตุ", action:"การแก้ไข", date:"วันที่", related:"สินค้าที่เกี่ยวข้อง", docs:"เอกสาร",
     received:"วันที่รับ", rev:"Revision", areaF:"สูตรพื้นที่", pdf:"ไฟล์แบบ PDF", copy:"คัดลอกพาธ", copied:"คัดลอกแล้ว", selected:"เลือกแล้ว", noDocs:"ไม่มีเอกสาร",
-    edit:"แก้ไข", editing:n=>`กำลังแก้ไข: ${n}`, editTitle:"โหมดแก้ไข", editMsg:"ใส่รหัสผ่านสำหรับแก้ไขและชื่อของคุณ เพื่อบันทึกข้อมูล", editPw:"รหัสผ่านสำหรับแก้ไข", yourName:"ชื่อ (จะแสดงในบันทึก)", remember:"จำไว้ในเครื่องนี้", start:"เริ่ม", cancel:"ยกเลิก", editEnd:"ออกจากโหมดแก้ไข", notReady:"ยังไม่พร้อมสำหรับการแก้ไข (ผู้ดูแลกำลังตั้งค่า)", editWrong:"รหัสผ่านสำหรับแก้ไขไม่ถูกต้อง", tokenBad:"กุญแจสำหรับบันทึกใช้ไม่ได้ (อาจหมดอายุ) กรุณาติดต่อผู้ดูแล",
+    edit:"แก้ไข", editing:n=>`${n} ▾`, editTitle:"โหมดแก้ไข", editMsg:"ใส่รหัสผ่านสำหรับแก้ไขและชื่อของคุณ เพื่อบันทึกข้อมูล", editPw:"รหัสผ่านสำหรับแก้ไข", yourName:"ชื่อ (จะแสดงในบันทึก)", remember:"จำไว้ในเครื่องนี้", start:"เริ่ม", cancel:"ยกเลิก", editEnd:"ออกจากระบบ", notReady:"ยังไม่พร้อมสำหรับการแก้ไข (ผู้ดูแลกำลังตั้งค่า)", editWrong:"รหัสผ่านสำหรับแก้ไขไม่ถูกต้อง", tokenBad:"กุญแจสำหรับบันทึกใช้ไม่ได้ (อาจหมดอายุ) กรุณาติดต่อผู้ดูแล",
     fType:"ประเภท", fDate:"วันที่", fLot:"ล็อต・เลข T/T", fQty:"จำนวน (ชิ้น)", fText:"รายละเอียด", fTextPh:"เกิดอะไรขึ้น・ทำอะไรไป・ต้องระวังอะไร", fPhotos:"รูปภาพ (ไม่เกิน 4 รูป)", save:"บันทึก", saving:"กำลังบันทึก…", saved:"บันทึกแล้ว คนอื่นจะเห็นภายใน 1-2 นาที", needText:"กรุณาเขียนรายละเอียด", tooMany:"รูปภาพได้ไม่เกิน 4 รูป", saveFail:"บันทึกไม่สำเร็จ: ",
     photoWait:"รูปกำลังอัปโหลด (1-2 นาที)", photoLoad:"รูป", undo:"ยกเลิกบันทึก", undone:"ยกเลิกแล้ว", confirmUndo:"กดอีกครั้งเพื่อยกเลิก (ประวัติยังเก็บไว้)", by:"บันทึกโดย", jaText:"(ภาษาญี่ปุ่น)",
     foot:"ใช้ภายในบริษัทเท่านั้น ・ บันทึกจากหน้างานถูกเข้ารหัสเก็บใน GitHub และมีประวัติ" }
@@ -551,151 +551,153 @@ async function unlock(pw){
   const e = await fetchEnc(CONF.data, true); if(!e) throw new Error("no data");
   const data = await decryptJSON(e, pw);
   PW = pw; DATA = data; normalize(data);
-  { const ep = ls.get("karte.editpw"), en = ls.get("karte.editname"), ew = ls.get("karte.editwho") || "admin"; if(ep && (ew!=="admin" || en)) await startEdit(ew, ep, en, true).catch(()=>{}); }
+  { const ep = ls.get("karte.editpw"), em = ls.get("karte.editemail"); if(ep && em) await startEdit(em, ep, true).catch(()=>{}); }
   applyChrome(); route();
   await loadField(); route(true);
   loadChem().then(()=>{ if(!location.hash || location.hash.startsWith("#chem")) route(true); }).catch(()=>{});
 }
 
 /* ---------- edit mode ---------- */
-/* editkey.enc.json
-   v1 (old): one encrypted {owner,repo,token,branch} under the edit password.
-   v2: {v:2,
-        admin: enc({owner,repo,token,branch,staff:[{id,name,pin}]}) under the edit (admin) password,
-        names: enc([{id,name}]) under the viewing password (so the public file shows no names),
-        keys:  {<id>: enc({owner,repo,token,branch,id,name}) under PW+"#pin#"+pin}}
-   Staff pick their name and type their PIN; the author name comes from the key, so nobody can write under another name. */
-const pinPass = pin => `${PW}#pin#${pin}`;
+/* editkey.enc.json v3 (2026-11-17: login with e-mail + own password, no shared edit password)
+   {v:3,
+    admin: enc({staff:[{id,name,email,mid,code,admin}]}) under ASEC (a random secret that only admin keys carry),
+    keys:  {<mid>: enc({owner,repo,token,branch,id,name,email,role,asec?}) under PW+"#pw#"+password  (+ self:true once the person chose their own password)}}
+   mid = first 32 hex of SHA-256(PW+"#mail#"+email) so the public file shows no e-mail addresses.
+   The admin adds name + e-mail and gets a first-time code; on first login with that code the person must choose their own password,
+   which nobody else can see. The author name comes from the key, so nobody can write under another name. */
+const pinPass = pw => `${PW}#pw#${pw}`;
+const normMail = m => String(m||"").trim().toLowerCase();
+const okMail = m => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m);
+const okPw = p => String(p||"").length >= 6;
+async function mailId(email){
+  const h = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${PW}#mail#${normMail(email)}`)));
+  return Array.from(h.slice(0,16), b=>b.toString(16).padStart(2,"0")).join("");
+}
 const ST = {
-  ja:{ whoLabel:"誰が書きますか", pickName:"名前を選ぶ", adminOpt:"管理者（編集パスワード）", pin:"暗証番号", pinWrong:"暗証番号が違います。", staffGone:"この名前は登録がありません（管理者に確認してください）。", needWho:"名前を選んでください。",
-    editMsg2:"名前を選んで、自分の暗証番号を入れてください。記録には選んだ名前が入ります。", adminMsg:"管理者は編集パスワードと名前を入れます。",
-    menuTitle:"編集中", staffBtn:"担当者の管理", logBtn:"閲覧履歴", gateTitle:"だれが見ますか", gateMsg:"名前を選んで、自分の暗証番号を入れてください。", gateGo:"開く", gateNote:"開いたページと時刻は記録されます（閲覧履歴）。名前がない人は管理者に登録してもらってください。", close:"閉じる",
-    staffTitle:"担当者の管理", staffMsg:"現場の人は「名前を選ぶ → 暗証番号」で書き込めます。記録には選んだ名前が自動で入り、ほかの人の名前では書けません。", staffNone:"まだ担当者がいません。下から追加してください。", adminOnly:"管理者（編集パスワード）で入ったときだけ使えます。",
-    addStaff:"担当者を追加", staffName:"名前", staffPin:"暗証番号（4〜8桁の数字）", autoPin:"おまかせ番号", add:"追加する", show:"番号を見る", hidePin:"隠す", changePin:"番号を変える", newPinQ:"新しい番号（4〜8桁）", setPin:"変える", del:"削除", delQ:"本当に削除？",
-    saving:"保存中…（人数が多いと数秒かかります）", saved:"保存しました。ほかの端末では 1〜2 分で使えるようになります。", saveFail:"保存できませんでした。もう一度お試しください。",
-    pinBad:"暗証番号は4〜8桁の数字にしてください。", nameDup:"同じ名前がもう登録されています。", nameEmpty:"名前を入れてください。",
-    adminPwTitle:"管理者の編集パスワードを変える", newPw:"新しい編集パスワード（8文字以上）", newPw2:"もう一度", pwMismatch:"2回の入力が違います。", pwShort:"8文字以上にしてください。", changePw:"変える", pwChanged:"編集パスワードを変えました。ほかの端末の管理者も新しいパスワードで入り直してください。",
+  ja:{ loginTitle:"ログイン", loginMsg:"自分のメールアドレスとパスワードを入れてください。はじめての人は、管理者から聞いた「初回コード」をパスワードの欄に入れます。",
+    mail:"メールアドレス", password:"パスワード", loginGo:"ログイン", needMail:"メールアドレスを入れてください。", noUser:"このメールアドレスは登録がありません。管理者に登録してもらってください。",
+    pwWrong:"パスワードが違います。", pwWrong2:"パスワードが違います。パスワードを変えた直後なら、1〜2分待ってからもう一度入れてください。",
+    gateNote:"開いたページと時刻、書いた記録は名前つきで残ります。", menuTitle:"ログイン中", staffBtn:"担当者の管理", editLogBtn:"編集の記録", logBtn:"閲覧履歴", myPwBtn:"自分のパスワードを変える", close:"閉じる",
+    staffTitle:"担当者の管理", adminOnly:"管理者だけが使えます。", staffNone:"まだ担当者がいません。下から追加してください。",
+    staffMsg:"名前とメールアドレスを追加すると「初回コード」が出ます。それを本人に伝えてください。本人は初回コードでログインすると、自分のパスワードを決めます（管理者にも見えません）。パスワードを忘れた人は「リセット」で新しい初回コードを出します。",
+    addStaff:"担当者を追加", staffName:"名前（記録に出る名前）", staffMail:"メールアドレス", makeAdmin:"管理者にする（担当者の管理・記録・履歴が見られます）", add:"追加する",
+    codeLabel:"初回コード", selfDone:"本人がパスワードを決めました", notYet:"本人はまだパスワードを決めていません", adminTag:"管理者", you:"（自分）",
+    reset:"リセット", resetQ:"新しいコードにする？", del:"削除", delQ:"本当に削除？",
+    saving:"保存中…", saved:"保存しました。ほかの端末では 1〜2 分で使えるようになります。", saveFail:"保存できませんでした。もう一度お試しください。",
+    nameEmpty:"名前を入れてください。", mailBad:"メールアドレスの形が正しくありません。", mailDup:"このメールアドレスはもう登録されています。", nameDup:"同じ名前がもう登録されています。",
     count:n=>`${n} 人`,
-    staffMsg2:"名前を追加すると「初回コード」が出ます。それを本人に伝えてください。本人は初回コードで入ると、自分の暗証番号を決めます（管理者にも見えません）。番号を忘れた人は「リセット」で新しい初回コードを出します。",
-    codeLabel:"初回コード", selfDone:"本人が番号を決めました", notYet:"本人はまだ番号を決めていません", reset:"リセット", resetQ:"新しいコードにする？", addOnlyName:"名前を入れて「追加する」を押すと初回コードが出ます。",
-    addedCode:(n,c)=>`${n} さんの初回コードは ${c} です。本人に伝えてください（最初に入ったときに自分の番号を決めます）。`, resetDone:(n,c)=>`${n} さんの新しい初回コードは ${c} です。本人に伝えてください。前の番号は使えなくなりました。`,
-    setPinTitle:"自分の暗証番号を決める", setPinMsg:"初回コードで入りました。これからは自分で決めた番号で入ります。4〜8桁の数字で、管理者にも見えません。", changeTitle:"自分の暗証番号を変える", changeMsg:"新しい番号を2回入れてください。管理者にも見えません。",
-    newPin:"新しい暗証番号（4〜8桁の数字）", newPin2:"もう一度", samePin:"初回コードとは違う番号にしてください。", pinSet:"暗証番号を決めました。次からはこの番号で入ってください（ほかの端末では1〜2分後から使えます）。", setPinGo:"決める",
-    myPinBtn:"自分の暗証番号を変える", pinWrong2:"暗証番号が違います。番号を変えた直後なら1〜2分待ってからもう一度入れてください。" },
-  th:{ whoLabel:"ใครเป็นผู้บันทึก", pickName:"เลือกชื่อ", adminOpt:"ผู้ดูแล (รหัสผ่านแก้ไข)", pin:"รหัส PIN", pinWrong:"รหัส PIN ไม่ถูกต้อง", staffGone:"ไม่พบชื่อนี้ (กรุณาติดต่อผู้ดูแล)", needWho:"กรุณาเลือกชื่อ",
-    editMsg2:"เลือกชื่อของคุณแล้วใส่รหัส PIN ของคุณ บันทึกจะแสดงชื่อที่เลือก", adminMsg:"ผู้ดูแลใส่รหัสผ่านแก้ไขและชื่อ",
-    menuTitle:"กำลังแก้ไข", staffBtn:"จัดการผู้บันทึก", logBtn:"ประวัติการเปิดดู", gateTitle:"ใครกำลังเปิดดู", gateMsg:"เลือกชื่อของคุณแล้วใส่รหัส PIN ของคุณ", gateGo:"เปิด", gateNote:"ระบบจะบันทึกหน้าที่เปิดและเวลา (ประวัติการเปิดดู) ถ้าไม่มีชื่อ กรุณาให้ผู้ดูแลลงทะเบียนให้", close:"ปิด",
-    staffTitle:"จัดการผู้บันทึก", staffMsg:"พนักงานหน้างานบันทึกได้โดย \"เลือกชื่อ → ใส่รหัส PIN\" ชื่อที่เลือกจะถูกบันทึกอัตโนมัติ และไม่สามารถใช้ชื่อคนอื่นได้", staffNone:"ยังไม่มีผู้บันทึก กรุณาเพิ่มด้านล่าง", adminOnly:"ใช้ได้เฉพาะเมื่อเข้าด้วยรหัสผ่านผู้ดูแล",
-    addStaff:"เพิ่มผู้บันทึก", staffName:"ชื่อ", staffPin:"รหัส PIN (ตัวเลข 4-8 หลัก)", autoPin:"สุ่มรหัสให้", add:"เพิ่ม", show:"ดูรหัส", hidePin:"ซ่อน", changePin:"เปลี่ยนรหัส", newPinQ:"รหัสใหม่ (4-8 หลัก)", setPin:"เปลี่ยน", del:"ลบ", delQ:"ยืนยันการลบ?",
-    saving:"กำลังบันทึก… (ถ้ามีหลายคนอาจใช้เวลาหลายวินาที)", saved:"บันทึกแล้ว เครื่องอื่นจะใช้ได้ภายใน 1-2 นาที", saveFail:"บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง",
-    pinBad:"รหัส PIN ต้องเป็นตัวเลข 4-8 หลัก", nameDup:"มีชื่อนี้อยู่แล้ว", nameEmpty:"กรุณาใส่ชื่อ",
-    adminPwTitle:"เปลี่ยนรหัสผ่านแก้ไขของผู้ดูแล", newPw:"รหัสผ่านใหม่ (8 ตัวขึ้นไป)", newPw2:"ใส่อีกครั้ง", pwMismatch:"รหัสที่ใส่สองครั้งไม่ตรงกัน", pwShort:"กรุณาใช้ 8 ตัวขึ้นไป", changePw:"เปลี่ยน", pwChanged:"เปลี่ยนรหัสผ่านแล้ว ผู้ดูแลที่เครื่องอื่นต้องเข้าใหม่ด้วยรหัสใหม่",
+    addedCode:(n,c)=>`${n} さんの初回コードは ${c} です。本人に伝えてください（最初のログインで自分のパスワードを決めます）。`,
+    resetDone:(n,c)=>`${n} さんの新しい初回コードは ${c} です。本人に伝えてください。前のパスワードは使えなくなりました。`,
+    setPwTitle:"自分のパスワードを決める", setPwMsg:"初回コードでログインしました。これからは自分で決めたパスワードでログインします。6文字以上で、管理者にも見えません。",
+    changeTitle:"自分のパスワードを変える", changeMsg:"新しいパスワードを2回入れてください。管理者にも見えません。",
+    newPw:"新しいパスワード（6文字以上）", newPw2:"もう一度", pwShort:"6文字以上にしてください。", pwMismatch:"2回の入力が違います。", samePw:"初回コードとは違うパスワードにしてください。",
+    pwSet:"パスワードを決めました。次からはこのパスワードでログインしてください（ほかの端末では1〜2分後から使えます）。", setPwGo:"決める", busy:"混み合っています。もう一度お試しください。" },
+  th:{ loginTitle:"เข้าสู่ระบบ", loginMsg:"ใส่อีเมลและรหัสผ่านของคุณ ถ้าเข้าครั้งแรก ให้ใส่ \"รหัสครั้งแรก\" ที่ได้รับจากผู้ดูแลในช่องรหัสผ่าน",
+    mail:"อีเมล", password:"รหัสผ่าน", loginGo:"เข้าสู่ระบบ", needMail:"กรุณาใส่อีเมล", noUser:"ไม่พบอีเมลนี้ กรุณาให้ผู้ดูแลลงทะเบียนให้",
+    pwWrong:"รหัสผ่านไม่ถูกต้อง", pwWrong2:"รหัสผ่านไม่ถูกต้อง ถ้าเพิ่งเปลี่ยนรหัสผ่าน กรุณารอ 1-2 นาทีแล้วลองใหม่",
+    gateNote:"ระบบจะบันทึกหน้าที่เปิด เวลา และข้อมูลที่บันทึก พร้อมชื่อของคุณ", menuTitle:"กำลังใช้งาน", staffBtn:"จัดการผู้ใช้", editLogBtn:"ประวัติการแก้ไข", logBtn:"ประวัติการเปิดดู", myPwBtn:"เปลี่ยนรหัสผ่านของฉัน", close:"ปิด",
+    staffTitle:"จัดการผู้ใช้", adminOnly:"ใช้ได้เฉพาะผู้ดูแล", staffNone:"ยังไม่มีผู้ใช้ กรุณาเพิ่มด้านล่าง",
+    staffMsg:"เมื่อเพิ่มชื่อและอีเมล ระบบจะแสดง \"รหัสครั้งแรก\" ให้แจ้งเจ้าตัว เมื่อเข้าด้วยรหัสครั้งแรก เจ้าตัวจะตั้งรหัสผ่านของตัวเอง (ผู้ดูแลก็มองไม่เห็น) ถ้าลืมรหัสผ่าน ให้กด \"รีเซ็ต\"",
+    addStaff:"เพิ่มผู้ใช้", staffName:"ชื่อ (แสดงในบันทึก)", staffMail:"อีเมล", makeAdmin:"ตั้งเป็นผู้ดูแล", add:"เพิ่ม",
+    codeLabel:"รหัสครั้งแรก", selfDone:"เจ้าตัวตั้งรหัสผ่านแล้ว", notYet:"เจ้าตัวยังไม่ได้ตั้งรหัสผ่าน", adminTag:"ผู้ดูแล", you:"(ตัวเอง)",
+    reset:"รีเซ็ต", resetQ:"ออกรหัสใหม่?", del:"ลบ", delQ:"ยืนยันการลบ?",
+    saving:"กำลังบันทึก…", saved:"บันทึกแล้ว เครื่องอื่นจะใช้ได้ภายใน 1-2 นาที", saveFail:"บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง",
+    nameEmpty:"กรุณาใส่ชื่อ", mailBad:"รูปแบบอีเมลไม่ถูกต้อง", mailDup:"อีเมลนี้ลงทะเบียนแล้ว", nameDup:"มีชื่อนี้อยู่แล้ว",
     count:n=>`${n} คน`,
-    staffMsg2:"เมื่อเพิ่มชื่อ ระบบจะแสดง \"รหัสครั้งแรก\" ให้แจ้งรหัสนี้กับเจ้าตัว เมื่อเข้าด้วยรหัสครั้งแรก เจ้าตัวจะตั้งรหัส PIN ของตัวเอง (ผู้ดูแลก็มองไม่เห็น) ถ้าลืมรหัส ให้กด \"รีเซ็ต\" เพื่อออกรหัสครั้งแรกใหม่",
-    codeLabel:"รหัสครั้งแรก", selfDone:"เจ้าตัวตั้งรหัสแล้ว", notYet:"เจ้าตัวยังไม่ได้ตั้งรหัส", reset:"รีเซ็ต", resetQ:"ออกรหัสใหม่?", addOnlyName:"ใส่ชื่อแล้วกด \"เพิ่ม\" ระบบจะแสดงรหัสครั้งแรก",
-    addedCode:(n,c)=>`รหัสครั้งแรกของ ${n} คือ ${c} กรุณาแจ้งเจ้าตัว (เจ้าตัวจะตั้งรหัสของตัวเองเมื่อเข้าครั้งแรก)`, resetDone:(n,c)=>`รหัสครั้งแรกใหม่ของ ${n} คือ ${c} กรุณาแจ้งเจ้าตัว รหัสเดิมใช้ไม่ได้แล้ว`,
-    setPinTitle:"ตั้งรหัส PIN ของคุณ", setPinMsg:"คุณเข้าด้วยรหัสครั้งแรก ต่อไปจะเข้าด้วยรหัสที่คุณตั้งเอง (ตัวเลข 4-8 หลัก ผู้ดูแลก็มองไม่เห็น)", changeTitle:"เปลี่ยนรหัส PIN ของคุณ", changeMsg:"ใส่รหัสใหม่ 2 ครั้ง ผู้ดูแลก็มองไม่เห็น",
-    newPin:"รหัส PIN ใหม่ (ตัวเลข 4-8 หลัก)", newPin2:"ใส่อีกครั้ง", samePin:"กรุณาใช้รหัสที่ต่างจากรหัสครั้งแรก", pinSet:"ตั้งรหัสแล้ว ครั้งต่อไปให้เข้าด้วยรหัสนี้ (เครื่องอื่นใช้ได้หลังจาก 1-2 นาที)", setPinGo:"ตั้งรหัส",
-    myPinBtn:"เปลี่ยนรหัส PIN ของฉัน", pinWrong2:"รหัส PIN ไม่ถูกต้อง ถ้าเพิ่งเปลี่ยนรหัส กรุณารอ 1-2 นาทีแล้วลองใหม่" }
+    addedCode:(n,c)=>`รหัสครั้งแรกของ ${n} คือ ${c} กรุณาแจ้งเจ้าตัว`, resetDone:(n,c)=>`รหัสครั้งแรกใหม่ของ ${n} คือ ${c} กรุณาแจ้งเจ้าตัว รหัสผ่านเดิมใช้ไม่ได้แล้ว`,
+    setPwTitle:"ตั้งรหัสผ่านของคุณ", setPwMsg:"คุณเข้าด้วยรหัสครั้งแรก ต่อไปจะเข้าด้วยรหัสผ่านที่คุณตั้งเอง (6 ตัวขึ้นไป ผู้ดูแลก็มองไม่เห็น)",
+    changeTitle:"เปลี่ยนรหัสผ่านของคุณ", changeMsg:"ใส่รหัสผ่านใหม่ 2 ครั้ง ผู้ดูแลก็มองไม่เห็น",
+    newPw:"รหัสผ่านใหม่ (6 ตัวขึ้นไป)", newPw2:"ใส่อีกครั้ง", pwShort:"กรุณาใช้ 6 ตัวขึ้นไป", pwMismatch:"รหัสที่ใส่สองครั้งไม่ตรงกัน", samePw:"กรุณาใช้รหัสที่ต่างจากรหัสครั้งแรก",
+    pwSet:"ตั้งรหัสผ่านแล้ว ครั้งต่อไปให้เข้าด้วยรหัสนี้ (เครื่องอื่นใช้ได้หลังจาก 1-2 นาที)", setPwGo:"ตั้งรหัส", busy:"ระบบไม่ว่าง กรุณาลองอีกครั้ง" }
 };
 const stt = k => (ST[LANG]||ST.ja)[k] ?? ST.ja[k];
-const okPin = p => /^\d{4,8}$/.test(p);
 
-async function startEdit(who, pw, name, quiet){
+async function startEdit(email, pw, quiet){
   const e = await fetchEnc(CONF.editkey, true);
-  if(!e) throw new Error("notReady");
-  let k, role = "admin";
-  if(!who || who==="admin"){
-    try{ k = await decryptJSON(e.v===2 ? e.admin : e, pw); }catch(_){ throw new Error("editWrong"); }
-  } else {
-    if(e.v!==2 || !e.keys || !e.keys[who]) throw new Error("staffGone");
-    try{ k = await decryptJSON(e.keys[who], pinPass(pw)); }catch(_){ throw new Error(e.keys[who].self ? "pinWrong2" : "pinWrong"); }
-    role = "staff"; name = k.name;
-  }
+  if(!e || e.v!==3) throw new Error("notReady");
+  const mid = await mailId(email), entry = e.keys && e.keys[mid];
+  if(!entry) throw new Error("noUser");
+  let k; try{ k = await decryptJSON(entry, pinPass(pw)); }catch(_){ throw new Error(entry.self ? "pwWrong2" : "pwWrong"); }
   const r = await fetch(`https://api.github.com/repos/${k.owner}/${k.repo}`, {headers:{Authorization:`Bearer ${k.token}`, Accept:"application/vnd.github+json"}});
   if(!r.ok) throw new Error("tokenBad");
-  EDIT = {token:k.token, owner:k.owner, repo:k.repo, branch:k.branch||"main", name, role, who:role==="admin"?"admin":who, apw:role==="admin"?pw:null, staff:role==="admin"?(k.staff||[]):null,
-    selfIds: new Set(Object.keys((e.v===2 && e.keys) || {}).filter(id=>e.keys[id].self)), mustSet: role==="staff" && !e.keys[who].self, code: role==="staff" && !e.keys[who].self ? pw : null};
+  let staff = null;
+  if(k.role==="admin"){ try{ staff = (await decryptJSON(e.admin, k.asec)).staff || []; }catch(_){ staff = []; } }
+  EDIT = {token:k.token, owner:k.owner, repo:k.repo, branch:k.branch||"main", name:k.name, email:k.email, role:k.role||"staff", who:k.id, mid, asec:k.asec||null, staff,
+    selfMids: new Set(Object.keys(e.keys).filter(m=>e.keys[m].self)), mustSet: !entry.self, code: entry.self ? null : pw};
   applyChrome(); if(!quiet) route();
   vlAfterLogin();
 }
-async function staffNames(){
-  try{ const e = await fetchEnc(CONF.editkey, true); if(e && e.v===2 && e.names) return await decryptJSON(e.names, PW); }catch(_){}
-  return [];
-}
 async function renderEditLogin(msg, gate){
-  if(gate && document.getElementById("editLogin")) return;
-  if(gate){ document.getElementById("form").hidden = true; main.innerHTML = `<div class="card"><p class="sub">${esc(t("checking"))}</p></div>`; }
-  const names = await staffNames();
   if(document.getElementById("editLogin")) return;
   if(gate && EDIT) return;
-  const lastWho = ls.get("karte.editwho") || "", last = ls.get("karte.editname") || "";
-  const sel = names.some(n=>n.id===lastWho) ? lastWho : (lastWho==="admin" || !names.length ? "admin" : "");
-  const html = `<div class="form" id="editLogin"><h2>${esc(gate ? stt("gateTitle") : t("editTitle"))}</h2>${gate ? `<p class="sub" style="margin:0 0 10px">${esc(stt("gateMsg"))}</p>` : ""}
-    <label class="field">${esc(gate ? stt("staffName") : stt("whoLabel"))}<select id="ewho"><option value="">${esc(stt("pickName"))}</option>${names.map(n=>`<option value="${esc(n.id)}"${n.id===sel?" selected":""}>${esc(n.name)}</option>`).join("")}<option value="admin"${sel==="admin"?" selected":""}>${esc(stt("adminOpt"))}</option></select></label>
-    <div id="eStaffBox">${gate ? "" : `<p class="sub" style="margin:0 0 8px">${esc(stt("editMsg2"))}</p>`}<label class="field">${esc(stt("pin"))}<input id="epin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off"></label></div>
-    <div id="eAdminBox"><p class="sub" style="margin:0 0 8px">${esc(stt("adminMsg"))}</p><label class="field">${esc(t("editPw"))}<input id="epw" type="password" autocomplete="off" autocapitalize="off"></label>
-      <label class="field">${esc(t("yourName"))}<input id="ename" type="text" value="${esc(last)}" autocomplete="name"></label></div>
+  if(gate) document.getElementById("form").hidden = true;
+  const html = `<div class="form" id="editLogin"><h2>${esc(stt("loginTitle"))}</h2><p class="sub" style="margin:0 0 10px">${esc(stt("loginMsg"))}</p>
+    <label class="field">${esc(stt("mail"))}<input id="email" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" value="${esc(ls.get("karte.editemail")||"")}"></label>
+    <label class="field">${esc(stt("password"))}<input id="epw" type="password" autocomplete="current-password" autocapitalize="off"></label>
     <label style="font-size:13.5px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="erem" checked> ${esc(t("remember"))}</label>
-    <div class="actions"><button class="btn" id="estart" type="button">${esc(gate ? stt("gateGo") : t("start"))}</button>${gate ? "" : `<button class="btn ghost" id="ecancel" type="button">${esc(t("cancel"))}</button>`}</div>
-    <div class="err" id="eerr">${esc(msg)}</div>${gate ? `<p class="sub" style="margin:10px 0 0;font-size:12.5px">${esc(stt("gateNote"))}</p>` : ""}</div>`;
+    <div class="actions"><button class="btn" id="estart" type="button">${esc(stt("loginGo"))}</button>${gate ? "" : `<button class="btn ghost" id="ecancel" type="button">${esc(t("cancel"))}</button>`}</div>
+    <div class="err" id="eerr">${esc(msg)}</div><p class="sub" style="margin:10px 0 0;font-size:12.5px">${esc(stt("gateNote"))}</p></div>`;
   if(gate) main.innerHTML = html; else main.insertAdjacentHTML("afterbegin", html);
   window.scrollTo(0,0);
   const $ = id => document.getElementById(id);
-  const sync = () => { const w = $("ewho").value; $("eAdminBox").hidden = w!=="admin"; $("eStaffBox").hidden = w==="admin"; };
-  sync(); $("ewho").addEventListener("change", ()=>{ sync(); const f = $("ewho").value==="admin" ? $("epw") : $("epin"); if($("ewho").value) f.focus(); });
+  setTimeout(()=>{ const f = $("email") && $("email").value ? $("epw") : $("email"); if(f) f.focus(); }, 50);
   if($("ecancel")) $("ecancel").addEventListener("click", ()=>$("editLogin").remove());
   const go = async ()=>{
-    const who = $("ewho").value, err = $("eerr");
-    if(!who){ err.textContent = stt("needWho"); return; }
-    const pw = who==="admin" ? $("epw").value : $("epin").value.trim(), name = who==="admin" ? $("ename").value.trim() : "";
-    if(who==="admin" && !name){ err.textContent = t("yourName"); return; }
+    const email = normMail($("email").value), pw = $("epw").value, rem = $("erem").checked, err = $("eerr");
+    if(!email){ err.textContent = stt("needMail"); return; }
     err.textContent = t("checking");
     try{
-      await startEdit(who, pw, name);
-      ls.set("karte.editwho", who); ls.set("karte.editname", EDIT.name);
-      if($("erem").checked) ls.set("karte.editpw", pw); else ls.del("karte.editpw");
+      await startEdit(email, pw);
+      ls.set("karte.editemail", email);
+      if(rem) ls.set("karte.editpw", pw); else ls.del("karte.editpw");
     }catch(x){
-      if(["pinWrong","pinWrong2","staffGone","needWho"].includes(x.message)) err.textContent = stt(x.message);
-      else err.textContent = t(["notReady","editWrong","tokenBad"].includes(x.message) ? x.message : "tokenBad");
+      if(!document.body.contains(err)) return;
+      if(["noUser","pwWrong","pwWrong2"].includes(x.message)) err.textContent = stt(x.message);
+      else err.textContent = t(["notReady","tokenBad"].includes(x.message) ? x.message : "tokenBad");
     }
   };
   $("estart").addEventListener("click", go);
-  ["epin","epw","ename"].forEach(id => $(id).addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); go(); } }));
+  ["email","epw"].forEach(id => $(id).addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); go(); } }));
 }
 async function endEdit(){ try{ await vlFlush(); }catch(_){} EDIT = null; ls.del("karte.editpw"); applyChrome(); route(); }
-/* menu under the header button. admin: 担当者の管理 / 閲覧履歴 / 終える, staff: 自分の暗証番号を変える / 終える */
+/* menu under the header button. admin: 担当者の管理 / 編集の記録 / 閲覧履歴, everyone: 自分のパスワードを変える / ログアウト */
 function renderEditMenu(){
   if(document.getElementById("editMenu")) return;
-  const adm = EDIT.role==="admin";
+  const adm = EDIT.role==="admin", a = (href, k, ghost) => `<a class="btn${ghost?" ghost":""}" href="${href}" data-go style="text-decoration:none">${esc(stt(k))}</a>`;
   main.insertAdjacentHTML("afterbegin", `<div class="form" id="editMenu"><h2>${esc(stt("menuTitle"))}：${esc(EDIT.name)}</h2>
-    <div class="actions">${adm ? `<a class="btn" href="#staff" data-go style="text-decoration:none">${esc(stt("staffBtn"))}</a><a class="btn ghost" href="#viewlog" data-go style="text-decoration:none">${esc(stt("logBtn"))}</a>` : `<a class="btn" href="#mypin" data-go style="text-decoration:none">${esc(stt("myPinBtn"))}</a>`}<button class="btn ghost" id="emEnd" type="button">${esc(t("editEnd"))}</button><button class="btn ghost" id="emClose" type="button">${esc(stt("close"))}</button></div></div>`);
+    <div class="actions">${adm ? a("#staff","staffBtn") + a("#editlog","editLogBtn",1) + a("#viewlog","logBtn",1) : ""}${a("#mypin","myPwBtn",adm)}<button class="btn ghost" id="emEnd" type="button">${esc(t("editEnd"))}</button><button class="btn ghost" id="emClose" type="button">${esc(stt("close"))}</button></div></div>`);
   window.scrollTo(0,0);
   document.getElementById("emClose").addEventListener("click", ()=>document.getElementById("editMenu").remove());
-  document.querySelectorAll("#editMenu [data-go]").forEach(a=>a.addEventListener("click", ()=>{ const m = document.getElementById("editMenu"); if(m) m.remove(); }));
+  document.querySelectorAll("#editMenu [data-go]").forEach(x=>x.addEventListener("click", ()=>{ const m = document.getElementById("editMenu"); if(m) m.remove(); }));
   document.getElementById("emEnd").addEventListener("click", e=>{ if(armed(e.currentTarget, t("editEnd")+"？")) endEdit(); });
 }
-/* s.pin in the admin blob is the first-time code. A key the person re-sealed with their own PIN carries self:true and is kept as is,
+/* s.code is the first-time code. A key the person re-sealed with their own password carries self:true and is kept as is,
    unless the admin resets that person (resetIds). */
-async function writeEditKey(staff, adminPw, resetIds){
+async function writeEditKey(staff, resetIds){
   const base = {owner:EDIT.owner, repo:EDIT.repo, token:EDIT.token, branch:EDIT.branch};
-  const cur = await gh("GET", CONF.editkey), curJ = cur ? JSON.parse(ghText(cur)) : null;
-  const out = {v:2, admin: await encryptJSON({...base, staff}, adminPw), names: await encryptJSON(staff.map(s=>({id:s.id, name:s.name})), PW), keys:{}};
-  for(const s of staff){
-    const old = curJ && curJ.v===2 && curJ.keys && curJ.keys[s.id];
-    out.keys[s.id] = (old && old.self && !(resetIds||[]).includes(s.id)) ? old : await encryptJSON({...base, id:s.id, name:s.name}, pinPass(s.pin));
+  for(let attempt=0; attempt<4; attempt++){
+    const cur = await gh("GET", CONF.editkey), curJ = cur ? JSON.parse(ghText(cur)) : null;
+    const out = {v:3, admin: await encryptJSON({staff}, EDIT.asec), keys:{}};
+    for(const s of staff){
+      const old = curJ && curJ.v===3 && curJ.keys && curJ.keys[s.mid];
+      out.keys[s.mid] = (old && old.self && !(resetIds||[]).includes(s.id)) ? old
+        : await encryptJSON({...base, id:s.id, name:s.name, email:s.email, role:s.admin?"admin":"staff", ...(s.admin?{asec:EDIT.asec}:{})}, pinPass(s.code));
+    }
+    try{ await putFile(CONF.editkey, JSON.stringify(out), cur && cur.sha, "editkey: staff list"); }
+    catch(e){ if(e.status===409 || e.status===422) continue; throw e; }
+    EDIT.staff = staff; EDIT.selfMids = new Set(Object.keys(out.keys).filter(m=>out.keys[m].self));
+    return;
   }
-  await putFile(CONF.editkey, JSON.stringify(out), cur && cur.sha, `editkey: staff list by ${EDIT.name}`);
-  EDIT.staff = staff; EDIT.apw = adminPw; EDIT.selfIds = new Set(Object.keys(out.keys).filter(id=>out.keys[id].self));
+  throw new Error("busy");
 }
-/* the person seals the write key with their own PIN (only their entry changes) */
-async function setOwnPin(pin){
-  const sealed = {...await encryptJSON({owner:EDIT.owner, repo:EDIT.repo, token:EDIT.token, branch:EDIT.branch, id:EDIT.who, name:EDIT.name}, pinPass(pin)), self:true};
+/* the person seals the write key with their own password (only their entry changes) */
+async function setOwnPin(pw){
+  const sealed = {...await encryptJSON({owner:EDIT.owner, repo:EDIT.repo, token:EDIT.token, branch:EDIT.branch, id:EDIT.who, name:EDIT.name, email:EDIT.email, role:EDIT.role, ...(EDIT.asec?{asec:EDIT.asec}:{})}, pinPass(pw)), self:true};
   for(let attempt=0; attempt<4; attempt++){
     const cur = await gh("GET", CONF.editkey), j = cur ? JSON.parse(ghText(cur)) : null;
-    if(!j || j.v!==2 || !j.keys || !j.keys[EDIT.who]) throw new Error("staffGone");
-    j.keys[EDIT.who] = sealed;
-    try{ await putFile(CONF.editkey, JSON.stringify(j), cur.sha, "editkey: own pin"); EDIT.mustSet = false; EDIT.code = null; if(ls.get("karte.editpw")) ls.set("karte.editpw", pin); return; }
+    if(!j || j.v!==3 || !j.keys || !j.keys[EDIT.mid]) throw new Error("noUser");
+    j.keys[EDIT.mid] = sealed;
+    try{ await putFile(CONF.editkey, JSON.stringify(j), cur.sha, "editkey: own password"); EDIT.mustSet = false; EDIT.code = null; if(EDIT.selfMids) EDIT.selfMids.add(EDIT.mid); if(ls.get("karte.editpw")) ls.set("karte.editpw", pw); return; }
     catch(e){ if(e.status!==409 && e.status!==422) throw e; }
   }
   throw new Error("busy");
@@ -704,74 +706,95 @@ function renderSetPin(){
   document.getElementById("q").value = "";
   const first = !!EDIT.mustSet;
   document.getElementById("form").hidden = first;
-  main.innerHTML = `<div class="form"><h2>${esc(stt(first ? "setPinTitle" : "changeTitle"))}</h2><p class="sub" style="margin:0 0 10px">${esc(stt(first ? "setPinMsg" : "changeMsg"))}</p>
-    <label class="field">${esc(stt("newPin"))}<input id="np1" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="new-password"></label>
-    <label class="field">${esc(stt("newPin2"))}<input id="np2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="new-password"></label>
-    <div class="actions"><button class="btn" id="npGo" type="button">${esc(stt("setPinGo"))}</button>${first ? "" : `<a class="btn ghost" href="#" style="text-decoration:none">${esc(t("cancel"))}</a>`}</div><div class="err" id="npErr"></div></div>`;
+  main.innerHTML = `<div class="form"><h2>${esc(stt(first ? "setPwTitle" : "changeTitle"))}</h2><p class="sub" style="margin:0 0 10px">${esc(stt(first ? "setPwMsg" : "changeMsg"))}</p>
+    <input type="email" autocomplete="username" value="${esc(EDIT.email||"")}" hidden>
+    <label class="field">${esc(stt("newPw"))}<input id="np1" type="password" autocomplete="new-password" autocapitalize="off"></label>
+    <label class="field">${esc(stt("newPw2"))}<input id="np2" type="password" autocomplete="new-password" autocapitalize="off"></label>
+    <div class="actions"><button class="btn" id="npGo" type="button">${esc(stt("setPwGo"))}</button>${first ? "" : `<a class="btn ghost" href="#" style="text-decoration:none">${esc(t("cancel"))}</a>`}</div><div class="err" id="npErr"></div></div>`;
   const $ = id => document.getElementById(id);
   setTimeout(()=>{ const f = $("np1"); if(f) f.focus(); }, 50);
   const go = async ()=>{
-    const a = $("np1").value.trim(), b = $("np2").value.trim(), err = $("npErr");
-    if(!okPin(a)) return err.textContent = stt("pinBad");
+    const a = $("np1").value, b = $("np2").value, err = $("npErr");
+    if(!okPw(a)) return err.textContent = stt("pwShort");
     if(a !== b) return err.textContent = stt("pwMismatch");
-    if(EDIT.code && a === EDIT.code) return err.textContent = stt("samePin");
+    if(EDIT.code && a === EDIT.code) return err.textContent = stt("samePw");
     err.textContent = stt("saving");
-    try{ await setOwnPin(a); FLASH = stt("pinSet"); if(location.hash==="#mypin") location.hash = "#"; else route(); }
-    catch(x){ err.textContent = x.message==="staffGone" ? stt("staffGone") : `${stt("saveFail")} (${x.message})`; }
+    try{ await setOwnPin(a); FLASH = stt("pwSet"); if(location.hash==="#mypin") location.hash = "#"; else route(); }
+    catch(x){ err.textContent = x.message==="noUser" ? stt("noUser") : x.message==="busy" ? stt("busy") : `${stt("saveFail")} (${x.message})`; }
   };
   $("npGo").addEventListener("click", go);
   $("np2").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); go(); } });
 }
-let STAFF_SHOW = new Set();
 function renderStaff(msg, isErr){
   document.getElementById("q").value = "";
   if(!EDIT || EDIT.role!=="admin"){ main.innerHTML = `<div class="card"><h2>${esc(stt("staffTitle"))}</h2><p class="sub">${esc(stt("adminOnly"))}</p></div>`; return; }
-  const staff = EDIT.staff || [];
-  const self = EDIT.selfIds || new Set();
-  const row = s => `<li style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 2px" data-sid="${esc(s.id)}">
-      <b style="min-width:8em">${esc(s.name)}</b>${self.has(s.id) ? `<span class="tag done" style="margin:0">${esc(stt("selfDone"))}</span>` : `<span>${esc(stt("codeLabel"))} <b class="num">${esc(s.pin)}</b> <span class="sub" style="font-size:12.5px">（${esc(stt("notYet"))}）</span></span>`}
-      <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn small ghost" data-act="reset">${esc(stt("reset"))}</button><button type="button" class="btn small ghost" data-act="del">${esc(stt("del"))}</button></span></li>`;
-  main.innerHTML = `<div class="card"><h2>${esc(stt("staffTitle"))} <span class="sub" style="font-size:14px">${esc(stt("count")(staff.length))}</span></h2>
-    <p class="sub" style="margin:0 0 10px">${esc(stt("staffMsg2"))}</p>
+  const staff = EDIT.staff || [], self = EDIT.selfMids || new Set();
+  const row = s => `<li style="display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:10px 2px" data-sid="${esc(s.id)}">
+      <span style="min-width:12em"><b>${esc(s.name)}</b>${s.admin?` <span class="tag" style="margin:0">${esc(stt("adminTag"))}</span>`:""}${s.id===EDIT.who?` <span class="sub">${esc(stt("you"))}</span>`:""}<br><span class="sub" style="font-size:12.5px">${esc(s.email)}</span></span>
+      ${self.has(s.mid) ? `<span class="tag done" style="margin:0">${esc(stt("selfDone"))}</span>` : `<span>${esc(stt("codeLabel"))} <b class="num">${esc(s.code)}</b> <span class="sub" style="font-size:12.5px">（${esc(stt("notYet"))}）</span></span>`}
+      ${s.id===EDIT.who ? "" : `<span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn small ghost" data-act="reset">${esc(stt("reset"))}</button><button type="button" class="btn small ghost" data-act="del">${esc(stt("del"))}</button></span>`}</li>`;
+  main.innerHTML = `<a class="back" href="#">← ホーム</a><div class="card"><h2>${esc(stt("staffTitle"))} <span class="sub" style="font-size:14px">${esc(stt("count")(staff.length))}</span></h2>
+    <p class="sub" style="margin:0 0 10px">${esc(stt("staffMsg"))}</p>
     ${msg?`<p class="${isErr?"err":"okmsg"}" id="stMsg">${esc(msg)}</p>`:`<p class="err" id="stMsg"></p>`}
     ${staff.length?`<ul class="list" id="stList">${staff.map(row).join("")}</ul>`:`<p class="sub">${esc(stt("staffNone"))}</p>`}</div>
-    <div class="card"><h3 style="margin-top:0">${esc(stt("addStaff"))}</h3><p class="sub" style="margin:0 0 8px">${esc(stt("addOnlyName"))}</p>
+    <div class="card"><h3 style="margin-top:0">${esc(stt("addStaff"))}</h3>
       <label class="field">${esc(stt("staffName"))}<input id="stName" type="text" autocomplete="off"></label>
-      <div class="actions"><button type="button" class="btn" id="stAdd">${esc(stt("add"))}</button></div></div>
-    <div class="card"><h3 style="margin-top:0">${esc(stt("adminPwTitle"))}</h3>
-      <label class="field">${esc(stt("newPw"))}<input id="stPw1" type="password" autocomplete="new-password" autocapitalize="off"></label>
-      <label class="field">${esc(stt("newPw2"))}<input id="stPw2" type="password" autocomplete="new-password" autocapitalize="off"></label>
-      <div class="actions"><button type="button" class="btn" id="stPwGo">${esc(stt("changePw"))}</button></div></div>`;
+      <label class="field">${esc(stt("staffMail"))}<input id="stMail" type="email" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+      <label style="font-size:13.5px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="stAdm"> ${esc(stt("makeAdmin"))}</label>
+      <div class="actions"><button type="button" class="btn" id="stAdd">${esc(stt("add"))}</button></div></div>`;
   const $ = id => document.getElementById(id), say = (m, bad) => { const el = $("stMsg"); el.className = bad ? "err" : "okmsg"; el.textContent = m; el.scrollIntoView({block:"center"}); };
   let busy = false;
-  const save = async (staffNew, pw, okText, resetIds) => {
+  const save = async (staffNew, okText, resetIds) => {
     if(busy) return; busy = true; say(stt("saving"));
-    try{ await writeEditKey(staffNew, pw, resetIds); renderStaff(okText || stt("saved")); }
+    try{ await writeEditKey(staffNew, resetIds); renderStaff(okText || stt("saved")); }
     catch(e){ say(stt("saveFail") + ` (${e.message})`, true); }
     finally{ busy = false; }
   };
-  const newCode = () => { const used = new Set(staff.map(s=>s.pin)); let c; do{ c = String(crypto.getRandomValues(new Uint32Array(1))[0] % 10000).padStart(4,"0"); }while(used.has(c)); return c; };
-  $("stAdd").addEventListener("click", ()=>{
-    const name = $("stName").value.trim();
+  const newCode = () => { const used = new Set(staff.map(s=>s.code)); let c; do{ c = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6,"0"); }while(used.has(c)); return c; };
+  $("stAdd").addEventListener("click", async ()=>{
+    const name = $("stName").value.trim(), email = normMail($("stMail").value), admin = $("stAdm").checked;
     if(!name) return say(stt("nameEmpty"), true);
+    if(!okMail(email)) return say(stt("mailBad"), true);
+    if(staff.some(s=>s.email===email)) return say(stt("mailDup"), true);
     if(staff.some(s=>s.name===name)) return say(stt("nameDup"), true);
-    const id = "s" + Date.now().toString(36) + Math.random().toString(36).slice(2,6), pin = newCode();
-    save([...staff, {id, name, pin}], EDIT.apw, stt("addedCode")(name, pin));
+    const id = "s" + Date.now().toString(36) + Math.random().toString(36).slice(2,6), code = newCode(), mid = await mailId(email);
+    save([...staff, {id, name, email, mid, code, admin}], stt("addedCode")(name, code));
   });
-  $("stName").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); $("stAdd").click(); } });
-  const ls_ = $("stList");
-  if(ls_) ls_.addEventListener("click", e=>{
+  $("stMail").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); $("stAdd").click(); } });
+  const list = $("stList");
+  if(list) list.addEventListener("click", e=>{
     const b = e.target.closest("button[data-act]"); if(!b) return;
-    const li = b.closest("li[data-sid]"), id = li.dataset.sid, s = staff.find(x=>x.id===id); if(!s) return;
-    if(b.dataset.act==="reset"){ if(armed(b, stt("resetQ"))){ const pin = newCode(); save(staff.map(x=>x.id===id?{...x, pin}:x), EDIT.apw, stt("resetDone")(s.name, pin), [id]); } }
-    else if(b.dataset.act==="del"){ if(armed(b, stt("delQ"))) save(staff.filter(x=>x.id!==id), EDIT.apw); }
+    const id = b.closest("li[data-sid]").dataset.sid, s = staff.find(x=>x.id===id); if(!s || id===EDIT.who) return;
+    if(b.dataset.act==="reset"){ if(armed(b, stt("resetQ"))){ const code = newCode(); save(staff.map(x=>x.id===id?{...x, code}:x), stt("resetDone")(s.name, code), [id]); } }
+    else if(b.dataset.act==="del"){ if(armed(b, stt("delQ"))) save(staff.filter(x=>x.id!==id)); }
   });
-  $("stPwGo").addEventListener("click", ()=>{
-    const a = $("stPw1").value, b = $("stPw2").value;
-    if(a.length < 8) return say(stt("pwShort"), true);
-    if(a !== b) return say(stt("pwMismatch"), true);
-    save(staff, a, stt("pwChanged")).then(()=>{ if(EDIT && EDIT.apw===a && (ls.get("karte.editwho")||"admin")==="admin" && ls.get("karte.editpw")) ls.set("karte.editpw", a); });
-  });
+}
+/* 編集の記録 (admin): who wrote / changed what, gathered from the field data (entries, status changes, product edits, undo) */
+let ELF = {who:"", days:"30"};
+function renderEditlog(){
+  document.getElementById("q").value = "";
+  const head = `<a class="back" href="#">← ホーム</a><div class="card"><h2>編集の記録</h2><p class="sub" style="margin:0">だれが・いつ・何を書いたか（記録の追加、状態の変更、製品の登録・編集、取り消し）。</p></div>`;
+  if(!EDIT || EDIT.role!=="admin"){ main.innerHTML = head + `<div class="card"><p class="sub">${esc(stt("adminOnly"))}</p></div>`; return; }
+  const types = t("types") || {}, rows = [], clip = s => { s = String(s||"").replace(/\s+/g," ").trim(); return s.length > 60 ? s.slice(0,60)+"…" : s; };
+  for(const e of FIELD.entries||[]){
+    rows.push({at:e.createdAt||e.date, who:e.author||e.by||"", what:`${types[e.type]||e.type||"記録"}を書いた`, target:e.product||e.parent||"", text:clip(e.text), href:`#e/${encodeURIComponent(e.id)}`});
+    if(e.deleted && e.deletedBy) rows.push({at:e.deletedAt, who:e.deletedBy, what:"記録を取り消した", target:e.product||"", text:clip(e.text), href:`#e/${encodeURIComponent(e.id)}`});
+  }
+  for(const s of FIELD.statusLog||[]) rows.push({at:s.at, who:s.author||"", what:`状態を変えた（${s.from||"-"} → ${s.to||"-"}）`, target:"", text:clip(s.note), href: s.target && s.target.startsWith("e:") ? `#e/${encodeURIComponent(s.target.slice(2))}` : s.target && s.target.startsWith("i:") ? `#i/${encodeURIComponent(s.target.slice(2))}` : ""});
+  for(const p of FIELD.productLog||[]) rows.push({at:p.at, who:p.author||"", what:p.action==="add"?"製品を登録した":"製品を編集した", target:p.product||"", text:"", href:p.product?`#${encodeURIComponent(p.product)}`:""});
+  rows.sort((a,b)=>String(b.at||"").localeCompare(String(a.at||"")));
+  const people = [...new Set(rows.map(r=>r.who).filter(Boolean))].sort();
+  const since = ELF.days ? new Date(Date.now() - Number(ELF.days)*86400000).toISOString() : "";
+  const shown = rows.filter(r=>(!ELF.who || r.who===ELF.who) && (!since || String(r.at||"") >= since));
+  const cnt = {}; shown.forEach(r=>{ cnt[r.who||"(不明)"] = (cnt[r.who||"(不明)"]||0) + 1; });
+  const fmt = s => { if(!s) return ""; const d = new Date(s); return isNaN(d) ? String(s) : `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
+  main.innerHTML = head + `<div class="card"><div style="display:flex;gap:10px;flex-wrap:wrap">
+      <label class="field" style="flex:1;min-width:10em">人<select id="elWho"><option value="">全員</option>${people.map(p=>`<option${p===ELF.who?" selected":""}>${esc(p)}</option>`).join("")}</select></label>
+      <label class="field" style="flex:1;min-width:10em">期間<select id="elDays">${[["7","7日"],["30","30日"],["90","90日"],["","全部"]].map(([v,l])=>`<option value="${v}"${v===ELF.days?" selected":""}>${l}</option>`).join("")}</select></label></div>
+    <p class="sub" style="margin:4px 0 0">${Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([w,n])=>`${esc(w)} ${n}件`).join("　") || "記録はありません。"}</p></div>
+    <div class="card"><ul class="list">${shown.slice(0,500).map(r=>`<li style="padding:8px 2px"><span class="sub num">${esc(fmt(r.at))}</span>　<b>${esc(r.who||"(不明)")}</b>　${r.href?`<a href="${r.href}">${esc(r.what)}</a>`:esc(r.what)}${r.target?`　<span class="num">${esc(r.target)}</span>`:""}${r.text?`<br><span class="sub" style="font-size:12.5px">${esc(r.text)}</span>`:""}</li>`).join("")}</ul>${shown.length>500?`<p class="sub">ほか ${shown.length-500} 件</p>`:""}</div>`;
+  document.getElementById("elWho").addEventListener("change", e=>{ ELF.who = e.target.value; renderEditlog(); });
+  document.getElementById("elDays").addEventListener("change", e=>{ ELF.days = e.target.value; renderEditlog(); });
 }
 /* ---------- 閲覧履歴 ---------- */
 /* Every page a logged-in person opens is buffered on the device (localStorage karte.vlbuf) and sent every few minutes /
@@ -1509,13 +1532,13 @@ function renderDocs(){
 
 /* ---------- ホームの記録欄（問題を記録する／AIにお願い） ---------- */
 const QT = {
-  ja:{ quick:"記録する・AIにお願い", qIssue:"問題を記録する", qAI:"AIにお願い", needEdit:"書き込むには、名前を選んで暗証番号を入れてください。", openEdit:"名前と暗証番号で書く",
+  ja:{ quick:"記録する・AIにお願い", qIssue:"問題を記録する", qAI:"AIにお願い", needEdit:"書き込むには、メールアドレスとパスワードでログインしてください。", openEdit:"ログインして書く",
     prodQ:"製品（図番・品名で探す）", prodPh:"例：R47、T150165300、Rotor …　分からなければ空欄でOK", noProd:"製品は選ばれていません。分からなければこのまま保存すると、AI が内容や写真から製品を探してリンクします。", clearProd:"外す",
     found:"本文から見つけた製品", useIt:"これにする", autoLinked:"本文の図番から自動でリンクしました。", aiWillLink:"製品は AI が探してリンクします（平日 9・11・13・15・17 時）。",
     aiAsk:"AI にやってほしいこと", aiPh:"例：\n・R47 のホワイトドットの対策として「硝酸濃度を上げた」を記録して\n・この写真の検査表を記録にして\n・この不良票の内容を問題として登録して", aiKind:"種類", aiProd:"関連の製品（分かれば）", aiFiles:"ファイル（PDF・Excel・メールなど、1つ8MBまで）", aiNeed:"やってほしいことを書くか、写真・ファイルを付けてください。",
     aiWhen:"お願いは平日の 9・11・13・15・17 時に AI が処理して、結果と返事をここに出します。", aiPending:"AI の処理待ち", aiDone:"処理済み（最近）", noReq:"お願いはまだありません。", reply:"AI の返事", send:"AI に送る",
     linkAI:"製品のリンク", linkWait:"AI が製品を探しています", linkNF:"AI が探しましたが製品が見つかりませんでした", linkOK:"AI がリンクしました", linkAuto:"本文の図番から自動リンク" },
-  th:{ quick:"บันทึก・ขอให้ AI ช่วย", qIssue:"บันทึกปัญหา", qAI:"ขอให้ AI ช่วย", needEdit:"เลือกชื่อและใส่รหัส PIN เพื่อบันทึก", openEdit:"เขียนด้วยชื่อและรหัส PIN",
+  th:{ quick:"บันทึก・ขอให้ AI ช่วย", qIssue:"บันทึกปัญหา", qAI:"ขอให้ AI ช่วย", needEdit:"กรุณาเข้าสู่ระบบด้วยอีเมลและรหัสผ่านเพื่อบันทึก", openEdit:"เข้าสู่ระบบเพื่อบันทึก",
     prodQ:"สินค้า (ค้นด้วยเลขแบบ・ชื่อ)", prodPh:"เช่น R47, T150165300, Rotor … ถ้าไม่ทราบเว้นว่างได้", noProd:"ยังไม่ได้เลือกสินค้า ถ้าไม่ทราบให้บันทึกไปได้เลย AI จะหาสินค้าจากเนื้อหาและรูปแล้วเชื่อมให้", clearProd:"ยกเลิก",
     found:"สินค้าที่พบในข้อความ", useIt:"ใช้อันนี้", autoLinked:"เชื่อมกับสินค้าจากเลขแบบในข้อความโดยอัตโนมัติ", aiWillLink:"AI จะหาสินค้าและเชื่อมให้ (วันทำงาน 9・11・13・15・17 น.)",
     aiAsk:"สิ่งที่อยากให้ AI ทำ", aiPh:"เช่น\n・บันทึกการแก้ไข White dot ของ R47 ว่า \"เพิ่มความเข้มข้นกรดไนตริก\"\n・ทำตารางตรวจสอบจากรูปนี้\n・ลงทะเบียนปัญหาจากใบแจ้งของเสียนี้", aiKind:"ประเภท", aiProd:"สินค้าที่เกี่ยวข้อง (ถ้าทราบ)", aiFiles:"ไฟล์ (PDF・Excel・อีเมล ไม่เกิน 8MB ต่อไฟล์)", aiNeed:"กรุณาเขียนสิ่งที่ต้องการ หรือแนบรูป・ไฟล์",
@@ -1947,6 +1970,7 @@ function route(keepScroll){
   const p = byP[h] || PRODUCTS.find(x=>x.oldNo===h) || (/[A-Z]$/i.test(h) ? byP[h.slice(0,-1)] : null);
   if(h==="staff"){ renderStaff(); logView("staff", ""); }
   else if(h==="viewlog") renderViewlog();
+  else if(h==="editlog") renderEditlog();
   else if(h==="mypin") renderSetPin();
   else if(h==="chem" || h.startsWith("chem/")){ renderChem(h.slice(5)); logView("chem", h.slice(5)); }
   else if(h.startsWith("c/") && byC[h.slice(2)]){ renderCustomer(byC[h.slice(2)]); logView("c", h.slice(2)); }
