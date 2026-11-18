@@ -315,6 +315,29 @@ footer{color:var(--muted);font-size:11.5px;margin-top:28px;text-align:center;let
 .gran{display:inline-flex;gap:2px;margin-left:8px;vertical-align:middle}
 .gran button{font:inherit;font-size:11.5px;padding:2px 9px;border:1px solid var(--line2);background:transparent;color:var(--muted);border-radius:999px;cursor:pointer}
 .gran button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+/* chem ref: stock / lines / management */
+.sbadge{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;margin-left:4px;vertical-align:1px;white-space:nowrap}
+.sbadge.bad{background:var(--bad-bg);color:var(--bad)}
+.sbadge.warn{background:var(--warn-bg,#fff4e0);color:var(--warn)}
+.warnv{color:var(--warn);font-weight:600}
+.spark{display:block}
+.spark rect{fill:var(--accent);opacity:.55}
+.spark rect.sl{opacity:1}
+.spark rect.sz{fill:var(--bad);opacity:.8}
+.pdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 5px 0 2px;vertical-align:0}
+.pdot.pre{background:#d98c2b}.pdot.ano{background:#3d6fd1}.pdot.dye{background:#444}.pdot.seal{background:#8a5cc7}.pdot.wash{background:#4fb3c9}
+.ctbl td.est{color:var(--muted)}
+.ctbl tfoot td{border-top:2px solid var(--line2);font-weight:600}
+.mlist{margin:4px 0 8px;padding-left:22px;font-size:14px;line-height:1.6}
+.mlist li{margin:3px 0}
+.docbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.cdoc{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+.cdoc h4{font-size:14px;margin:0 0 8px;font-weight:600}
+.cdoc .pages{display:flex;flex-direction:column;gap:10px}
+a.chip{text-decoration:none}
+.ctbl td.sname{min-width:150px;max-width:240px}
+.ctbl td.sname b{font-weight:600;word-break:break-word}
+.trow .trendbox p{white-space:normal}
 </style>
 </head>
 <body>
@@ -332,7 +355,7 @@ footer{color:var(--muted);font-size:11.5px;margin-top:28px;text-align:center;let
 </div>
 
 <script>
-const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", chem:"chem.enc.json", today:"today.enc.json", repoDir:"beta/", build:"2026-11-17" };
+const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", chem:"chem.enc.json", today:"today.enc.json", repoDir:"beta/", build:"2026-11-18" };
 let PW = null, DATA = null, FIELD = {entries:[]}, FLOWDOCS = null, FLOW_LOADING = null, EDIT = null;
 let CUSTOMERS = [], PRODUCTS = [], ISSUES = [], EVENTS = [], FLOWSTEPS = [], CAUTIONS = [];
 let byP = {}, byC = {}, byI = {};
@@ -1750,9 +1773,10 @@ function todayCardHTML(){
 
 /* ---------- 薬液の記録 (chem.enc.json: pH / titration / FF-250 / Hot Top Seal temperature, imported from FON's Excel) ---------- */
 let CHEM = null, CHEM_LOADING = null;
-const CH = { tab:"ph", date:"", line:"", ng:false, open:"", gran:"day", wkAll:false };
+const CH = { tab:"ph", date:"", line:"", ng:false, open:"", gran:"day", wkAll:false, refOpen:"", stockAll:false, doc:"" };
+const REF_TABS = ["stock","line","manage"], CHEM_TABS = ["ph","tit","ff","temp","stock","line","manage"];
 const CT = {
-  ja:{ chem:"薬液の記録", chemSub:"FONさんの日常点検（サーバーの Excel）から取り込んだ記録です。入力は今までどおり Excel へ。", tabs:{ph:"pH",tit:"滴定（濃度）",ff:"FF-250",temp:"封孔の温度"},
+  ja:{ chem:"薬液の記録", chemSub:"FONさんの日常点検（サーバーの Excel）から取り込んだ記録です。入力は今までどおり Excel へ。", tabs:{ph:"pH",tit:"滴定（濃度）",ff:"FF-250",temp:"封孔の温度",stock:"在庫",line:"LINE・槽",manage:"管理方法"},
     built:"最終取り込み", range:"期間", stChem:"薬液の規格外", goChem:"薬液を見る →", latestNG:d=>`最新の記録（${d}）の規格外`, noNG:"規格外はありません。", allOk:"すべて規格内",
     prev:"← 前の日", next:"次の日 →", allLines:"全ライン", ngOnly:"規格外だけ", tank:"槽", chemName:"薬品・水", spec:"規格", remark:"備考", noSpec:"規格なし",
     ngCount:(n,m)=>`規格外 ${n} ／ 測定 ${m}`, trend:"推移", tapTrend:"行をタップすると推移グラフが出ます。", close:"閉じる",
@@ -1767,7 +1791,7 @@ const CT = {
     window:"直近 2 か月分だけ載せています（それより前の記録は自動で外れます）。毎日 17:30 に取り込み。",
     weekly:"週ごとの推移（規格外があった槽）", weeklyFF:"週ごとの推移", weeklySub:"太線＝その週の平均、縦の帯＝その週の最低〜最高、赤い数字＝その週の規格外の回数。", noWeekly:"直近 2 か月に規格外があった槽はありません。",
     showAll:n=>`すべて表示（${n} 槽）`, showLess:"少なく表示", wkOf:"週", ngIn:(n,m)=>`規格外 ${n} / ${m} 回` },
-  th:{ chem:"บันทึกน้ำยา", chemSub:"ข้อมูลจากการตรวจเช็คประจำวันของคุณฝน (Excel บนเซิร์ฟเวอร์) การกรอกข้อมูลยังคงทำใน Excel เหมือนเดิม", tabs:{ph:"pH",tit:"ไตเตรท (ความเข้มข้น)",ff:"FF-250",temp:"อุณหภูมิซีล"},
+  th:{ chem:"บันทึกน้ำยา", chemSub:"ข้อมูลจากการตรวจเช็คประจำวันของคุณฝน (Excel บนเซิร์ฟเวอร์) การกรอกข้อมูลยังคงทำใน Excel เหมือนเดิม", tabs:{ph:"pH",tit:"ไตเตรท (ความเข้มข้น)",ff:"FF-250",temp:"อุณหภูมิซีล",stock:"สต็อก",line:"ไลน์・บ่อ",manage:"วิธีควบคุม"},
     built:"นำเข้าล่าสุด", range:"ช่วงเวลา", stChem:"น้ำยานอกสเป็ก", goChem:"ดูน้ำยา →", latestNG:d=>`นอกสเป็กของบันทึกล่าสุด (${d})`, noNG:"ไม่มีค่านอกสเป็ก", allOk:"อยู่ในสเป็กทั้งหมด",
     prev:"← วันก่อน", next:"วันถัดไป →", allLines:"ทุกไลน์", ngOnly:"เฉพาะนอกสเป็ก", tank:"บ่อ", chemName:"น้ำยา・น้ำ", spec:"สเป็ก", remark:"หมายเหตุ", noSpec:"ไม่มีสเป็ก",
     ngCount:(n,m)=>`นอกสเป็ก ${n} / วัด ${m}`, trend:"แนวโน้ม", tapTrend:"แตะที่แถวเพื่อดูกราฟแนวโน้ม", close:"ปิด",
@@ -1850,23 +1874,26 @@ function chemHomeCard(){
   const liT = r => `<li><a href="#chem/tit/${r.d}"><span class="no">${esc(r.ln)} ${esc(r.tk)}</span> <span class="meta" style="display:inline">${esc(r.c||phNameAt(r.ln,r.tk,r.d))} ・ ${esc(ct("conc"))}</span><span class="pr ngv">${Math.round(r.v*100)/100}<small> (${esc(specTx(r.s,r.lo,r.hi))})</small></span></a></li>`;
   return `<div class="card" id="chemHome"><h2>${esc(ct("chem"))} <span class="sub">${esc(ct("latestNG")(md(d)))}</span></h2>
     ${ng.length || ngT.length ? `<ul class="list">${ng.slice(0,5).map(li).join("")}${ngT.slice(0,3).map(liT).join("")}</ul>${ng.length+ngT.length>8?`<p class="sub">… +${Math.max(0,ng.length-5)+Math.max(0,ngT.length-3)}</p>`:""}` : `<p class="empty">${esc(ct("allOk"))}</p>`}
+    ${stockHomeLine()}
     <div class="actions"><a class="btn small ghost" href="#chem" style="text-decoration:none">${esc(ct("goChem"))}</a></div></div>`;
 }
 
 function renderChem(sub){
   const parts = (sub||"").split("/").filter(Boolean);
-  if(parts[0] && ["ph","tit","ff","temp"].includes(parts[0])) CH.tab = parts[0];
-  if(parts[1]) CH.date = parts[1];
+  if(parts[0] && CHEM_TABS.includes(parts[0])) CH.tab = parts[0];
+  if(parts[1] && !REF_TABS.includes(CH.tab)) CH.date = parts[1];
+  if(parts[1] && REF_TABS.includes(CH.tab)) CH.refOpen = decodeURIComponent(parts[1]);
   if(!CHEM){
     main.innerHTML = `<div class="card"><p class="empty">${esc(ct("loading"))}</p></div>`;
     loadChem().then(()=>{ if(location.hash.startsWith("#chem")) route(true); }).catch(()=>{ main.innerHTML = `<div class="card"><p class="note">${esc(ct("loadFail"))}</p></div>`; });
     return;
   }
-  const tab = CH.tab, days = CHEM.days[tab];
-  if(!CH.date || !days.includes(CH.date)) CH.date = days[days.length-1] || "";
-  const tabs = ["ph","tit","ff","temp"].map(k=>`<button type="button" role="tab" data-ctab="${k}" aria-selected="${k===tab}">${esc(ct("tabs")[k])}</button>`).join("");
+  const tab = CH.tab, days = CHEM.days[tab] || [];
+  if(!REF_TABS.includes(tab) && (!CH.date || !days.includes(CH.date))) CH.date = days[days.length-1] || "";
+  const tabs = CHEM_TABS.map(k=>`<button type="button" role="tab" data-ctab="${k}" aria-selected="${k===tab}">${esc(ct("tabs")[k])}</button>`).join("");
   let body = "";
-  if(tab==="ph") body = chemPH(); else if(tab==="tit") body = chemTit(); else if(tab==="ff") body = chemFF(); else body = chemTemp();
+  if(tab==="ph") body = chemPH(); else if(tab==="tit") body = chemTit(); else if(tab==="ff") body = chemFF(); else if(tab==="temp") body = chemTemp();
+  else if(tab==="stock") body = chemStock(); else if(tab==="line") body = chemLines(); else body = chemManage();
   main.innerHTML = `<p><a href="#">${esc(t("backHome"))}</a></p>
     <div class="card"><h2>${esc(ct("chem"))}</h2><p class="sub" style="margin:0 0 4px">${esc(ct("chemSub"))}</p>
     <p class="sub num" style="margin:0">${esc(ct("built"))} ${esc(CHEM.built)} ・ ${esc(ct("range"))} ${esc(CHEM.from)} 〜 ${esc(CHEM.to)}</p><p class="sub" style="margin:2px 0 0">${esc(ct("window"))}</p></div>
@@ -1879,6 +1906,7 @@ function renderChem(sub){
   main.querySelectorAll("[data-copen]").forEach(r=>r.addEventListener("click",()=>{ CH.open = CH.open===r.dataset.copen ? "" : r.dataset.copen; route(true); }));
   main.querySelectorAll("[data-gran]").forEach(b=>b.addEventListener("click",e=>{ e.stopPropagation(); CH.gran = b.dataset.gran; route(true); }));
   const wa = document.getElementById("wkAll"); if(wa) wa.addEventListener("click",()=>{ CH.wkAll = !CH.wkAll; route(true); });
+  chemRefWire();
 }
 function dayBar(){
   const days = CHEM.days[CH.tab], i = days.indexOf(CH.date);
@@ -2010,7 +2038,213 @@ function titWeeklyItems(){
 function tempWeeklyItems(){
   const by = {}; for(const r of CHEM.temp) (by[r.k] = by[r.k] || []).push(r);
   return Object.entries(by).map(([key, rs])=>({ key, title:key, sub:"°C", lo:rs[0].lo, hi:rs[0].hi, vals: rs.map(r=>({d:r.d, v:r.m, lo:r.lo, hi:r.hi})) }));
-}/* ---------- routing ---------- */
+}
+/* ---------- 在庫・LINE/槽・管理方法 (chem.enc.json の ref = 倉庫の月末在庫 / 槽の寸法一覧 / 管理カード、全文は chemdocs/<id>.enc.json) ---------- */
+const RT = {
+  ja:{ stockT:"薬品の在庫（月末）", stockSub:(f,d)=>`倉庫の月末在庫表（${f}）から。最新は ${d} の棚卸しです。毎日 17:30 に新しい表がないか見に行きます。`,
+    useNote:"倉庫の表には入荷の記録がないので、在庫の差からは使用量が出せません。「月の使用量」は購買の使用量表（2026年1〜4月の月平均）を目安にしています。残りが約 1 週間を切るとオレンジ色になります（硫酸・硝酸など、こまめに入荷する薬品は普段から少なめに見えます）。",
+    alerts:"気をつける薬品", noAlert:"在庫切れ・少なめの薬品はありません。", zero:"在庫なし", belowRo:kg=>`発注点 ${kg} kg 未満`,
+    chemCol:"薬品", useCol:"用途", stockCol:"月末在庫", diffCol:"先月比", monthUse:"月の使用量（目安）", left:"残り（目安）", trendCol:"12 か月", price:"単価 B/kg", value:"在庫金額 B",
+    days:n=>`約 ${n} 日分`, months:n=>`約 ${n} か月分`, showAll:n=>`すべて表示（${n} 品）`, showUsed:"在庫のある・使っている薬品だけ表示", total:"在庫金額の合計",
+    monthCol:"月（棚卸し日）", stockKg:"在庫 kg", diffKg:"増減 kg", refillT:"槽への補給（滴定帳票の Refill 欄、直近 2 か月）", storeNote:"倉庫のメモ", supplier:"仕入先", pack:"荷姿", tapRow:"行をタップすると月ごとの在庫と補給の記録が出ます。",
+    refillUnit:{sulf:"本（30 kg ドラム）", kg:"kg", raw:"帳票の数字（単位の書き込みなし）"}, newmix:"建浴（New mix）を含む",
+    lineT:"LINE の構成と槽の大きさ", lineSub:"寸法と容量は「Condition of tank」（2026-09-21 更新）から作った一覧（2026-11-05）。「今の値」は FON さんの pH・滴定の最新記録です。",
+    tanks:n=>`${n} 槽`, liters:"合計", procCol:"工程", sizeCol:"サイズ mm（縦×横×深さ）", capCol:"容量 L", nowCol:"今の値", memoCol:"メモ", chemCol2:"薬品・水",
+    nowList:"今の番号（pH・滴定の記録から）", nowSub:"寸法表と番号が合わないので、記録に出てくる槽を今の番号で並べています。", recName:"記録上の名前", legend:"色：", procs:{pre:"前処理",ano:"アルマイト・めっき",dye:"染色",seal:"封孔・湯洗",wash:"水洗"},
+    mism:{"LINE 1":"LINE 1 は 2026-10-27 に槽の番号が変わり、今は 20 槽です。この寸法表は 9/21 時点（17 槽）の番号なので、今の番号とは合いません。新しい槽の寸法は未確認です。","LINE 5":"記録では Tank 22 まであり、寸法表（20 槽）と番号がずれています（例：H-298 は記録では Tank 14、寸法表では Tank 11）。","LINE 7":"寸法表にサイズ・容量が書かれていません（現場で測る必要があります）。錫めっきの記録は別のブック（L7-T7 Tin & KOH）です。"},
+    manageT:"薬品の管理方法", manageSub:"メーカーの資料（スキャン・翻訳）から、規格・分析・補給・液交換の目安をまとめています。全文はボタンで開けます（指で拡大できます）。",
+    specT:"規格", itemCol:"項目", stdCol:"標準", rngCol:"範囲（メーカー）", formCol:"当社の帳票・実際", whereT:"使っている槽", makerT:"メーカー", stockNow:"在庫",
+    latestT:"今の値（最新の記録）", concCol:"濃度", openDoc:"全文", docLoading:"資料を読み込み中…", srcT:"出典", addMore:"ほかの薬品の資料も、スキャンして「DYDO NOTE の管理方法に入れて」と頼めば追加できます。", toStock:"在庫を見る →" },
+  th:{ stockT:"สต็อกสารเคมี (สิ้นเดือน)", stockSub:(f,d)=>`จากตารางสต็อกสิ้นเดือนของสโตร์ (${f}) ล่าสุดคือการนับวันที่ ${d} ระบบตรวจหาไฟล์ใหม่ทุกวัน 17:30`,
+    useNote:"ตารางของสโตร์ไม่มีบันทึกการรับเข้า จึงคำนวณปริมาณใช้จากผลต่างสต็อกไม่ได้ \"ปริมาณใช้ต่อเดือน\" ใช้ค่าเฉลี่ยจากตารางของฝ่ายจัดซื้อ (ม.ค.〜เม.ย. 2026) เป็นค่าประมาณ ถ้าเหลือน้อยกว่าประมาณ 1 สัปดาห์จะเป็นสีส้ม (กรดซัลฟิวริก・ไนตริก ฯลฯ ที่รับเข้าบ่อยจะดูน้อยเป็นปกติ)",
+    alerts:"สารเคมีที่ต้องระวัง", noAlert:"ไม่มีสารเคมีที่หมดหรือเหลือน้อย", zero:"หมดสต็อก", belowRo:kg=>`ต่ำกว่าจุดสั่งซื้อ ${kg} kg`,
+    chemCol:"สารเคมี", useCol:"ใช้สำหรับ", stockCol:"สต็อกสิ้นเดือน", diffCol:"เทียบเดือนก่อน", monthUse:"ใช้ต่อเดือน (ประมาณ)", left:"เหลือ (ประมาณ)", trendCol:"12 เดือน", price:"", value:"",
+    days:n=>`ประมาณ ${n} วัน`, months:n=>`ประมาณ ${n} เดือน`, showAll:n=>`แสดงทั้งหมด (${n} รายการ)`, showUsed:"แสดงเฉพาะที่มีสต็อก・ที่ใช้อยู่", total:"",
+    monthCol:"เดือน (วันที่นับ)", stockKg:"สต็อก kg", diffKg:"เพิ่ม/ลด kg", refillT:"การเติมลงบ่อ (ช่อง Refill ในแบบฟอร์มไตเตรท 2 เดือนล่าสุด)", storeNote:"", supplier:"ผู้ขาย", pack:"บรรจุ", tapRow:"แตะที่แถวเพื่อดูสต็อกรายเดือนและบันทึกการเติม",
+    refillUnit:{sulf:"ถัง (30 kg)", kg:"kg", raw:"ตัวเลขในแบบฟอร์ม (ไม่ได้เขียนหน่วย)"}, newmix:"รวมการเตรียมใหม่ (New mix)",
+    lineT:"โครงสร้างไลน์และขนาดบ่อ", lineSub:"ขนาดและปริมาตรจากตาราง \"Condition of tank\" (อัปเดต 2026-09-21, ทำตาราง 2026-11-05) \"ค่าปัจจุบัน\" คือบันทึก pH・ไตเตรทล่าสุดของคุณฝน",
+    tanks:n=>`${n} บ่อ`, liters:"รวม", procCol:"ขั้นตอน", sizeCol:"ขนาด mm (ยาว×กว้าง×ลึก)", capCol:"ปริมาตร L", nowCol:"ค่าปัจจุบัน", memoCol:"หมายเหตุ", chemCol2:"น้ำยา・น้ำ",
+    nowList:"เลขบ่อปัจจุบัน (จากบันทึก pH・ไตเตรท)", nowSub:"เลขบ่อไม่ตรงกับตารางขนาด จึงแสดงบ่อที่อยู่ในบันทึกตามเลขปัจจุบัน", recName:"ชื่อในบันทึก", legend:"สี:", procs:{pre:"ปรับสภาพผิว",ano:"อโนไดซ์・ชุบ",dye:"ย้อมสี",seal:"ซีล・ล้างน้ำร้อน",wash:"ล้างน้ำ"},
+    mism:{"LINE 1":"LINE 1 เปลี่ยนเลขบ่อเมื่อ 2026-10-27 ตอนนี้มี 20 บ่อ ตารางขนาดนี้เป็นเลขเดิม ณ 9/21 (17 บ่อ) จึงไม่ตรงกับเลขปัจจุบัน ขนาดบ่อใหม่ยังไม่ได้ยืนยัน","LINE 5":"ในบันทึกมีถึง Tank 22 เลขบ่อไม่ตรงกับตารางขนาด (20 บ่อ) (เช่น H-298 ในบันทึกคือ Tank 14 ในตารางคือ Tank 11)","LINE 7":"ตารางไม่มีขนาด・ปริมาตร (ต้องวัดที่หน้างาน) บันทึกชุบดีบุกอยู่ในไฟล์แยก (L7-T7 Tin & KOH)"},
+    manageT:"วิธีควบคุมสารเคมี", manageSub:"สรุปสเป็ก การวิเคราะห์ การเติม และเกณฑ์เปลี่ยนน้ำยาจากเอกสารผู้ผลิต (สแกน・แปล) กดปุ่มเพื่อเปิดฉบับเต็ม (ขยายด้วยนิ้วได้)",
+    specT:"สเป็ก", itemCol:"หัวข้อ", stdCol:"มาตรฐาน", rngCol:"ช่วง (ผู้ผลิต)", formCol:"แบบฟอร์มของ Dydo・การใช้จริง", whereT:"บ่อที่ใช้", makerT:"ผู้ผลิต", stockNow:"สต็อก",
+    latestT:"ค่าปัจจุบัน (บันทึกล่าสุด)", concCol:"ความเข้มข้น", openDoc:"ฉบับเต็ม", docLoading:"กำลังโหลดเอกสาร…", srcT:"ที่มา", addMore:"เอกสารของสารเคมีอื่นก็เพิ่มได้ สแกนแล้วขอให้ \"ใส่ในวิธีควบคุมของ DYDO NOTE\"", toStock:"ดูสต็อก →" }
+};
+const rt = k => RT[LANG][k];
+const L_ = v => v==null ? "" : (typeof v==="string" ? v : (v[LANG] || v.ja || ""));
+const fmtKg = v => isNum(v) ? (Math.round(v*100)/100).toLocaleString() : "—";
+const DOCS = {};
+
+/* ----- stock ----- */
+function stockRows(){
+  const S = CHEM.ref.stock, U = CHEM.ref.usage, n = S.months.length, last = S.months[n-1];
+  return S.items.map(it=>{
+    const cur = it.s[n-1], prev = it.s[n-2], use = U.kgPerMonth[it.key], ro = (U.reorder||{})[it.key];
+    const left = isNum(cur) && use ? cur/use : null;
+    const used = it.s.some(v=>isNum(v) && v>0) || !!use;
+    let st = "";
+    if(it.last !== last) st = "gone";
+    else if(isNum(cur) && cur<=0 && used) st = "zero";
+    else if(ro && isNum(cur) && cur < ro.kg) st = "ro";
+    else if(left!=null && left < 0.25) st = "low";
+    return Object.assign({}, it, {cur, prev, use, ro, left, st, used});
+  });
+}
+function leftTx(m){ if(m==null) return "—"; return m < 1 ? rt("days")(Math.max(0, Math.round(m*30))) : rt("months")(Math.round(m*10)/10); }
+function stBadge(r){
+  if(r.st==="zero") return `<span class="sbadge bad">${esc(rt("zero"))}</span>`;
+  if(r.st==="ro") return `<span class="sbadge bad">${esc(rt("belowRo")(r.ro.kg))}</span>`;
+ return "";
+}
+function spark(vals){
+  const w = 96, h = 24, mx = Math.max(1e-9, ...vals.filter(isNum)), bw = w/vals.length;
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true">${vals.map((v,i)=>{ if(!isNum(v)) return ""; const bh = v>0 ? Math.max(1.5, v/mx*(h-2)) : 0; return v>0 ? `<rect x="${(i*bw+0.6).toFixed(1)}" y="${(h-bh).toFixed(1)}" width="${(bw-1.2).toFixed(1)}" height="${bh.toFixed(1)}" class="${i===vals.length-1?"sl":""}"/>` : `<rect x="${(i*bw+0.6).toFixed(1)}" y="${h-1.5}" width="${(bw-1.2).toFixed(1)}" height="1.5" class="sz"/>`; }).join("")}</svg>`;
+}
+function refillFor(key){
+  const pick = { SULFURICACID98: r => ((r.g==="anod" && /sulfuric/i.test(r.c||"")) || r.g==="acid") ? "sulf" : null,
+    TOPALCLEAN161: r => r.g==="degr" ? "kg" : null, OXALICACID9960: r => (r.g==="anod" && /oxalic/i.test(r.c||"")) ? "kg" : null,
+    TOPSEALL100: r => (r.g==="seal" && /L-100/.test(r.c||"")) ? "kg" : null, TOPSEALH298: r => (r.g==="seal" && /H-?298/.test(r.c||"")) ? "raw" : null }[key];
+  if(!pick) return null;
+  const by = {}; let unit = pick({g:"",c:""}) || null, mix = false, any = false;
+  for(const r of CHEM.tit){
+    const u = pick(r); if(!u) continue; unit = u;
+    const m = String(r.r||"").match(/^\s*(\d+(?:\.\d+)?)\s*(?:kg\.?)?\s*\/?\s*(new\s*mix)?\s*$/i); if(!m || !+m[1]) continue;
+    if(m[2]) mix = true; any = true;
+    const tk = `${r.ln} ${r.tk}`, mo = r.d.slice(0,7);
+    by[mo] = by[mo] || {}; by[mo][tk] = (by[mo][tk]||0) + (+m[1]);
+  }
+  return {unit, by, mix, any};
+}
+function stockDetail(r){
+  const S = CHEM.ref.stock, n = S.months.length;
+  const rows = S.months.map((m,i)=>{ const v = r.s[i], p = i ? r.s[i-1] : null, d = isNum(v)&&isNum(p) ? v-p : null;
+    return `<tr><td class="num nowrap">${esc(m)} <span class="sub">${esc(md(S.dates[m]||""))}</span></td><td class="num${isNum(v)&&v<=0&&r.used?" ng":""}">${fmtKg(v)}</td><td class="num${d<0?"":" okv"}">${d==null?"":(d>0?"+":"")+fmtKg(d)}</td></tr>`; }).reverse().join("");
+  const rf = refillFor(r.key);
+  let rfHtml = "";
+  if(rf){
+    const mos = Object.keys(rf.by).sort();
+    rfHtml = `<h3>${esc(rt("refillT"))}</h3>${rf.any ? `<div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(rt("monthCol").replace(/（.*|\(.*/,""))}</th><th>${esc(ct("tank"))}</th><th class="num">${esc(rt("refillUnit")[rf.unit])}</th></tr></thead><tbody>${mos.map(mo=>Object.entries(rf.by[mo]).sort().map(([tk,v])=>`<tr><td class="num">${esc(mo)}</td><td class="nowrap">${esc(tk)}</td><td class="num">${fmtKg(v)}${rf.unit==="sulf"?` <span class="sub">(≈${fmtKg(v*30)} kg)</span>`:""}</td></tr>`).join("")).join("")}</tbody></table></div>${rf.mix?`<p class="sub">${esc(rt("newmix"))}</p>`:""}` : `<p class="empty">${esc(ct("noData"))}</p>`}`;
+  }
+  return `<tr class="trow"><td colspan="${JA()?8:6}"><div class="trendbox">
+    <p class="sub" style="margin:0 0 4px">${esc(rt("supplier"))}: ${esc(r.sup||"—")} ・ ${esc(rt("pack"))}: ${isNum(r.pk)?r.pk+" kg":"—"}${JA() && r.note ? ` ・ ${esc(rt("storeNote"))}: ${esc(r.note)}` : ""}${r.ro?` ・ ${esc(L_(r.ro.note))}`:""}</p>
+    <div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(rt("monthCol"))}</th><th class="num">${esc(rt("stockKg"))}</th><th class="num">${esc(rt("diffKg"))}</th></tr></thead><tbody>${rows}</tbody></table></div>${rfHtml}
+    <button type="button" class="linkbtn" data-ropen="${esc(r.key)}">${esc(ct("close"))}</button></div></td></tr>`;
+}
+function chemStock(){
+  const R = CHEM.ref, S = R.stock, last = S.months[S.months.length-1], all = stockRows();
+  const alerts = all.filter(r=>r.st==="zero" || r.st==="ro");
+  const list = CH.stockAll ? all : all.filter(r=>r.st!=="gone" && ((isNum(r.cur) && r.cur>0) || r.st));
+  const ja = JA();
+  const pk = r => isNum(r.cur) && isNum(r.pk) && r.pk>1 && r.cur>0 ? ` <span class="sub">(${r.pk}×${Math.round(r.cur/r.pk*100)/100})</span>` : "";
+  const row = r => { const d = isNum(r.cur)&&isNum(r.prev) ? r.cur-r.prev : null, open = CH.refOpen===r.key;
+    return `<tr class="crow${r.st==="zero"||r.st==="ro"?" isng":""}" data-ropen="${esc(r.key)}"><td class="sname"><b>${esc(r.n)}</b> ${stBadge(r)}${(R.usage.use||{})[r.key]?`<br><span class="sub">${esc(L_(R.usage.use[r.key]))}</span>`:""}</td><td class="num nowrap${r.st==="zero"?" ng":""}">${fmtKg(r.cur)} kg${pk(r)}</td><td class="num nowrap">${d==null||d===0?"":(d>0?"+":"")+fmtKg(d)}</td><td class="num nowrap">${r.use?fmtKg(r.use)+" kg":"—"}</td><td class="num nowrap${r.st==="low"?" warnv":""}">${esc(r.use?leftTx(r.left):"—")}</td><td>${spark(r.s)}</td>${ja?`<td class="num">${isNum(r.price)?fmtKg(r.price):"—"}</td><td class="num">${isNum(r.val)?Math.round(r.val).toLocaleString():"—"}</td>`:""}</tr>${open?stockDetail(r):""}`; };
+  const total = all.filter(r=>r.st!=="gone").reduce((s,r)=>s + (isNum(r.val)?r.val:0), 0);
+  return `<div class="card"><h2>${esc(rt("stockT"))}</h2><p class="sub" style="margin:0 0 4px">${esc(rt("stockSub")(S.src.split(" / ")[0], S.dates[last]||last))}</p><p class="note" style="margin:4px 0 0">${esc(rt("useNote"))}</p></div>
+    <div class="card"><h2>${esc(rt("alerts"))}</h2>${alerts.length?`<ul class="list">${alerts.map(r=>`<li><a href="#chem/stock/${encodeURIComponent(r.key)}"><span class="no">${esc(r.n)}</span> ${stBadge(r)}<span class="pr">${fmtKg(r.cur)} kg${r.use?`<small> ・ ${esc(rt("monthUse"))} ${fmtKg(r.use)} kg</small>`:""}</span></a></li>`).join("")}</ul>`:`<p class="empty">${esc(rt("noAlert"))}</p>`}</div>
+    <div class="card"><p class="sub" style="margin:0 0 6px">${esc(rt("tapRow"))}</p>
+    <div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(rt("chemCol"))} <span class="sub">/ ${esc(rt("useCol"))}</span></th><th class="num">${esc(rt("stockCol"))}</th><th class="num">${esc(rt("diffCol"))}</th><th class="num">${esc(rt("monthUse"))}</th><th class="num">${esc(rt("left"))}</th><th>${esc(rt("trendCol"))}</th>${ja?`<th class="num">${esc(rt("price"))}</th><th class="num">${esc(rt("value"))}</th>`:""}</tr></thead>
+    <tbody>${list.map(row).join("")}</tbody>${ja?`<tfoot><tr><td colspan="7" class="num">${esc(rt("total"))}</td><td class="num"><b>${Math.round(total).toLocaleString()}</b></td></tr></tfoot>`:""}</table></div>
+    <p><button type="button" class="linkbtn" id="stockAll">${esc(CH.stockAll ? rt("showUsed") : rt("showAll")(all.length))}</button></p></div>`;
+}
+function stockHomeLine(){
+  if(!CHEM || !CHEM.ref) return "";
+  const a = stockRows().filter(r=>r.st==="zero" || r.st==="ro"); if(!a.length) return "";
+  return `<p class="sub" style="margin:8px 0 0">${esc(rt("alerts"))}: ${a.map(r=>`<a href="#chem/stock/${encodeURIComponent(r.key)}">${esc(r.n.replace(/\s*\(.*$/,""))}</a> ${stBadge(r)}`).join(" ・ ")}</p>`;
+}
+
+/* ----- lines & tanks ----- */
+const TANKPROC_TH = {"脱脂":"ล้างไขมัน","アルカリ脱脂":"ล้างด่าง","水洗":"ล้างน้ำ","酸洗い":"ล้างกรด","アルマイト":"อโนไดซ์","封孔（低温）":"ซีล (เย็น)","封孔（高温）":"ซีล (ร้อน)","湯洗":"ล้างน้ำร้อน","黒染色":"ย้อมดำ","青染色":"ย้อมน้ำเงิน","グレー染色":"ย้อมเทา","オレンジ染色":"ย้อมส้ม","黄色染色":"ย้อมเหลือง","SurTec（化成）":"SurTec (คอนเวอร์ชัน)","硝酸":"กรดไนตริก","フッ硝酸":"ฟลูออโรไนตริก","手動シャワー":"ฝักบัวมือ","シールドクター":"Seal Doctor","錫めっき":"ชุบดีบุก"};
+const MEMO_TH = {"サイズは推定":"ขนาดโดยประมาณ","縦横逆？要採寸":"อาจสลับยาว/กว้าง ต้องวัดจริง","縦横逆？要採寸／容量ずれ":"อาจสลับยาว/กว้าง ต้องวัดจริง / ปริมาตรไม่ตรง","使える幅 760mm":"ความกว้างใช้งาน 760 mm"};
+const procCls = n => /封孔|湯洗|シールド/.test(n) ? "seal" : /染色/.test(n) ? "dye" : /アルマイト|めっき|SurTec/.test(n) ? "ano" : /水洗|シャワー/.test(n) ? "wash" : "pre";
+const LINE_MATCH = ["LINE 2/1","LINE 2/2","LINE 3"];
+function latestByTank(){
+  const m = {};
+  const put = (key, typ, r) => { const o = (m[key] = m[key] || {}); if(!o[typ] || o[typ].d <= r.d) o[typ] = r; };
+  for(const r of CHEM.ph) if(!r.e && (isNum(r.a) || isNum(r.b))) put(`${r.l}|${r.l==="LINE 3"&&r.k==="HF"?"4.1":tankNo(r.k)}`, "ph", r);
+  for(const r of CHEM.tit) if(!r.e && r.g!=="dye" && isNum(r.v)) put(`${r.ln}|${tankNo(r.tk)}|${r.g}`, "tit", r);
+  return m;
+}
+function nowCell(m, line, no){
+  const o = m[`${line}|${no}`] || {}, tits = Object.keys(m).filter(k=>k.startsWith(`${line}|${no}|`)).map(k=>m[k].tit);
+  const out = [];
+  if(o.ph){ const r = o.ph, v = isNum(r.b) ? r.b : r.a, bad = outOf(v, r.lo, r.hi); out.push(`<a href="#chem/ph" data-goto="ph§${esc(r.l)}§${esc(r.key)}" class="${bad?"ngv":""}">pH ${v}</a> <span class="sub">${esc(md(r.d))}</span>`); }
+  for(const r of tits){ out.push(`<a href="#chem/tit" data-goto="tit§${esc(r.ln)}§${esc(r.key)}" class="${r.ng?"ngv":""}">${Math.round(r.v*10)/10} ${esc(r.g==="seal"&&/H-?298/.test(r.c||"")?"ml/L":"g/L")}</a> <span class="sub">${esc(md(r.d))}</span>`); }
+  return out.join("<br>");
+}
+function chemLines(){
+  const T = CHEM.ref.tanks, m = latestByTank(), ja = JA();
+  const legend = `<p class="sub" style="margin:6px 0 0">${esc(rt("legend"))} ${Object.entries(rt("procs")).map(([k,v])=>`<span class="pdot ${k}"></span>${esc(v)}`).join(" ")}</p>`;
+  const cards = T.lines.map(ln=>{
+    const sum = ln.tanks.reduce((s,t)=>s+(t.L||0),0), match = LINE_MATCH.includes(ln.id);
+    const rows = ln.tanks.map(t=>`<tr><td class="num tk">${esc(t.no)}</td><td class="nowrap"><span class="pdot ${procCls(t.name)}"></span>${esc(ja ? t.name : (TANKPROC_TH[t.name]||t.name))}</td><td>${esc(t.chem)}</td><td class="num nowrap${/推定/.test(t.memo)?" est":""}">${esc(t.size||"—")}</td><td class="num">${isNum(t.L)?t.L.toLocaleString():"—"}</td>${match?`<td class="nowrap">${nowCell(m, ln.id, t.no==="4.1"?"4.1":+t.no)}</td>`:""}<td class="rm">${esc(ja ? t.memo : (MEMO_TH[t.memo]||t.memo))}</td></tr>`).join("");
+    let now = "";
+    if(!match && ln.id!=="LINE 7"){
+      const names = {}; for(const r of CHEM.ph) if(r.l===ln.id && !r.e){ const n = tankNo(r.k); if(!names[n] || names[n].d <= r.d) names[n] = {d:r.d, c:r.c}; }
+      for(const r of CHEM.tit) if(r.ln===ln.id && !r.e && r.g!=="dye"){ const n = tankNo(r.tk); if(!names[n]) names[n] = {d:r.d, c:r.c}; }
+      const nos = Object.keys(names).map(Number).sort((a,b)=>a-b);
+      now = `<h3>${esc(rt("nowList"))}</h3><p class="sub" style="margin:0 0 4px">${esc(rt("nowSub"))}</p><div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(ct("tank"))}</th><th>${esc(rt("recName"))}</th><th>${esc(rt("nowCol"))}</th></tr></thead><tbody>${nos.map(n=>`<tr><td class="num tk">${n}</td><td>${esc(names[n].c||"")}</td><td class="nowrap">${nowCell(m, ln.id, n)}</td></tr>`).join("")}</tbody></table></div>`;
+    }
+    const note = rt("mism")[ln.id];
+    return `<div class="card" id="ln-${esc(ln.id.replace(/\W/g,""))}"><h2>${esc(ln.title)} <span class="sub">${esc(rt("tanks")(ln.tanks.length))}${sum?` ・ ${esc(rt("liters"))} ${sum.toLocaleString()} L`:""}</span></h2>
+      ${note?`<p class="note">${esc(note)}</p>`:""}${ja && ln.notes.length?`<ul class="sub" style="margin:4px 0 8px;padding-left:18px">${ln.notes.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}
+      <div class="tblwrap"><table class="ctbl"><thead><tr><th>No.</th><th>${esc(rt("procCol"))}</th><th>${esc(rt("chemCol2"))}</th><th class="num">${esc(rt("sizeCol"))}</th><th class="num">${esc(rt("capCol"))}</th>${match?`<th>${esc(rt("nowCol"))}</th>`:""}<th>${esc(rt("memoCol"))}</th></tr></thead><tbody>${rows}</tbody></table></div>${now}</div>`;
+  }).join("");
+  const jump = `<div class="filters">${T.lines.map(ln=>`<a class="btn small ghost" style="text-decoration:none" href="#chem/line" data-lnjump="ln-${esc(ln.id.replace(/\W/g,""))}">${esc(ln.id)}</a>`).join("")}</div>`;
+  return `<div class="card"><h2>${esc(rt("lineT"))}</h2><p class="sub" style="margin:0">${esc(rt("lineSub"))}</p>${legend}${jump}</div>${cards}`;
+}
+
+/* ----- management cards ----- */
+function latestFor(rx){
+  const ph = {}, tit = {};
+  for(const r of CHEM.ph) if(!r.e && rx.test(r.c||"") && (isNum(r.a)||isNum(r.b))){ const k = `${r.l} ${r.k}`; if(!ph[k] || ph[k].d <= r.d) ph[k] = r; }
+  for(const r of CHEM.tit) if(!r.e && r.g==="seal" && rx.test(r.c||"") && isNum(r.v)){ const k = `${r.ln} ${r.tk}`; if(!tit[k] || tit[k].d <= r.d) tit[k] = r; }
+  const keys = [...new Set([...Object.keys(ph), ...Object.keys(tit)])].sort((a,b)=>lineSort(a.replace(/ Tank.*/,""), b.replace(/ Tank.*/,"")));
+  return keys.map(k=>({k, ph:ph[k], tit:tit[k]}));
+}
+function docViewer(id){
+  const d = DOCS[id];
+  if(!d){ loadChemDoc(id); return `<p class="empty">${esc(rt("docLoading"))}</p>`; }
+  if(d.err) return `<p class="note">${esc(t("loadFail"))}</p>`;
+  return `<div class="pages">${d.pages.map((p,j)=>`<div><div class="zoomwrap"><img src="${p}" alt="${esc(id)} p${j+1}" loading="lazy"></div><div class="pagebar"><span>${esc(t("page"))} ${j+1}/${d.pages.length}</span><button type="button" class="zoombtn">${esc(t("zoom"))}</button></div></div>`).join("")}</div>`;
+}
+let DOC_LOADING = {};
+function loadChemDoc(id){
+  if(DOC_LOADING[id]) return; DOC_LOADING[id] = 1;
+  fetchEnc(`chemdocs/${id}.enc.json`, false).then(e=>{ if(!e) throw new Error("no doc"); return decryptJSON(e, PW); }).then(d=>{ DOCS[id] = d; }).catch(()=>{ DOCS[id] = {err:1}; }).finally(()=>{ DOC_LOADING[id] = 0; if(location.hash.startsWith("#chem/manage") || CH.tab==="manage") route(true); });
+}
+function chemManage(){
+  const M = CHEM.ref.manage, stock = stockRows();
+  const cards = M.items.map(it=>{
+    const s = stock.find(r=>r.key===it.stock);
+    const rx = new RegExp(it.match || it.name);
+    const now = latestFor(rx);
+    const nowT = now.length ? `<h3>${esc(rt("latestT"))}</h3><div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(ct("tank"))}</th><th class="num">${esc(rt("concCol"))}</th><th class="num">pH</th></tr></thead><tbody>${now.map(x=>{ const ph = x.ph ? (isNum(x.ph.b)?x.ph.b:x.ph.a) : null;
+      return `<tr><td class="nowrap">${esc(x.k)}</td><td class="num">${x.tit?`<a href="#chem/tit" data-goto="tit§${esc(x.tit.ln)}§${esc(x.tit.key)}" class="${x.tit.ng || (it.conc && (x.tit.v < it.conc[0] || x.tit.v > it.conc[1]))?"ngv":""}">${Math.round(x.tit.v*100)/100}</a> <span class="sub">${esc(md(x.tit.d))}</span>`:"—"}</td><td class="num">${x.ph?`<a href="#chem/ph" data-goto="ph§${esc(x.ph.l)}§${esc(x.ph.key)}" class="${outOf(ph,x.ph.lo,x.ph.hi)?"ngv":""}">${ph}</a> <span class="sub">${esc(md(x.ph.d))}</span>`:"—"}</td></tr>`; }).join("")}</tbody></table></div>` : "";
+    const spec = `<h3>${esc(rt("specT"))}</h3><div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(rt("itemCol"))}</th><th>${esc(rt("stdCol"))}</th><th>${esc(rt("rngCol"))}</th><th>${esc(rt("formCol"))}</th></tr></thead><tbody>${it.spec.map(x=>`<tr><td class="nowrap"><b>${esc(L_(x.k))}</b></td><td>${esc(L_(x.std))}</td><td>${esc(L_(x.rng))}</td><td>${esc(L_(x.form))}</td></tr>`).join("")}</tbody></table></div>`;
+    const secs = it.sections.map(sc=>`<h3>${esc(L_(sc.t))}</h3><${sc.ol?"ol":"ul"} class="mlist">${sc.li.map(x=>`<li>${esc(L_(x))}</li>`).join("")}</${sc.ol?"ol":"ul"}>`).join("");
+    const docs = `<div class="docbtns">${it.docs.map(d=>`<button type="button" class="btn small${CH.doc===d.id?"":" ghost"}" data-doc="${esc(d.id)}" aria-pressed="${CH.doc===d.id}">${esc(rt("openDoc"))}：${esc(L_(d.label))} <span class="sub">${d.n}p</span></button>`).join("")}</div>`;
+    const open = it.docs.find(d=>d.id===CH.doc);
+    return `<div class="card" id="mg-${esc(it.id)}"><h2>${esc(it.name)} <span class="sub">${esc(L_(it.kind))}</span></h2>
+      <div class="chips" style="margin-top:4px"><span class="chip"><b>${esc(rt("makerT"))}</b>${esc(L_(it.maker))}</span><span class="chip"><b>${esc(rt("whereT"))}</b>${esc(L_(it.where))}</span>${s?`<a class="chip" href="#chem/stock/${encodeURIComponent(s.key)}"><b>${esc(rt("stockNow"))}</b>${fmtKg(s.cur)} kg ${stBadge(s)}</a>`:""}</div>
+      ${nowT}${spec}${secs}${docs}${open?`<div class="cdoc"><h4>${esc(it.name)} — ${esc(L_(open.label))} <button type="button" class="linkbtn" data-doc="${esc(open.id)}" style="float:right">${esc(ct("close"))}</button></h4>${docViewer(open.id)}</div>`:""}
+      <p class="sub" style="margin:10px 0 0">${esc(rt("srcT"))}: ${esc(L_(it.src))}</p></div>`;
+  }).join("");
+  return `<div class="card"><h2>${esc(rt("manageT"))}</h2><p class="sub" style="margin:0">${esc(rt("manageSub"))}</p>
+    <div class="filters" style="margin-top:8px">${M.items.map(it=>`<a class="btn small ghost" style="text-decoration:none" href="#chem/manage" data-lnjump="mg-${esc(it.id)}">${esc(it.name)}</a>`).join("")}</div>
+    <p class="sub" style="margin:8px 0 0">${esc(rt("addMore"))}</p></div>${cards}`;
+}
+
+function chemRefWire(){
+  if(!REF_TABS.includes(CH.tab)) return;
+  main.querySelectorAll("[data-ropen]").forEach(r=>r.addEventListener("click",e=>{ e.preventDefault(); CH.refOpen = CH.refOpen===r.dataset.ropen ? "" : r.dataset.ropen; if(location.hash !== "#chem/stock") history.replaceState(null, "", "#chem/stock"); route(true); }));
+  const sa = document.getElementById("stockAll"); if(sa) sa.addEventListener("click",()=>{ CH.stockAll = !CH.stockAll; route(true); });
+  main.querySelectorAll("[data-doc]").forEach(b=>b.addEventListener("click",()=>{ CH.doc = CH.doc===b.dataset.doc ? "" : b.dataset.doc; route(true); const c = b.closest(".card"); if(c && CH.doc) setTimeout(()=>{ const v = c.querySelector(".cdoc"); if(v) v.scrollIntoView({behavior:"smooth", block:"start"}); }, 30); }));
+  main.querySelectorAll("[data-goto]").forEach(a=>a.addEventListener("click",e=>{ e.preventDefault(); const [tab, line, key] = a.dataset.goto.split("§"); CH.line = line; CH.open = key; CH.ng = false; CH.date = ""; location.hash = "#chem/" + tab; }));
+  main.querySelectorAll("[data-lnjump]").forEach(a=>a.addEventListener("click",e=>{ e.preventDefault(); const el = document.getElementById(a.dataset.lnjump); if(el) el.scrollIntoView({behavior:"smooth", block:"start"}); }));
+  main.querySelectorAll(".cdoc .zoombtn").forEach(btn=>btn.addEventListener("click",()=>{ const img = btn.closest("div").previousElementSibling.querySelector("img"); const z = img.classList.toggle("zoomed"); btn.textContent = z ? t("unzoom") : t("zoom"); }));
+}
+
+/* ---------- routing ---------- */
 let lastRoute = "";
 function route(keepScroll){
   if(!DATA) return;
