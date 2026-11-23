@@ -179,6 +179,30 @@ td.num,th.num{text-align:right}
 .today .meta{font-size:12px;color:var(--muted);margin-top:3px;overflow-wrap:anywhere}
 .today .src{display:inline-block;font-size:11px;padding:0 7px;border-radius:999px;border:1px solid var(--line2);margin-right:4px}
 .today .go{flex:0 0 auto;font-size:12px;color:var(--accent);align-self:center}
+/* visitors: visitor schedule (visitors.enc.json, imported from the Visitors schedule PPTX) */
+#visCard{border-color:color-mix(in srgb,var(--accent) 25%,var(--line))}
+.vis-days{display:flex;flex-direction:column}
+.vis-day{display:grid;grid-template-columns:104px 1fr;gap:10px;padding:9px 8px;margin:0 -8px;border-top:1px solid var(--line);border-radius:8px}
+.vis-day:first-child{border-top:0}
+.vis-day.is-today{background:color-mix(in srgb,var(--accent) 12%,transparent);border-top-color:transparent}
+.vis-day .dt{font-family:var(--mono);font-size:13.5px;font-weight:600;white-space:nowrap}
+.vis-day .now{display:block;width:fit-content;margin-top:3px;font-family:inherit;font-size:11px;font-weight:600;padding:0 7px;border-radius:999px;background:var(--accent);color:#fff;vertical-align:1px}
+.vis-day.is-empty .dt,.vis-day .none{color:var(--muted)}
+.vis-it{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.vis-it li{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;overflow-wrap:anywhere}
+.vis-it .tm{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent)}
+.vis-it .x{font-weight:600}
+.vis-it .tag,.vis-lg .tag{font-size:10.5px;padding:0 7px;border-radius:999px;border:1px solid var(--line2);color:var(--muted);white-space:nowrap}
+.vis-it .event .tag,.vis-lg.event .tag{border-color:color-mix(in srgb,var(--accent) 55%,var(--line2));color:var(--accent)}
+.vis-it .out .tag,.vis-lg.out .tag{border-color:color-mix(in srgb,var(--warn) 55%,var(--line2));color:var(--warn)}
+.vis-it .leave .x{font-weight:400;font-size:13px;color:var(--muted)}
+.vis-legend{display:flex;gap:6px;flex-wrap:wrap}
+.vis-week .wk{font-family:var(--mono);color:var(--accent);margin-right:4px}
+.vis-week .badge{font-size:11px;font-weight:600;padding:1px 8px;border-radius:999px;background:var(--soft);color:var(--accent);vertical-align:2px}
+.vis-week.is-cur{border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.vis-src{margin:8px 0 0;font-size:11.5px}
+.vis-past{margin:18px 4px 8px;font-size:14px;color:var(--muted)}
+@media (max-width:560px){.vis-day{grid-template-columns:1fr;gap:4px}.vis-day .now{display:inline-block;margin:0 0 0 6px}}
 /* home */
 .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:4px 0 14px}
 .stat{display:flex;flex-direction:column;gap:2px;text-align:left;font:inherit;color:inherit;background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;cursor:pointer;position:relative;overflow:hidden;box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
@@ -356,7 +380,7 @@ a.chip{text-decoration:none}
 </div>
 
 <script>
-const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", chem:"chem.enc.json", today:"today.enc.json", repoDir:"beta/", build:"2026-11-18" };
+const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", chem:"chem.enc.json", today:"today.enc.json", visitors:"visitors.enc.json", repoDir:"beta/", build:"2026-11-23" };
 let PW = null, DATA = null, FIELD = {entries:[]}, FLOWDOCS = null, FLOW_LOADING = null, EDIT = null;
 let CUSTOMERS = [], PRODUCTS = [], ISSUES = [], EVENTS = [], FLOWSTEPS = [], CAUTIONS = [];
 let byP = {}, byC = {}, byI = {};
@@ -586,7 +610,7 @@ function renderLock(msg){
   document.getElementById("lockForm").addEventListener("submit", async e => { e.preventDefault(); const pw = document.getElementById("pw").value; document.getElementById("err").textContent = t("checking"); try{ await unlock(pw); ls.set("karte.pw", pw); }catch(_){ document.getElementById("err").textContent = t("wrong"); } });
   setTimeout(()=>{ const p=document.getElementById("pw"); if(p) p.focus(); }, 50);
 }
-function lock(){ ls.del("karte.pw"); ls.del("karte.editpw"); ls.del("karte.vlpw"); VLPRIV = null; VLPKCS8 = null; VL = null; VL_LOADING = null; PW=null; DATA=null; EDIT=null; FIELD={entries:[]}; FLOWDOCS=null; FLOW_LOADING=null; CHEM=null; CHEM_LOADING=null; TODAY=null; KEYS.clear(); renderLock(""); }
+function lock(){ ls.del("karte.pw"); ls.del("karte.editpw"); ls.del("karte.vlpw"); VLPRIV = null; VLPKCS8 = null; VL = null; VL_LOADING = null; PW=null; DATA=null; EDIT=null; FIELD={entries:[]}; FLOWDOCS=null; FLOW_LOADING=null; CHEM=null; CHEM_LOADING=null; TODAY=null; VIS=null; KEYS.clear(); renderLock(""); }
 async function unlock(pw){
   if(!(window.crypto && crypto.subtle)) throw new Error("no webcrypto");
   const e = await fetchEnc(CONF.data, true); if(!e) throw new Error("no data");
@@ -597,6 +621,7 @@ async function unlock(pw){
   await loadField(); route(true);
   loadChem().then(()=>{ if(!location.hash || location.hash.startsWith("#chem")) route(true); }).catch(()=>{});
   loadToday().then(()=>{ if(!location.hash) route(true); }).catch(()=>{});
+  loadVisitors().then(()=>{ if(!location.hash || location.hash.startsWith("#visitors")) route(true); }).catch(()=>{});
 }
 
 /* ---------- edit mode ---------- */
@@ -973,6 +998,7 @@ function vlLabel(e){
   if(e.k==="i"){ const i = byI[e.id]; return {href:`#i/${encodeURIComponent(e.id)}`, text:`問題：${i?(i.title||e.id):e.id}`, sub:""}; }
   if(e.k==="e"){ const x = entryById(e.id); return {href:`#e/${encodeURIComponent(e.id)}`, text:`記録：${x?(x.title||firstLine(x.text)||e.id):e.id}`, sub:""}; }
   if(e.k==="chem") return {href:`#chem${e.id?"/"+e.id:""}`, text:`薬液の記録${e.id?`（${e.id}）`:""}`, sub:""};
+  if(e.k==="visitors") return {href:"#visitors", text:"来客・予定", sub:""};
   if(e.k==="home") return {href:"#", text:"ホーム", sub:""};
   if(e.k==="staff") return {href:"#staff", text:"担当者の管理", sub:""};
   return {href:"#", text:`${e.k} ${e.id}`, sub:""};
@@ -1034,7 +1060,7 @@ function renderViewlog(msg, isErr){
       <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end">
         <label class="field" style="flex:1 1 140px;margin:0">人<select id="vfWho">${opt("","全員",VLF.who)}${names.map(n=>opt(n,n,VLF.who)).join("")}</select></label>
         <label class="field" style="flex:1 1 110px;margin:0">期間<select id="vfDays">${opt("1","24時間",VLF.days)}${opt("7","7日",VLF.days)}${opt("30","30日",VLF.days)}${opt("90","90日",VLF.days)}${opt("","すべて",VLF.days)}</select></label>
-        <label class="field" style="flex:1 1 110px;margin:0">ページ<select id="vfKind">${opt("","すべて",VLF.kind)}${opt("p","製品",VLF.kind)}${opt("c","会社",VLF.kind)}${opt("i","問題",VLF.kind)}${opt("e","記録",VLF.kind)}${opt("chem","薬液",VLF.kind)}${opt("home","ホーム",VLF.kind)}</select></label>
+        <label class="field" style="flex:1 1 110px;margin:0">ページ<select id="vfKind">${opt("","すべて",VLF.kind)}${opt("p","製品",VLF.kind)}${opt("c","会社",VLF.kind)}${opt("i","問題",VLF.kind)}${opt("e","記録",VLF.kind)}${opt("chem","薬液",VLF.kind)}${opt("visitors","来客予定",VLF.kind)}${opt("home","ホーム",VLF.kind)}</select></label>
         <label class="field" style="flex:2 1 160px;margin:0">図番・品名<input id="vfQ" type="text" value="${esc(VLF.q)}" placeholder="例 T150173630"></label>
         <button type="button" class="btn small ghost" id="vfReload">読み込み直す</button></div>
       <p class="sub" style="margin:10px 0 0">記録 ${base.length} 件・${plist.length} 人${pending?` ・ この端末で未送信 ${pending} 件`:""}。スマホからは数分ごと（画面を閉じたとき）に送られます。</p></div>
@@ -1322,6 +1348,7 @@ function renderHome(q){
   const latest = PRODUCTS.filter(p=>p.quotedAt || p.addedInField).sort((a,b)=>String(b.quotedAt||"").localeCompare(String(a.quotedAt||""))).slice(0,6);
   const stat = (id, lb, v, go, warn) => `<button type="button" class="stat${warn?" warn":""}" data-go="${id}"><span class="lb">${esc(lb)}</span><span class="v">${v}</span><span class="go">${esc(go)}</span></button>`;
   main.innerHTML = `${todayCardHTML()}<div class="stats">${stat("find", t("stProducts"), PRODUCTS.length, t("goFind"))}${stat("quoting", t("stQuoting"), quoting.length, t("goQuote"))}${stat("issues", t("stOpen"), oi.length+ofi.length, t("goOpen"), (oi.length+ofi.length)>0)}${stat("recent", t("stWeek"), nWeek, t("goRecent"))}${chemStat()}</div>
+    ${visitorsHomeCard()}
     ${quickCardHTML()}
     <div class="card" id="custs"><h2>${esc(t("customers"))} <span class="sub">${esc(t("nCust")(CUSTOMERS.length))}</span></h2><div class="cust">${CUSTOMERS.map(c=>{ const n = PRODUCTS.filter(p=>p.customer===c.id).length, o = openIssues(c.id).length + openFieldIssues(c.id).length; return `<a href="#c/${encodeURIComponent(c.id)}"><span class="mono">${monoOf(c)}</span><span class="ct"><div class="nm">${esc(tx(c,"name"))}</div><div class="meta">${esc(t("nProducts")(n))}${o?` ・ <span class="o">${esc(t("openShort"))} ${o}</span>`:""}</div></span></a>`; }).join("")}</div></div>
     ${chemHomeCard()}
@@ -1770,6 +1797,81 @@ function todayCardHTML(){
   return `<div class="card" id="todayCard"><h2>${esc(td("title"))} <span class="sub">${isToday && TODAY.updated ? esc(td("upd")(hm(TODAY.updated))) + " ・ " : ""}${esc(td("n")(items.length))}</span></h2>
     ${items.length ? `<ol class="list today">${items.map(li).join("")}</ol>` : `<p class="empty">${esc(td("empty"))}</p>`}
     <p class="sub" style="margin:8px 0 0">${esc(td("hint"))}</p></div>`;
+}
+
+/* ---------- 来客予定 (visitors.enc.json, 2026-11-23)
+   Imported from the weekly "Visitors schedule WKxx-yy.pptx" on the server by visitor\visitor_update.ps1 (weekdays 8:00 / 12:00 / 17:00).
+   {built, from, files, weeks:[{wk, mon:"yyyy-MM-dd", file, fileTime, others:[file], days:[{d, items:[{t:"13:00"|"", x:"text", k:"event"|"out"|"leave"}]}]}]}
+   Texts stay as written in the slide (English), in both languages. */
+let VIS = null;
+const VT = {
+  ja:{ title:"来客・予定", sub:"サーバーの「Visitors schedule」（PowerPoint）から取り込んでいます。入力は今までどおり PowerPoint へ。",
+    home:"今週・来週の来客・予定", seeAll:"すべて見る →", today:"今日", thisWeek:"今週", nextWeek:"来週", past:"過去の週",
+    none:"今週・来週の予定は、まだありません。", empty:"—", noWeek:"この週の予定は、まだ入っていません。",
+    kinds:{event:"来客・会議", out:"外出・訪問", leave:"休み"}, src:"元ファイル", upd:"保存", built:"最終取り込み",
+    window:"過去 4 週と、この先の予定を載せています。平日 8:00・12:00・17:00 に取り込み（変わったときだけ更新）。",
+    loading:"来客予定を読み込み中…", loadFail:"来客予定を読み込めませんでした。", dow:["日","月","火","水","木","金","土"], more:n=>`ほか ${n} 日` },
+  th:{ title:"ผู้มาเยือน・กำหนดการ", sub:"นำเข้าจาก \"Visitors schedule\" (PowerPoint) บนเซิร์ฟเวอร์ การกรอกข้อมูลยังคงทำใน PowerPoint เหมือนเดิม",
+    home:"ผู้มาเยือน・กำหนดการ สัปดาห์นี้และสัปดาห์หน้า", seeAll:"ดูทั้งหมด →", today:"วันนี้", thisWeek:"สัปดาห์นี้", nextWeek:"สัปดาห์หน้า", past:"สัปดาห์ที่ผ่านมา",
+    none:"ยังไม่มีกำหนดการในสัปดาห์นี้และสัปดาห์หน้า", empty:"—", noWeek:"ยังไม่มีกำหนดการในสัปดาห์นี้",
+    kinds:{event:"ผู้มาเยือน・ประชุม", out:"ออกไปข้างนอก・เยี่ยมลูกค้า", leave:"ลา"}, src:"ไฟล์ต้นฉบับ", upd:"บันทึก", built:"นำเข้าล่าสุด",
+    window:"แสดง 4 สัปดาห์ที่ผ่านมาและกำหนดการล่วงหน้า นำเข้าวันจันทร์–ศุกร์ เวลา 8:00・12:00・17:00 (อัปเดตเฉพาะเมื่อมีการเปลี่ยนแปลง)",
+    loading:"กำลังโหลดกำหนดการ…", loadFail:"โหลดกำหนดการไม่สำเร็จ", dow:["อา.","จ.","อ.","พ.","พฤ.","ศ.","ส."], more:n=>`อีก ${n} วัน` }
+};
+const vt = k => VT[LANG][k];
+async function loadVisitors(){
+  const e = await fetchEnc(CONF.visitors, true);
+  VIS = e ? await decryptJSON(e, PW) : {weeks:[]};
+  return VIS;
+}
+const vDate = s => new Date(+s.slice(0,4), +s.slice(5,7)-1, +s.slice(8,10));
+const vMD = s => s ? `${+s.slice(5,7)}/${+s.slice(8,10)}` : "";
+const vDay = s => `${vMD(s)}（${vt("dow")[vDate(s).getDay()]}）`;
+const vMon = () => { const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - ((d.getDay()+6)%7)); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+const vAddDays = (s, n) => { const d = vDate(s); d.setDate(d.getDate()+n); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+function vItems(items){
+  // visitors and meetings first (by time), then visits outside, then leave
+  const rank = {event:0, out:1, leave:2};
+  const its = (items||[]).slice().sort((a,b)=> (rank[a.k]??0)-(rank[b.k]??0) || String(a.t||"99").padStart(5,"0").localeCompare(String(b.t||"99").padStart(5,"0")));
+  return `<ul class="vis-it">${its.map(it=>`<li class="${["event","out","leave"].includes(it.k)?it.k:"event"}">${it.t?`<span class="tm">${esc(it.t)}</span>`:""}<span class="tag">${esc(vt("kinds")[it.k]||vt("kinds").event)}</span><span class="x">${esc(it.x)}</span></li>`).join("")}</ul>`;
+}
+function vDayRow(d, td){
+  const has = (d.items||[]).length;
+  return `<div class="vis-day${d.d===td?" is-today":""}${has?"":" is-empty"}"><div class="dt">${esc(vDay(d.d))}${d.d===td?`<span class="now">${esc(vt("today"))}</span>`:""}</div><div class="its">${has ? vItems(d.items) : `<span class="none">${esc(vt("empty"))}</span>`}</div></div>`;
+}
+function visitorsHomeCard(){
+  if(!VIS || !(VIS.weeks||[]).length) return "";
+  const td = today(), mon = vMon(), end = vAddDays(mon, 13);
+  const days = [];
+  for(const w of VIS.weeks) for(const d of (w.days||[])) if(d.d >= td && d.d <= end && (d.items||[]).length) days.push(d);
+  const MAXD = 6, shown = days.slice(0, MAXD);
+  return `<div class="card" id="visCard"><h2>${esc(vt("home"))} <span class="sub">${VIS.built?esc(vt("built"))+" "+esc(vMD(VIS.built)+" "+VIS.built.slice(11,16)):""}</span></h2>
+    ${shown.length ? `<div class="vis-days">${shown.map(d=>vDayRow(d, td)).join("")}</div>` : `<p class="empty">${esc(vt("none"))}</p>`}
+    <p class="sub" style="margin:8px 0 0">${days.length>MAXD?esc(vt("more")(days.length-MAXD))+" ・ ":""}<a href="#visitors">${esc(vt("seeAll"))}</a></p></div>`;
+}
+function renderVisitors(){
+  if(!VIS){
+    main.innerHTML = `<div class="card"><p class="note">${esc(vt("loading"))}</p></div>`;
+    loadVisitors().then(()=>{ if(location.hash.startsWith("#visitors")) route(true); }).catch(()=>{ main.innerHTML = `<div class="card"><p class="note">${esc(vt("loadFail"))}</p></div>`; });
+    return;
+  }
+  const td = today(), mon = vMon(), next = vAddDays(mon, 7);
+  const weeks = (VIS.weeks||[]).slice();
+  const cur = weeks.filter(w=>w.mon >= mon).sort((a,b)=>a.mon.localeCompare(b.mon));
+  const past = weeks.filter(w=>w.mon < mon).sort((a,b)=>b.mon.localeCompare(a.mon));
+  const wcard = w => {
+    const fri = (w.days||[]).length ? w.days[w.days.length-1].d : w.mon;
+    const tag = w.mon===mon ? vt("thisWeek") : w.mon===next ? vt("nextWeek") : "";
+    const n = (w.days||[]).reduce((s,d)=>s+(d.items||[]).length, 0);
+    return `<div class="card vis-week${w.mon===mon?" is-cur":""}"><h2><span class="wk">WK${esc(String(w.wk))}</span> ${esc(vMD(w.mon))}〜${esc(vMD(fri))}${tag?` <span class="badge">${esc(tag)}</span>`:""}</h2>
+      ${n ? `<div class="vis-days">${(w.days||[]).map(d=>vDayRow(d, td)).join("")}</div>` : `<p class="empty">${esc(vt("noWeek"))}</p>`}
+      <p class="sub vis-src">${esc(vt("src"))}: ${esc(w.file||"")}（${esc(vt("upd"))} ${esc(vMD(w.fileTime||"")+" "+String(w.fileTime||"").slice(11,16))}）</p></div>`;
+  };
+  const legend = ["event","out","leave"].map(k=>`<span class="vis-lg ${k}"><span class="tag">${esc(vt("kinds")[k])}</span></span>`).join("");
+  main.innerHTML = `<div class="card"><h2>${esc(vt("title"))} <span class="sub">${VIS.built?esc(vt("built"))+" "+esc(vMD(VIS.built)+" "+VIS.built.slice(11,16)):""}</span></h2>
+      <p class="sub" style="margin:0 0 6px">${esc(vt("sub"))}</p><p class="sub" style="margin:0 0 8px">${esc(vt("window"))}</p><div class="vis-legend">${legend}</div></div>
+    ${cur.map(wcard).join("")}
+    ${past.length?`<h3 class="vis-past">${esc(vt("past"))}</h3>${past.map(wcard).join("")}`:""}`;
 }
 
 /* ---------- 薬液の記録 (chem.enc.json: pH / titration / FF-250 / Hot Top Seal temperature, imported from FON's Excel) ---------- */
@@ -2261,6 +2363,7 @@ function route(keepScroll){
   else if(h==="editlog") renderEditlog();
   else if(h==="mypin") renderSetPin();
   else if(h==="chem" || h.startsWith("chem/")){ renderChem(h.slice(5)); logView("chem", h.slice(5)); }
+  else if(h==="visitors"){ renderVisitors(); logView("visitors", ""); }
   else if(h.startsWith("c/") && byC[h.slice(2)]){ renderCustomer(byC[h.slice(2)]); logView("c", h.slice(2)); }
   else if(h.startsWith("i/") && byI[h.slice(2)]){ renderIssue(byI[h.slice(2)]); logView("i", h.slice(2)); }
   else if(h.startsWith("e/") && entryById(h.slice(2))){ renderEntry(entryById(h.slice(2))); logView("e", h.slice(2)); }
