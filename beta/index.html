@@ -2013,9 +2013,9 @@ function renderVisitors(){
 /* ---------- 薬液の記録 (chem.enc.json: pH / titration / FF-250 / Hot Top Seal temperature, imported from FON's Excel) ---------- */
 let CHEM = null, CHEM_LOADING = null;
 const CH = { tab:"ph", date:"", line:"", ng:false, open:"", gran:"day", wkAll:false, refOpen:"", stockAll:false, doc:"" };
-const REF_TABS = ["stock","line","manage"], CHEM_TABS = ["ph","tit","ff","temp","stock","line","manage"];
+const REF_TABS = ["stock","line","manage","wk"], CHEM_TABS = ["ph","tit","ff","temp","wk","stock","line","manage"];
 const CT = {
-  ja:{ chem:"薬液の記録", chemSub:"FONさんの日常点検（サーバーの Excel）から取り込んだ記録です。入力は今までどおり Excel へ。", tabs:{ph:"pH",tit:"滴定（濃度）",ff:"FF-250",temp:"封孔の温度",stock:"在庫",line:"LINE・槽",manage:"管理方法"},
+  ja:{ chem:"薬液の記録", chemSub:"FONさんの日常点検（サーバーの Excel）から取り込んだ記録です。入力は今までどおり Excel へ。", tabs:{ph:"pH",tit:"滴定（濃度）",ff:"FF-250",temp:"封孔の温度",wk:"週の分析・交換",stock:"在庫",line:"LINE・槽",manage:"管理方法"},
     built:"最終取り込み", range:"期間", stChem:"薬液の規格外", goChem:"薬液を見る →", latestNG:d=>`最新の記録（${d}）の規格外`, noNG:"規格外はありません。", allOk:"すべて規格内",
     prev:"← 前の日", next:"次の日 →", allLines:"全ライン", ngOnly:"規格外だけ", tank:"槽", chemName:"薬品・水", spec:"規格", remark:"備考", noSpec:"規格なし",
     ngCount:(n,m)=>`規格外 ${n} ／ 測定 ${m}`, trend:"推移", tapTrend:"行をタップすると推移グラフが出ます。", close:"閉じる",
@@ -2030,7 +2030,7 @@ const CT = {
     window:"直近 2 か月分だけ載せています（それより前の記録は自動で外れます）。毎日 17:30 に取り込み。",
     weekly:"週ごとの推移（規格外があった槽）", weeklyFF:"週ごとの推移", weeklySub:"太線＝その週の平均、縦の帯＝その週の最低〜最高、赤い数字＝その週の規格外の回数。", noWeekly:"直近 2 か月に規格外があった槽はありません。",
     showAll:n=>`すべて表示（${n} 槽）`, showLess:"少なく表示", wkOf:"週", ngIn:(n,m)=>`規格外 ${n} / ${m} 回` },
-  th:{ chem:"บันทึกน้ำยา", chemSub:"ข้อมูลจากการตรวจเช็คประจำวันของคุณฝน (Excel บนเซิร์ฟเวอร์) การกรอกข้อมูลยังคงทำใน Excel เหมือนเดิม", tabs:{ph:"pH",tit:"ไตเตรท (ความเข้มข้น)",ff:"FF-250",temp:"อุณหภูมิซีล",stock:"สต็อก",line:"ไลน์・บ่อ",manage:"วิธีควบคุม"},
+  th:{ chem:"บันทึกน้ำยา", chemSub:"ข้อมูลจากการตรวจเช็คประจำวันของคุณฝน (Excel บนเซิร์ฟเวอร์) การกรอกข้อมูลยังคงทำใน Excel เหมือนเดิม", tabs:{ph:"pH",tit:"ไตเตรท (ความเข้มข้น)",ff:"FF-250",temp:"อุณหภูมิซีล",wk:"วิเคราะห์รายสัปดาห์・เปลี่ยน",stock:"สต็อก",line:"ไลน์・บ่อ",manage:"วิธีควบคุม"},
     built:"นำเข้าล่าสุด", range:"ช่วงเวลา", stChem:"น้ำยานอกสเป็ก", goChem:"ดูน้ำยา →", latestNG:d=>`นอกสเป็กของบันทึกล่าสุด (${d})`, noNG:"ไม่มีค่านอกสเป็ก", allOk:"อยู่ในสเป็กทั้งหมด",
     prev:"← วันก่อน", next:"วันถัดไป →", allLines:"ทุกไลน์", ngOnly:"เฉพาะนอกสเป็ก", tank:"บ่อ", chemName:"น้ำยา・น้ำ", spec:"สเป็ก", remark:"หมายเหตุ", noSpec:"ไม่มีสเป็ก",
     ngCount:(n,m)=>`นอกสเป็ก ${n} / วัด ${m}`, trend:"แนวโน้ม", tapTrend:"แตะที่แถวเพื่อดูกราฟแนวโน้ม", close:"ปิด",
@@ -2132,7 +2132,7 @@ function renderChem(sub){
   const tabs = CHEM_TABS.map(k=>`<button type="button" role="tab" data-ctab="${k}" aria-selected="${k===tab}">${esc(ct("tabs")[k])}</button>`).join("");
   let body = "";
   if(tab==="ph") body = chemPH(); else if(tab==="tit") body = chemTit(); else if(tab==="ff") body = chemFF(); else if(tab==="temp") body = chemTemp();
-  else if(tab==="stock") body = chemStock(); else if(tab==="line") body = chemLines(); else body = chemManage();
+  else if(tab==="wk") body = chemWeekly(); else if(tab==="stock") body = chemStock(); else if(tab==="line") body = chemLines(); else body = chemManage();
   main.innerHTML = `<p><a href="#">${esc(t("backHome"))}</a></p>
     <div class="card"><h2>${esc(ct("chem"))}</h2><p class="sub" style="margin:0 0 4px">${esc(ct("chemSub"))}</p>
     <p class="sub num" style="margin:0">${esc(ct("built"))} ${esc(CHEM.built)} ・ ${esc(ct("range"))} ${esc(CHEM.from)} 〜 ${esc(CHEM.to)}</p><p class="sub" style="margin:2px 0 0">${esc(ct("window"))}</p></div>
@@ -2427,7 +2427,7 @@ function chemLines(){
     const note = rt("mism")[ln.id];
     return `<div class="card" id="ln-${esc(ln.id.replace(/\W/g,""))}"><h2>${esc(ln.title)} <span class="sub">${esc(rt("tanks")(ln.tanks.length))}${sum?` ・ ${esc(rt("liters"))} ${sum.toLocaleString()} L`:""}</span></h2>
       ${note?`<p class="note">${esc(note)}</p>`:""}${ja && ln.notes.length?`<ul class="sub" style="margin:4px 0 8px;padding-left:18px">${ln.notes.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}
-      <div class="tblwrap"><table class="ctbl"><thead><tr><th>No.</th><th>${esc(rt("procCol"))}</th><th>${esc(rt("chemCol2"))}</th><th class="num">${esc(rt("sizeCol"))}</th><th class="num">${esc(rt("capCol"))}</th>${match?`<th>${esc(rt("nowCol"))}</th>`:""}<th>${esc(rt("memoCol"))}</th></tr></thead><tbody>${rows}</tbody></table></div>${now}${wkLine(ln.id)}${wkTin(ln.id)}</div>`;
+      <div class="tblwrap"><table class="ctbl"><thead><tr><th>No.</th><th>${esc(rt("procCol"))}</th><th>${esc(rt("chemCol2"))}</th><th class="num">${esc(rt("sizeCol"))}</th><th class="num">${esc(rt("capCol"))}</th>${match?`<th>${esc(rt("nowCol"))}</th>`:""}<th>${esc(rt("memoCol"))}</th></tr></thead><tbody>${rows}</tbody></table></div>${now}${wkLink(ln.id)}</div>`;
   }).join("");
   const jump = `<div class="filters">${T.lines.map(ln=>`<a class="btn small ghost" style="text-decoration:none" href="#chem/line" data-lnjump="ln-${esc(ln.id.replace(/\W/g,""))}">${esc(ln.id)}</a>`).join("")}</div>`;
   return `<div class="card"><h2>${esc(rt("lineT"))}</h2><p class="sub" style="margin:0">${esc(rt("lineSub"))}</p>${legend}${jump}</div>${cards}`;
@@ -2476,7 +2476,7 @@ function chemManage(){
 
 function chemRefWire(){
   if(!REF_TABS.includes(CH.tab)) return;
-  if(CH.tab==="line") wkWire();
+  if(CH.tab==="line" || CH.tab==="wk") wkWire();
   main.querySelectorAll("[data-ropen]").forEach(r=>r.addEventListener("click",e=>{ e.preventDefault(); CH.refOpen = CH.refOpen===r.dataset.ropen ? "" : r.dataset.ropen; if(location.hash !== "#chem/stock") history.replaceState(null, "", "#chem/stock"); route(true); }));
   const sa = document.getElementById("stockAll"); if(sa) sa.addEventListener("click",()=>{ CH.stockAll = !CH.stockAll; route(true); });
   main.querySelectorAll("[data-doc]").forEach(b=>b.addEventListener("click",()=>{ CH.doc = CH.doc===b.dataset.doc ? "" : b.dataset.doc; route(true); const c = b.closest(".card"); if(c && CH.doc) setTimeout(()=>{ const v = c.querySelector(".cdoc"); if(v) v.scrollIntoView({behavior:"smooth", block:"start"}); }, 30); }));
@@ -2494,7 +2494,8 @@ const WRT = {
     evT:"ブックのメモ（希釈・建浴など）", snNote:sn=>`項目名には ${sn} と書いてあります（グラフの線と違います）`, wk:"週", src:(a,t)=>`${a}（${t} 更新）`,
     tinT:"錫めっき日報（サンデン・LINE 7）", tinSub:"Tin Plating Liquid（サンデン）ブックの毎日の記録。表は直近 14 日です。表の項目名を押すとグラフが変わります。",
     tin:{dph:"脱脂 pH",dg:"脱脂 g/L",dadd:"脱脂 補給 kg",koh:"KOH",tin:"錫",ph:"pH",th:"膜厚",q:"生産数",pe:"剥離",sm:"スマット",a60:"Alstan #60 kg",a60aa:"#60AA L",al:"Al g"},
-    dayCol:"日付", qWeek:n=>`直近 7 日の生産数 ${n.toLocaleString()} 個`, homeWk:"週1回の分析で規格外", noTin:"錫めっきの記録はまだありません。" },
+    dayCol:"日付", qWeek:n=>`直近 7 日の生産数 ${n.toLocaleString()} 個`, homeWk:"週1回の分析で規格外", noTin:"錫めっきの記録はまだありません。",
+    keep:"載せているのは直近 3 か月の記録です（古いものは自動で外れます）。", goWk:"週1回の分析（Suthep さん）と交換・継ぎ足しの記録は「週の分析・交換」タブへ →", none:"週1回の分析の記録はまだありません。" },
   th:{ wkT:"การวิเคราะห์รายสัปดาห์ (คุณสุเทพ)", wkSub:"จากไฟล์วิเคราะห์รายสัปดาห์ของแล็บ แตะที่แถวเพื่อดูกราฟแนวโน้มและบันทึกการเปลี่ยน・เจือจาง・เติม เลขบ่อตามที่เขียนในไฟล์",
     tankCol:"บ่อ (ตามไฟล์)", itemCol:"รายการ", lastCol:"ล่าสุด", specCol:"สเป็ก", prevCol:"ครั้งก่อน", addCol:"เติมครั้งล่าสุด",
     chgCol:"เปลี่ยน・เจือจาง", chg:"เปลี่ยน", dil:"เจือจาง", ago:n=>`${n} วันก่อน`, n30:n=>`30 วัน ${n} ครั้ง`,
@@ -2502,7 +2503,8 @@ const WRT = {
     evT:"บันทึกในไฟล์ (เจือจาง・เตรียมใหม่ ฯลฯ)", snNote:sn=>`ในชื่อหัวข้อเขียนว่า ${sn} (ไม่ตรงกับเส้นในกราฟ)`, wk:"สัปดาห์", src:(a,t)=>`${a} (อัปเดต ${t})`,
     tinT:"บันทึกชุบดีบุกประจำวัน (Sanden・LINE 7)", tinSub:"บันทึกประจำวันจากไฟล์ Tin Plating Liquid (Sanden) ตารางแสดง 14 วันล่าสุด กดที่ชื่อหัวข้อในตารางเพื่อเปลี่ยนกราฟ",
     tin:{dph:"ล้างไขมัน pH",dg:"ล้างไขมัน g/L",dadd:"เติมล้างไขมัน kg",koh:"KOH",tin:"ดีบุก",ph:"pH",th:"ความหนา",q:"จำนวนผลิต",pe:"ลอก",sm:"Smut",a60:"Alstan #60 kg",a60aa:"#60AA L",al:"Al g"},
-    dayCol:"วันที่", qWeek:n=>`จำนวนผลิต 7 วันล่าสุด ${n.toLocaleString()} ชิ้น`, homeWk:"นอกสเป็กในการวิเคราะห์รายสัปดาห์", noTin:"ยังไม่มีบันทึกชุบดีบุก" }
+    dayCol:"วันที่", qWeek:n=>`จำนวนผลิต 7 วันล่าสุด ${n.toLocaleString()} ชิ้น`, homeWk:"นอกสเป็กในการวิเคราะห์รายสัปดาห์", noTin:"ยังไม่มีบันทึกชุบดีบุก",
+    keep:"แสดงเฉพาะบันทึก 3 เดือนล่าสุด (ข้อมูลเก่าจะถูกนำออกอัตโนมัติ)", goWk:"การวิเคราะห์รายสัปดาห์ (คุณสุเทพ) และบันทึกเปลี่ยน・เติม ดูที่แท็บ \"วิเคราะห์รายสัปดาห์・เปลี่ยน\" →", none:"ยังไม่มีบันทึกการวิเคราะห์รายสัปดาห์" }
 };
 const wrt = k => WRT[LANG][k];
 const WK = () => (CHEM && CHEM.ref && CHEM.ref.wk) || null;
@@ -2532,7 +2534,8 @@ const wkEvKind = tx => /new\s*mix|chang/i.test(tx) ? "ch" : /d[a-z]{0,2}l[a-z]*u
 function wkHist(s){   // [{d, k:"ch"|"dl"|"memo"|"ad", t}] 新しい順
   const out = (s.ev||[]).map(e=>({ d:wkEvDate(e), k:wkEvKind(e[1]), t:e[1] }));
   for(const a of (s.ad||[])) out.push({ d:a[0], k:"ad", t:`+${a[1]}${a[2]?` ${a[2]}`:""}${a[3]?` ${a[3]}`:""}` });
-  return out.sort((x,y)=> (y.d||"0").localeCompare(x.d||"0"));
+  const cut = wkCut();   // 載せるのは直近 3 か月（日付のないメモは槽の説明として残す）
+  return out.filter(x=>!x.d || x.d >= cut).sort((x,y)=> (y.d||"0").localeCompare(x.d||"0"));
 }
 const wkLastOf = (h, k) => h.find(x=>x.k===k && x.d);
 function wkHistCell(s){
@@ -2555,7 +2558,22 @@ function wkTrend(s){
   const hist = h.length ? `<div class="sub" style="margin-top:8px"><b>${esc(wrt("histT"))}</b>${h.length>20?` <span class="sub">${esc(wrt("histMore")(h.length))}</span>`:""}</div><div class="tblwrap"><table class="ctbl"><tbody>${list}</tbody></table></div>` : "";
   return `<div class="trendbox">${blocks}${hist}<div class="sub" style="margin-top:4px">${esc(s.sh)}</div></div>`;
 }
-function wkLine(lineId){
+function wkCut(){ const c = new Date(); c.setDate(c.getDate()-92); return c.toISOString().slice(0,10); }
+const wkLnSort = (a, b) => a.localeCompare(b, "en", {numeric:true});
+function chemWeekly(){   // 薬液の記録 →「週の分析・交換」タブ（2026-11-26）
+  const w = WK(); if(!w) return `<div class="card"><p class="empty">${esc(wrt("none"))}</p></div>`;
+  if(CH.refOpen){ CH.wkOpen = CH.refOpen; CH.refOpen = ""; setTimeout(()=>{ const el = main.querySelector(`tr[data-wkopen="${CSS.escape(CH.wkOpen)}"]`); if(el) el.scrollIntoView({block:"center"}); }, 50); }
+  const lines = [...new Set(w.s.map(s=>s.ln).concat(w.tin ? [w.tin.ln] : []))].sort(wkLnSort);
+  const src = w.src.map(x=>wrt("src")(x.f, x.t)).join(" ・ ");
+  const jump = `<div class="filters">${lines.map(l=>`<a class="btn small ghost" style="text-decoration:none" href="#chem/wk" data-wkjump="${esc(l)}">${esc(l)}</a>`).join("")}</div>`;
+  return `<div class="card"><h2>${esc(wrt("wkT"))}</h2><p class="sub" style="margin:0 0 4px">${esc(wrt("wkSub"))}</p><p class="sub" style="margin:0 0 4px">${esc(wrt("keep"))}<br>${esc(src)}</p>${jump}</div>`
+    + lines.map(l=>`<div class="card" data-wkln="${esc(l)}"><h2>${esc(l)}</h2>${wkLine(l, true)}${wkTin(l)}</div>`).join("");
+}
+function wkLink(lineId){
+  const w = WK(); if(!w || !(w.s.some(s=>s.ln===lineId) || (w.tin && w.tin.ln===lineId))) return "";
+  return `<p class="sub" style="margin:8px 0 0"><a href="#chem/wk">${esc(wrt("goWk"))}</a></p>`;
+}
+function wkLine(lineId, bare){
   const w = WK(); if(!w) return "";
   const ss = w.s.filter(s=>s.ln===lineId); if(!ss.length) return "";
   const rows = ss.map(s=>{
@@ -2568,12 +2586,12 @@ function wkLine(lineId){
     return tr + (CH.wkOpen===s.id ? `<tr class="trow"><td colspan="7">${wkTrend(s)}</td></tr>` : "");
   }).join("");
   const src = w.src.filter(x=>x.k!=="tin").map(x=>wrt("src")(x.f, x.t)).join(" ・ ");
-  return `<h3>${esc(wrt("wkT"))}</h3><p class="sub" style="margin:0 0 4px">${esc(wrt("wkSub"))}<br>${esc(src)}</p>
+  return `${bare ? "" : `<h3>${esc(wrt("wkT"))}</h3><p class="sub" style="margin:0 0 4px">${esc(wrt("wkSub"))}<br>${esc(src)}</p>`}
     <div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(wrt("tankCol"))}</th><th>${esc(wrt("itemCol"))}</th><th class="num">${esc(wrt("lastCol"))}</th><th class="num">${esc(wrt("specCol"))}</th><th class="num">${esc(wrt("prevCol"))}</th><th>${esc(wrt("chgCol"))}</th><th class="num">${esc(wrt("addCol"))}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function wkNow(line, no){
   const w = WK(); if(!w) return "";
-  return w.s.filter(s=>s.ln===line && s.no===no).map(s=>s.it.map(it=>{ const l = wkLast(it); return l ? `<a href="#chem/line" data-wkopen="${esc(s.id)}" class="${wkCls(l[1],it.lo,it.hi)}">${esc(wrt("wk"))} ${wkFmt(l[1])} ${esc(it.u)}</a> <span class="sub">${esc(md(l[0]))}</span>` : ""; }).filter(Boolean).join("<br>")).filter(Boolean).join("<br>");
+  return w.s.filter(s=>s.ln===line && s.no===no).map(s=>s.it.map(it=>{ const l = wkLast(it); return l ? `<a href="#chem/wk" data-wkopen="${esc(s.id)}" class="${wkCls(l[1],it.lo,it.hi)}">${esc(wrt("wk"))} ${wkFmt(l[1])} ${esc(it.u)}</a> <span class="sub">${esc(md(l[0]))}</span>` : ""; }).filter(Boolean).join("<br>")).filter(Boolean).join("<br>");
 }
 function wkTin(lineId){
   const w = WK(); if(!w || !w.tin || w.tin.ln!==lineId) return "";
@@ -2595,10 +2613,11 @@ function wkTin(lineId){
 }
 function wkHomeLines(){
   const ng = wkNG(); if(!ng.length) return "";
-  return `<p class="sub" style="margin:8px 0 2px"><b>${esc(wrt("homeWk"))}</b></p><ul class="list">${ng.slice(0,6).map(({s,it,l})=>`<li><a href="#chem/line" data-wkhome="${esc(s.id)}"><span class="no">${esc(s.ln)} ${esc(s.tk)}</span> <span class="meta" style="display:inline">${esc(wkName(s))} ・ ${esc(wkItemName(s,it))}</span><span class="pr ngv">${wkFmt(l[1])}<small> (${it.lo}〜${it.hi}) ${esc(md(l[0]))}</small></span></a></li>`).join("")}</ul>${ng.length>6?`<p class="sub">… +${ng.length-6}</p>`:""}`;
+  return `<p class="sub" style="margin:8px 0 2px"><b>${esc(wrt("homeWk"))}</b></p><ul class="list">${ng.slice(0,6).map(({s,it,l})=>`<li><a href="#chem/wk/${encodeURIComponent(s.id)}"><span class="no">${esc(s.ln)} ${esc(s.tk)}</span> <span class="meta" style="display:inline">${esc(wkName(s))} ・ ${esc(wkItemName(s,it))}</span><span class="pr ngv">${wkFmt(l[1])}<small> (${it.lo}〜${it.hi}) ${esc(md(l[0]))}</small></span></a></li>`).join("")}</ul>${ng.length>6?`<p class="sub">… +${ng.length-6}</p>`:""}`;
 }
 function wkWire(){
-  main.querySelectorAll("[data-wkopen]").forEach(r=>r.addEventListener("click",e=>{ e.preventDefault(); e.stopPropagation(); const id = r.dataset.wkopen; CH.wkOpen = CH.wkOpen===id ? "" : id; if(location.hash !== "#chem/line") history.replaceState(null, "", "#chem/line"); route(true); setTimeout(()=>{ const el = main.querySelector(`tr[data-wkopen="${CSS.escape(id)}"]`); if(el && CH.wkOpen) el.scrollIntoView({behavior:"smooth", block:"center"}); }, 30); }));
+  main.querySelectorAll("[data-wkopen]").forEach(r=>r.addEventListener("click",e=>{ e.preventDefault(); e.stopPropagation(); const id = r.dataset.wkopen; CH.wkOpen = CH.wkOpen===id ? "" : id; if(location.hash !== "#chem/wk") history.replaceState(null, "", "#chem/wk"); CH.tab = "wk"; route(true); setTimeout(()=>{ const el = main.querySelector(`tr[data-wkopen="${CSS.escape(id)}"]`); if(el && CH.wkOpen) el.scrollIntoView({behavior:"smooth", block:"center"}); }, 30); }));
+  main.querySelectorAll("[data-wkjump]").forEach(a=>a.addEventListener("click",e=>{ e.preventDefault(); const el = main.querySelector(`[data-wkln="${CSS.escape(a.dataset.wkjump)}"]`); if(el) el.scrollIntoView({behavior:"smooth", block:"start"}); }));
   main.querySelectorAll("[data-tinkey]").forEach(b=>b.addEventListener("click",()=>{ CH.tinKey = b.dataset.tinkey; route(true); }));
 }
 
