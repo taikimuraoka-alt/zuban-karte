@@ -2487,14 +2487,18 @@ function chemRefWire(){
 
 /* ----- 週1回の分析（Suthep さんの color / Alumite ブック）と錫めっき日報（LINE 7）: chem.enc.json の ref.wk、chem\weekly_parse.ps1 が作る（2026-11-26） ----- */
 const WRT = {
-  ja:{ wkT:"週1回の分析（Suthep さん）", wkSub:"ラボの週次分析ブックから。行をタップすると推移のグラフと、希釈・建浴のメモが出ます。番号はブックに書かれたままです。",
-    tankCol:"槽（ブックの表記）", itemCol:"内容", lastCol:"最新", specCol:"規格", prevCol:"前回", addCol:"補給",
+  ja:{ wkT:"週1回の分析（Suthep さん）", wkSub:"ラボの週次分析ブックから。行をタップすると推移のグラフと、交換・希釈・継ぎ足しの記録が出ます。番号はブックに書かれたままです。",
+    tankCol:"槽（ブックの表記）", itemCol:"内容", lastCol:"最新", specCol:"規格", prevCol:"前回", addCol:"最後の継ぎ足し",
+    chgCol:"交換・希釈", chg:"交換", dil:"希釈", ago:n=>`${n}日前`, n30:n=>`30日で${n}回`,
+    histT:"交換・希釈・継ぎ足しの記録", histMore:n=>`（新しい 20 件／全 ${n} 件）`, hk:{ch:"交換",dl:"希釈",ad:"継ぎ足し",memo:"メモ"},
     evT:"ブックのメモ（希釈・建浴など）", snNote:sn=>`項目名には ${sn} と書いてあります（グラフの線と違います）`, wk:"週", src:(a,t)=>`${a}（${t} 更新）`,
     tinT:"錫めっき日報（サンデン・LINE 7）", tinSub:"Tin Plating Liquid（サンデン）ブックの毎日の記録。表は直近 14 日です。表の項目名を押すとグラフが変わります。",
     tin:{dph:"脱脂 pH",dg:"脱脂 g/L",dadd:"脱脂 補給 kg",koh:"KOH",tin:"錫",ph:"pH",th:"膜厚",q:"生産数",pe:"剥離",sm:"スマット",a60:"Alstan #60 kg",a60aa:"#60AA L",al:"Al g"},
     dayCol:"日付", qWeek:n=>`直近 7 日の生産数 ${n.toLocaleString()} 個`, homeWk:"週1回の分析で規格外", noTin:"錫めっきの記録はまだありません。" },
-  th:{ wkT:"การวิเคราะห์รายสัปดาห์ (คุณสุเทพ)", wkSub:"จากไฟล์วิเคราะห์รายสัปดาห์ของแล็บ แตะที่แถวเพื่อดูกราฟแนวโน้มและบันทึกการเจือจาง・เตรียมใหม่ เลขบ่อตามที่เขียนในไฟล์",
-    tankCol:"บ่อ (ตามไฟล์)", itemCol:"รายการ", lastCol:"ล่าสุด", specCol:"สเป็ก", prevCol:"ครั้งก่อน", addCol:"เติม",
+  th:{ wkT:"การวิเคราะห์รายสัปดาห์ (คุณสุเทพ)", wkSub:"จากไฟล์วิเคราะห์รายสัปดาห์ของแล็บ แตะที่แถวเพื่อดูกราฟแนวโน้มและบันทึกการเปลี่ยน・เจือจาง・เติม เลขบ่อตามที่เขียนในไฟล์",
+    tankCol:"บ่อ (ตามไฟล์)", itemCol:"รายการ", lastCol:"ล่าสุด", specCol:"สเป็ก", prevCol:"ครั้งก่อน", addCol:"เติมครั้งล่าสุด",
+    chgCol:"เปลี่ยน・เจือจาง", chg:"เปลี่ยน", dil:"เจือจาง", ago:n=>`${n} วันก่อน`, n30:n=>`30 วัน ${n} ครั้ง`,
+    histT:"บันทึกการเปลี่ยน・เจือจาง・เติม", histMore:n=>`(ล่าสุด 20 รายการ / ทั้งหมด ${n})`, hk:{ch:"เปลี่ยน",dl:"เจือจาง",ad:"เติม",memo:"บันทึก"},
     evT:"บันทึกในไฟล์ (เจือจาง・เตรียมใหม่ ฯลฯ)", snNote:sn=>`ในชื่อหัวข้อเขียนว่า ${sn} (ไม่ตรงกับเส้นในกราฟ)`, wk:"สัปดาห์", src:(a,t)=>`${a} (อัปเดต ${t})`,
     tinT:"บันทึกชุบดีบุกประจำวัน (Sanden・LINE 7)", tinSub:"บันทึกประจำวันจากไฟล์ Tin Plating Liquid (Sanden) ตารางแสดง 14 วันล่าสุด กดที่ชื่อหัวข้อในตารางเพื่อเปลี่ยนกราฟ",
     tin:{dph:"ล้างไขมัน pH",dg:"ล้างไขมัน g/L",dadd:"เติมล้างไขมัน kg",koh:"KOH",tin:"ดีบุก",ph:"pH",th:"ความหนา",q:"จำนวนผลิต",pe:"ลอก",sm:"Smut",a60:"Alstan #60 kg",a60aa:"#60AA L",al:"Al g"},
@@ -2510,14 +2514,46 @@ const wkName = s => { const k = WK().kinds[s.g]; return k ? (k[LANG] || k.ja) : 
 const wkItemName = (s, it) => { const k = WK().kinds[s.g], d = k && k.items.find(x=>x.k===it.k); return d ? (d[LANG] || d.ja) : it.k; };
 const wkFmt = v => isNum(v) ? (Math.abs(v) >= 100 ? Math.round(v*10)/10 : Math.round(v*100)/100) : "—";
 function wkNG(){ const w = WK(); if(!w) return []; const out = []; for(const s of w.s) for(const it of s.it){ const l = wkLast(it); if(l && outOf(l[1], it.lo, it.hi)) out.push({s, it, l}); } return out; }
+/* 交換・希釈・継ぎ足し（2026-11-26）: ev = ブックのメモ（New mix / Dilute）、ad = Actual refill・補給量 の行 */
+const WKMON = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+const wkYmd = d => { if(!d) return ""; const y = +d.slice(0,4); return y===new Date().getFullYear() ? md(d) : `${y}/${md(d)}`; };
+const wkDays = d => d ? Math.round((new Date(new Date().toISOString().slice(0,10)) - new Date(d)) / 864e5) : null;
+function wkEvDate(e){   // メモに書かれた日付（"New mix 25 Sept 26"）を優先。列の日付と 40 日以上ずれるときは列の日付
+  const m = /(\d{1,2})\s*([A-Za-z]{3,})\.?\s*'?\s*(\d{2,4})?/.exec(e[1]); let t = "";
+  if(m && WKMON[m[2].slice(0,3).toLowerCase()]){
+    let y = m[3] ? +m[3] : (e[0] ? +e[0].slice(0,4) : new Date().getFullYear()); if(y < 100) y += 2000;
+    const mo = WKMON[m[2].slice(0,3).toLowerCase()], dd = +m[1];
+    if(dd>=1 && dd<=31 && y>2000) t = `${y}-${String(mo).padStart(2,"0")}-${String(dd).padStart(2,"0")}`;
+  }
+  if(t && e[0] && Math.abs(new Date(t) - new Date(e[0])) > 40*864e5) t = "";
+  return t || e[0] || "";
+}
+const wkEvKind = tx => /new\s*mix|chang/i.test(tx) ? "ch" : /d[a-z]{0,2}l[a-z]*ute|dilu/i.test(tx) ? "dl" : "memo";
+function wkHist(s){   // [{d, k:"ch"|"dl"|"memo"|"ad", t}] 新しい順
+  const out = (s.ev||[]).map(e=>({ d:wkEvDate(e), k:wkEvKind(e[1]), t:e[1] }));
+  for(const a of (s.ad||[])) out.push({ d:a[0], k:"ad", t:`+${a[1]}${a[2]?` ${a[2]}`:""}${a[3]?` ${a[3]}`:""}` });
+  return out.sort((x,y)=> (y.d||"0").localeCompare(x.d||"0"));
+}
+const wkLastOf = (h, k) => h.find(x=>x.k===k && x.d);
+function wkHistCell(s){
+  const h = wkHist(s), ch = wkLastOf(h,"ch"), dl = wkLastOf(h,"dl");
+  const ads = h.filter(x=>x.k==="ad"), a0 = ads[0];
+  const c = new Date(); c.setDate(c.getDate()-30); const cut = c.toISOString().slice(0,10);
+  const n30 = ads.filter(x=>x.d > cut).length;
+  const one = (lab, x) => x ? `<span class="sub">${esc(lab)}</span> ${esc(wkYmd(x.d))} <span class="sub">(${esc(wrt("ago")(wkDays(x.d)))})</span>` : "";
+  const chg = [one(wrt("chg"), ch), one(wrt("dil"), dl)].filter(Boolean).join("<br>") || "—";
+  const add = a0 ? `${esc(wkYmd(a0.d))} ${esc(a0.t)}${n30?`<br><span class="sub">${esc(wrt("n30")(n30))}</span>`:""}` : "—";
+  return { chg, add };
+}
 function wkTrend(s){
   const blocks = s.it.map(it=>{
     const pts = it.p.map(p=>({d:p[0], v:p[1], t:p[2]?`+${p[2]}`:""}));
     return `<div class="sub" style="margin-top:6px"><b>${esc(wkItemName(s, it))}</b> ${esc(it.u)}${it.sn?` <span class="tag st">${esc(wrt("snNote")(it.sn))}</span>`:""}</div>${trendSVG(pts, it.lo, it.hi)}`;
   }).join("");
-  const adds = s.it[0].p.filter(p=>p[2]).slice(-8).map(p=>`${md(p[0])} +${p[2]}`).join(" ・ ");
-  const ev = s.ev.length ? `<div class="sub" style="margin-top:6px"><b>${esc(wrt("evT"))}</b><ul style="margin:2px 0 0;padding-left:18px">${s.ev.map(e=>`<li>${e[0]?`<span class="num">${esc(md(e[0]))}</span> `:""}${esc(e[1])}</li>`).join("")}</ul></div>` : "";
-  return `<div class="trendbox">${blocks}${adds?`<div class="sub" style="margin-top:6px"><b>${esc(wrt("addCol"))}</b> ${esc(adds)}</div>`:""}${ev}<div class="sub" style="margin-top:4px">${esc(s.sh)}</div></div>`;
+  const h = wkHist(s), K = wrt("hk");
+  const list = h.slice(0, 20).map(x=>`<tr><td class="num nowrap">${esc(wkYmd(x.d)||"—")}</td><td class="nowrap"><span class="tag ${({ch:"action",dl:"open",ad:"done",memo:"memo"})[x.k]}">${esc(K[x.k])}</span></td><td>${esc(x.t)}</td></tr>`).join("");
+  const hist = h.length ? `<div class="sub" style="margin-top:8px"><b>${esc(wrt("histT"))}</b>${h.length>20?` <span class="sub">${esc(wrt("histMore")(h.length))}</span>`:""}</div><div class="tblwrap"><table class="ctbl"><tbody>${list}</tbody></table></div>` : "";
+  return `<div class="trendbox">${blocks}${hist}<div class="sub" style="margin-top:4px">${esc(s.sh)}</div></div>`;
 }
 function wkLine(lineId){
   const w = WK(); if(!w) return "";
@@ -2527,13 +2563,13 @@ function wkLine(lineId){
     const vcell = lines.map(({it,l})=>l?`<span class="${wkCls(l[1],it.lo,it.hi)}">${wkFmt(l[1])}</span> <span class="sub">${esc(it.u)}${s.it.length>1?` ${esc(wkItemName(s,it))}`:""}</span>`:"—").join("<br>");
     const pcell = lines.map(({p})=>p?`${wkFmt(p[1])} <span class="sub">${esc(md(p[0]))}</span>`:"—").join("<br>");
     const scell = lines.map(({it})=>isNum(it.lo)?`${it.lo}〜${it.hi}`:"—").join("<br>");
-    const l0 = lines[0].l, add = l0 && l0[2] ? `+${l0[2]}` : "";
-    const tr = `<tr class="crow" data-wkopen="${esc(s.id)}"><td class="nowrap tk">${esc(s.tk)}</td><td>${esc(wkName(s))}<br><span class="sub">${esc(s.c)}</span></td><td class="num nowrap">${vcell}<br><span class="sub">${esc(md(s.last))}</span></td><td class="num nowrap">${scell}</td><td class="num nowrap">${pcell}</td><td class="num">${esc(add)}</td></tr>`;
-    return tr + (CH.wkOpen===s.id ? `<tr class="trow"><td colspan="6">${wkTrend(s)}</td></tr>` : "");
+    const hc = wkHistCell(s);
+    const tr = `<tr class="crow" data-wkopen="${esc(s.id)}"><td class="nowrap tk">${esc(s.tk)}</td><td>${esc(wkName(s))}<br><span class="sub">${esc(s.c)}</span></td><td class="num nowrap">${vcell}<br><span class="sub">${esc(md(s.last))}</span></td><td class="num nowrap">${scell}</td><td class="num nowrap">${pcell}</td><td class="nowrap">${hc.chg}</td><td class="num nowrap">${hc.add}</td></tr>`;
+    return tr + (CH.wkOpen===s.id ? `<tr class="trow"><td colspan="7">${wkTrend(s)}</td></tr>` : "");
   }).join("");
   const src = w.src.filter(x=>x.k!=="tin").map(x=>wrt("src")(x.f, x.t)).join(" ・ ");
   return `<h3>${esc(wrt("wkT"))}</h3><p class="sub" style="margin:0 0 4px">${esc(wrt("wkSub"))}<br>${esc(src)}</p>
-    <div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(wrt("tankCol"))}</th><th>${esc(wrt("itemCol"))}</th><th class="num">${esc(wrt("lastCol"))}</th><th class="num">${esc(wrt("specCol"))}</th><th class="num">${esc(wrt("prevCol"))}</th><th class="num">${esc(wrt("addCol"))}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    <div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(wrt("tankCol"))}</th><th>${esc(wrt("itemCol"))}</th><th class="num">${esc(wrt("lastCol"))}</th><th class="num">${esc(wrt("specCol"))}</th><th class="num">${esc(wrt("prevCol"))}</th><th>${esc(wrt("chgCol"))}</th><th class="num">${esc(wrt("addCol"))}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function wkNow(line, no){
   const w = WK(); if(!w) return "";
