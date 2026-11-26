@@ -324,6 +324,7 @@ footer{color:var(--muted);font-size:11.5px;margin-top:28px;text-align:center;let
 .daybar select{font:inherit;font-family:var(--mono);font-size:15px;padding:7px 10px;border:1px solid var(--line2);border-radius:10px;background:var(--card);color:var(--fg)}
 .cstat{margin:10px 0 6px;font-family:var(--mono);font-size:14px}
 .ngv{color:var(--bad);font-weight:600}
+.nearv{color:var(--warn);font-weight:600}
 .okv{color:var(--ok);font-weight:600}
 .ctbl{font-size:13.5px}
 .ctbl td,.ctbl th{padding:6px 7px}
@@ -2112,7 +2113,7 @@ function chemHomeCard(){
   const liT = r => `<li><a href="#chem/tit/${r.d}"><span class="no">${esc(r.ln)} ${esc(r.tk)}</span> <span class="meta" style="display:inline">${esc(r.c||phNameAt(r.ln,r.tk,r.d))} ・ ${esc(ct("conc"))}</span><span class="pr ngv">${Math.round(r.v*100)/100}<small> (${esc(specTx(r.s,r.lo,r.hi))})</small></span></a></li>`;
   return `<div class="card" id="chemHome"><h2>${esc(ct("chem"))} <span class="sub">${esc(ct("latestNG")(md(d)))}</span></h2>
     ${ng.length || ngT.length ? `<ul class="list">${ng.slice(0,5).map(li).join("")}${ngT.slice(0,3).map(liT).join("")}</ul>${ng.length+ngT.length>8?`<p class="sub">… +${Math.max(0,ng.length-5)+Math.max(0,ngT.length-3)}</p>`:""}` : `<p class="empty">${esc(ct("allOk"))}</p>`}
-    ${stockHomeLine()}
+    ${wkHomeLines()}${stockHomeLine()}
     <div class="actions"><a class="btn small ghost" href="#chem" style="text-decoration:none">${esc(ct("goChem"))}</a></div></div>`;
 }
 
@@ -2407,6 +2408,7 @@ function nowCell(m, line, no){
   const out = [];
   if(o.ph){ const r = o.ph, v = isNum(r.b) ? r.b : r.a, bad = outOf(v, r.lo, r.hi); out.push(`<a href="#chem/ph" data-goto="ph§${esc(r.l)}§${esc(r.key)}" class="${bad?"ngv":""}">pH ${v}</a> <span class="sub">${esc(md(r.d))}</span>`); }
   for(const r of tits){ out.push(`<a href="#chem/tit" data-goto="tit§${esc(r.ln)}§${esc(r.key)}" class="${r.ng?"ngv":""}">${Math.round(r.v*10)/10} ${esc(r.g==="seal"&&/H-?298/.test(r.c||"")?"ml/L":"g/L")}</a> <span class="sub">${esc(md(r.d))}</span>`); }
+  const wk = wkNow(line, no); if(wk) out.push(wk);
   return out.join("<br>");
 }
 function chemLines(){
@@ -2425,7 +2427,7 @@ function chemLines(){
     const note = rt("mism")[ln.id];
     return `<div class="card" id="ln-${esc(ln.id.replace(/\W/g,""))}"><h2>${esc(ln.title)} <span class="sub">${esc(rt("tanks")(ln.tanks.length))}${sum?` ・ ${esc(rt("liters"))} ${sum.toLocaleString()} L`:""}</span></h2>
       ${note?`<p class="note">${esc(note)}</p>`:""}${ja && ln.notes.length?`<ul class="sub" style="margin:4px 0 8px;padding-left:18px">${ln.notes.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}
-      <div class="tblwrap"><table class="ctbl"><thead><tr><th>No.</th><th>${esc(rt("procCol"))}</th><th>${esc(rt("chemCol2"))}</th><th class="num">${esc(rt("sizeCol"))}</th><th class="num">${esc(rt("capCol"))}</th>${match?`<th>${esc(rt("nowCol"))}</th>`:""}<th>${esc(rt("memoCol"))}</th></tr></thead><tbody>${rows}</tbody></table></div>${now}</div>`;
+      <div class="tblwrap"><table class="ctbl"><thead><tr><th>No.</th><th>${esc(rt("procCol"))}</th><th>${esc(rt("chemCol2"))}</th><th class="num">${esc(rt("sizeCol"))}</th><th class="num">${esc(rt("capCol"))}</th>${match?`<th>${esc(rt("nowCol"))}</th>`:""}<th>${esc(rt("memoCol"))}</th></tr></thead><tbody>${rows}</tbody></table></div>${now}${wkLine(ln.id)}${wkTin(ln.id)}</div>`;
   }).join("");
   const jump = `<div class="filters">${T.lines.map(ln=>`<a class="btn small ghost" style="text-decoration:none" href="#chem/line" data-lnjump="ln-${esc(ln.id.replace(/\W/g,""))}">${esc(ln.id)}</a>`).join("")}</div>`;
   return `<div class="card"><h2>${esc(rt("lineT"))}</h2><p class="sub" style="margin:0">${esc(rt("lineSub"))}</p>${legend}${jump}</div>${cards}`;
@@ -2474,12 +2476,94 @@ function chemManage(){
 
 function chemRefWire(){
   if(!REF_TABS.includes(CH.tab)) return;
+  if(CH.tab==="line") wkWire();
   main.querySelectorAll("[data-ropen]").forEach(r=>r.addEventListener("click",e=>{ e.preventDefault(); CH.refOpen = CH.refOpen===r.dataset.ropen ? "" : r.dataset.ropen; if(location.hash !== "#chem/stock") history.replaceState(null, "", "#chem/stock"); route(true); }));
   const sa = document.getElementById("stockAll"); if(sa) sa.addEventListener("click",()=>{ CH.stockAll = !CH.stockAll; route(true); });
   main.querySelectorAll("[data-doc]").forEach(b=>b.addEventListener("click",()=>{ CH.doc = CH.doc===b.dataset.doc ? "" : b.dataset.doc; route(true); const c = b.closest(".card"); if(c && CH.doc) setTimeout(()=>{ const v = c.querySelector(".cdoc"); if(v) v.scrollIntoView({behavior:"smooth", block:"start"}); }, 30); }));
   main.querySelectorAll("[data-goto]").forEach(a=>a.addEventListener("click",e=>{ e.preventDefault(); const [tab, line, key] = a.dataset.goto.split("§"); CH.line = line; CH.open = key; CH.ng = false; CH.date = ""; location.hash = "#chem/" + tab; }));
   main.querySelectorAll("[data-lnjump]").forEach(a=>a.addEventListener("click",e=>{ e.preventDefault(); const el = document.getElementById(a.dataset.lnjump); if(el) el.scrollIntoView({behavior:"smooth", block:"start"}); }));
   main.querySelectorAll(".cdoc .zoombtn").forEach(btn=>btn.addEventListener("click",()=>{ const img = btn.closest("div").previousElementSibling.querySelector("img"); const z = img.classList.toggle("zoomed"); btn.textContent = z ? t("unzoom") : t("zoom"); }));
+}
+
+/* ----- 週1回の分析（Suthep さんの color / Alumite ブック）と錫めっき日報（LINE 7）: chem.enc.json の ref.wk、chem\weekly_parse.ps1 が作る（2026-11-26） ----- */
+const WRT = {
+  ja:{ wkT:"週1回の分析（Suthep さん）", wkSub:"ラボの週次分析ブックから。行をタップすると推移のグラフと、希釈・建浴のメモが出ます。番号はブックに書かれたままです。",
+    tankCol:"槽（ブックの表記）", itemCol:"内容", lastCol:"最新", specCol:"規格", prevCol:"前回", addCol:"補給",
+    evT:"ブックのメモ（希釈・建浴など）", snNote:sn=>`項目名には ${sn} と書いてあります（グラフの線と違います）`, wk:"週", src:(a,t)=>`${a}（${t} 更新）`,
+    tinT:"錫めっき日報（サンデン・LINE 7）", tinSub:"Tin Plating Liquid（サンデン）ブックの毎日の記録。表は直近 14 日です。表の項目名を押すとグラフが変わります。",
+    tin:{dph:"脱脂 pH",dg:"脱脂 g/L",dadd:"脱脂 補給 kg",koh:"KOH",tin:"錫",ph:"pH",th:"膜厚",q:"生産数",pe:"剥離",sm:"スマット",a60:"Alstan #60 kg",a60aa:"#60AA L",al:"Al g"},
+    dayCol:"日付", qWeek:n=>`直近 7 日の生産数 ${n.toLocaleString()} 個`, homeWk:"週1回の分析で規格外", noTin:"錫めっきの記録はまだありません。" },
+  th:{ wkT:"การวิเคราะห์รายสัปดาห์ (คุณสุเทพ)", wkSub:"จากไฟล์วิเคราะห์รายสัปดาห์ของแล็บ แตะที่แถวเพื่อดูกราฟแนวโน้มและบันทึกการเจือจาง・เตรียมใหม่ เลขบ่อตามที่เขียนในไฟล์",
+    tankCol:"บ่อ (ตามไฟล์)", itemCol:"รายการ", lastCol:"ล่าสุด", specCol:"สเป็ก", prevCol:"ครั้งก่อน", addCol:"เติม",
+    evT:"บันทึกในไฟล์ (เจือจาง・เตรียมใหม่ ฯลฯ)", snNote:sn=>`ในชื่อหัวข้อเขียนว่า ${sn} (ไม่ตรงกับเส้นในกราฟ)`, wk:"สัปดาห์", src:(a,t)=>`${a} (อัปเดต ${t})`,
+    tinT:"บันทึกชุบดีบุกประจำวัน (Sanden・LINE 7)", tinSub:"บันทึกประจำวันจากไฟล์ Tin Plating Liquid (Sanden) ตารางแสดง 14 วันล่าสุด กดที่ชื่อหัวข้อในตารางเพื่อเปลี่ยนกราฟ",
+    tin:{dph:"ล้างไขมัน pH",dg:"ล้างไขมัน g/L",dadd:"เติมล้างไขมัน kg",koh:"KOH",tin:"ดีบุก",ph:"pH",th:"ความหนา",q:"จำนวนผลิต",pe:"ลอก",sm:"Smut",a60:"Alstan #60 kg",a60aa:"#60AA L",al:"Al g"},
+    dayCol:"วันที่", qWeek:n=>`จำนวนผลิต 7 วันล่าสุด ${n.toLocaleString()} ชิ้น`, homeWk:"นอกสเป็กในการวิเคราะห์รายสัปดาห์", noTin:"ยังไม่มีบันทึกชุบดีบุก" }
+};
+const wrt = k => WRT[LANG][k];
+const WK = () => (CHEM && CHEM.ref && CHEM.ref.wk) || null;
+const wkLast = it => it && it.p.length ? it.p[it.p.length-1] : null;
+const wkPrev = it => it && it.p.length > 1 ? it.p[it.p.length-2] : null;
+const wkNear = (v, lo, hi) => isNum(v) && isNum(lo) && isNum(hi) && !outOf(v, lo, hi) && v >= hi - (hi-lo)*0.1;
+const wkCls = (v, lo, hi) => outOf(v, lo, hi) ? "ngv" : wkNear(v, lo, hi) ? "nearv" : "";
+const wkName = s => { const k = WK().kinds[s.g]; return k ? (k[LANG] || k.ja) : s.g; };
+const wkItemName = (s, it) => { const k = WK().kinds[s.g], d = k && k.items.find(x=>x.k===it.k); return d ? (d[LANG] || d.ja) : it.k; };
+const wkFmt = v => isNum(v) ? (Math.abs(v) >= 100 ? Math.round(v*10)/10 : Math.round(v*100)/100) : "—";
+function wkNG(){ const w = WK(); if(!w) return []; const out = []; for(const s of w.s) for(const it of s.it){ const l = wkLast(it); if(l && outOf(l[1], it.lo, it.hi)) out.push({s, it, l}); } return out; }
+function wkTrend(s){
+  const blocks = s.it.map(it=>{
+    const pts = it.p.map(p=>({d:p[0], v:p[1], t:p[2]?`+${p[2]}`:""}));
+    return `<div class="sub" style="margin-top:6px"><b>${esc(wkItemName(s, it))}</b> ${esc(it.u)}${it.sn?` <span class="tag st">${esc(wrt("snNote")(it.sn))}</span>`:""}</div>${trendSVG(pts, it.lo, it.hi)}`;
+  }).join("");
+  const adds = s.it[0].p.filter(p=>p[2]).slice(-8).map(p=>`${md(p[0])} +${p[2]}`).join(" ・ ");
+  const ev = s.ev.length ? `<div class="sub" style="margin-top:6px"><b>${esc(wrt("evT"))}</b><ul style="margin:2px 0 0;padding-left:18px">${s.ev.map(e=>`<li>${e[0]?`<span class="num">${esc(md(e[0]))}</span> `:""}${esc(e[1])}</li>`).join("")}</ul></div>` : "";
+  return `<div class="trendbox">${blocks}${adds?`<div class="sub" style="margin-top:6px"><b>${esc(wrt("addCol"))}</b> ${esc(adds)}</div>`:""}${ev}<div class="sub" style="margin-top:4px">${esc(s.sh)}</div></div>`;
+}
+function wkLine(lineId){
+  const w = WK(); if(!w) return "";
+  const ss = w.s.filter(s=>s.ln===lineId); if(!ss.length) return "";
+  const rows = ss.map(s=>{
+    const lines = s.it.map(it=>({ it, l:wkLast(it), p:wkPrev(it) }));
+    const vcell = lines.map(({it,l})=>l?`<span class="${wkCls(l[1],it.lo,it.hi)}">${wkFmt(l[1])}</span> <span class="sub">${esc(it.u)}${s.it.length>1?` ${esc(wkItemName(s,it))}`:""}</span>`:"—").join("<br>");
+    const pcell = lines.map(({p})=>p?`${wkFmt(p[1])} <span class="sub">${esc(md(p[0]))}</span>`:"—").join("<br>");
+    const scell = lines.map(({it})=>isNum(it.lo)?`${it.lo}〜${it.hi}`:"—").join("<br>");
+    const l0 = lines[0].l, add = l0 && l0[2] ? `+${l0[2]}` : "";
+    const tr = `<tr class="crow" data-wkopen="${esc(s.id)}"><td class="nowrap tk">${esc(s.tk)}</td><td>${esc(wkName(s))}<br><span class="sub">${esc(s.c)}</span></td><td class="num nowrap">${vcell}<br><span class="sub">${esc(md(s.last))}</span></td><td class="num nowrap">${scell}</td><td class="num nowrap">${pcell}</td><td class="num">${esc(add)}</td></tr>`;
+    return tr + (CH.wkOpen===s.id ? `<tr class="trow"><td colspan="6">${wkTrend(s)}</td></tr>` : "");
+  }).join("");
+  const src = w.src.filter(x=>x.k!=="tin").map(x=>wrt("src")(x.f, x.t)).join(" ・ ");
+  return `<h3>${esc(wrt("wkT"))}</h3><p class="sub" style="margin:0 0 4px">${esc(wrt("wkSub"))}<br>${esc(src)}</p>
+    <div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(wrt("tankCol"))}</th><th>${esc(wrt("itemCol"))}</th><th class="num">${esc(wrt("lastCol"))}</th><th class="num">${esc(wrt("specCol"))}</th><th class="num">${esc(wrt("prevCol"))}</th><th class="num">${esc(wrt("addCol"))}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function wkNow(line, no){
+  const w = WK(); if(!w) return "";
+  return w.s.filter(s=>s.ln===line && s.no===no).map(s=>s.it.map(it=>{ const l = wkLast(it); return l ? `<a href="#chem/line" data-wkopen="${esc(s.id)}" class="${wkCls(l[1],it.lo,it.hi)}">${esc(wrt("wk"))} ${wkFmt(l[1])} ${esc(it.u)}</a> <span class="sub">${esc(md(l[0]))}</span>` : ""; }).filter(Boolean).join("<br>")).filter(Boolean).join("<br>");
+}
+function wkTin(lineId){
+  const w = WK(); if(!w || !w.tin || w.tin.ln!==lineId) return "";
+  const rows = w.tin.rows; if(!rows.length) return `<h3>${esc(wrt("tinT"))}</h3><p class="empty">${esc(wrt("noTin"))}</p>`;
+  const T = wrt("tin"), keys = ["dph","dg","koh","tin","ph","q","a60","a60aa","dadd","pe","sm","th","al"].filter(k=>rows.some(r=>r[k]!=null && r[k]!==""));
+  const sel = CH.tinKey && keys.includes(CH.tinKey) ? CH.tinKey : (keys.includes("tin") ? "tin" : keys[0]);
+  const [lo, hi] = sel==="dg" && w.tin.dg ? w.tin.dg : [null, null];
+  const recent = rows.slice(-14).reverse();
+  const c = new Date(); c.setDate(c.getDate()-7); const cutoff = c.toISOString().slice(0,10);
+  const qw = rows.filter(r=>r.d > cutoff && isNum(r.q)).reduce((a,r)=>a+r.q, 0);
+  const head = keys.map(k=>`<th class="num"><button type="button" class="linkbtn" data-tinkey="${k}" aria-pressed="${k===sel}" style="${k===sel?"font-weight:700;text-decoration:underline":""}">${esc(T[k])}</button></th>`).join("");
+  const body = recent.map(r=>`<tr><td class="num nowrap">${esc(md(r.d))}</td>${keys.map(k=>{ const v = r[k]; const bad = k==="dg" && w.tin.dg && outOf(v, w.tin.dg[0], w.tin.dg[1]); return `<td class="num${bad?" ng":""}">${v==null?"":esc(isNum(v)&&k==="q"?v.toLocaleString():v)}</td>`; }).join("")}</tr>`).join("");
+  const pts = rows.filter(r=>isNum(r[sel])).slice(-90).map(r=>({d:r.d, v:r[sel]}));
+  const src = w.src.find(x=>x.k==="tin");
+  return `<h3>${esc(wrt("tinT"))}</h3><p class="sub" style="margin:0 0 4px">${esc(wrt("tinSub"))}${src?`<br>${esc(wrt("src")(src.f, src.t))}`:""}</p>
+    <p class="sub" style="margin:0 0 4px">${esc(wrt("qWeek")(qw))}</p>
+    <div class="trendbox"><div class="sub"><b>${esc(T[sel])}</b></div>${trendSVG(pts, lo, hi)}</div>
+    <div class="tblwrap"><table class="ctbl"><thead><tr><th>${esc(wrt("dayCol"))}</th>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+function wkHomeLines(){
+  const ng = wkNG(); if(!ng.length) return "";
+  return `<p class="sub" style="margin:8px 0 2px"><b>${esc(wrt("homeWk"))}</b></p><ul class="list">${ng.slice(0,6).map(({s,it,l})=>`<li><a href="#chem/line" data-wkhome="${esc(s.id)}"><span class="no">${esc(s.ln)} ${esc(s.tk)}</span> <span class="meta" style="display:inline">${esc(wkName(s))} ・ ${esc(wkItemName(s,it))}</span><span class="pr ngv">${wkFmt(l[1])}<small> (${it.lo}〜${it.hi}) ${esc(md(l[0]))}</small></span></a></li>`).join("")}</ul>${ng.length>6?`<p class="sub">… +${ng.length-6}</p>`:""}`;
+}
+function wkWire(){
+  main.querySelectorAll("[data-wkopen]").forEach(r=>r.addEventListener("click",e=>{ e.preventDefault(); e.stopPropagation(); const id = r.dataset.wkopen; CH.wkOpen = CH.wkOpen===id ? "" : id; if(location.hash !== "#chem/line") history.replaceState(null, "", "#chem/line"); route(true); setTimeout(()=>{ const el = main.querySelector(`tr[data-wkopen="${CSS.escape(id)}"]`); if(el && CH.wkOpen) el.scrollIntoView({behavior:"smooth", block:"center"}); }, 30); }));
+  main.querySelectorAll("[data-tinkey]").forEach(b=>b.addEventListener("click",()=>{ CH.tinKey = b.dataset.tinkey; route(true); }));
 }
 
 /* ---------- routing ---------- */
