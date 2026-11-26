@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="ja" data-theme="dark">
+<html lang="ja" data-theme="light">
 <head>
 <meta charset="utf-8">
-<script>try{ if(localStorage.getItem("karte.theme")==="light") document.documentElement.setAttribute("data-theme","light"); }catch(e){}</script>
+<script>try{ if(localStorage.getItem("karte.theme")==="dark") document.documentElement.setAttribute("data-theme","dark"); }catch(e){}</script>
 <meta name="theme-color" content="#0a0d12">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
@@ -365,7 +365,31 @@ a.chip{text-decoration:none}
 .ctbl td.sname{min-width:150px;max-width:240px}
 .ctbl td.sname b{font-weight:600;word-break:break-word}
 .trow .trendbox p{white-space:normal}
-</style>
+
+/* ---------- section colors (2026-11-26): each home card / stat gets its own hue (--sec), light tint + left band + colored heading ---------- */
+#todayCard{--sec:#f09595} #visCard,.vis-week{--sec:#afa9ec} #quick{--sec:#ed93b1} #custs{--sec:#85b7eb} #chemHome{--sec:#5dcaa5}
+#latest{--sec:#fac775} #find{--sec:#b4b2a9} #openIss{--sec:#f0997b} #recent{--sec:#97c459}
+.stat[data-go="find"]{--sec:#b4b2a9} .stat[data-go="quoting"]{--sec:#fac775} .stat[data-go="issues"]{--sec:#f0997b} .stat[data-go="recent"]{--sec:#97c459} .stat[data-go="chem"]{--sec:#5dcaa5}
+[data-theme="light"] #todayCard{--sec:#a32d2d} [data-theme="light"] #visCard,[data-theme="light"] .vis-week{--sec:#534ab7} [data-theme="light"] #quick{--sec:#993556}
+[data-theme="light"] #custs{--sec:#185fa5} [data-theme="light"] #chemHome{--sec:#0f6e56} [data-theme="light"] #latest{--sec:#854f0b} [data-theme="light"] #find{--sec:#5f5e5a}
+[data-theme="light"] #openIss{--sec:#993c1d} [data-theme="light"] #recent{--sec:#3b6d11}
+[data-theme="light"] .stat[data-go="find"]{--sec:#5f5e5a} [data-theme="light"] .stat[data-go="quoting"]{--sec:#854f0b} [data-theme="light"] .stat[data-go="issues"]{--sec:#993c1d} [data-theme="light"] .stat[data-go="recent"]{--sec:#3b6d11} [data-theme="light"] .stat[data-go="chem"]{--sec:#0f6e56}
+#todayCard,#visCard,.vis-week,#quick,#custs,#chemHome,#latest,#find,#openIss,#recent,.stat[data-go]{
+  background:linear-gradient(180deg,color-mix(in srgb,var(--sec) 14%,var(--card2)),color-mix(in srgb,var(--sec) 7%,var(--card)));
+  border-color:color-mix(in srgb,var(--sec) 38%,var(--line));border-left:5px solid var(--sec)}
+[data-theme="light"] :is(#todayCard,#visCard,.vis-week,#quick,#custs,#chemHome,#latest,#find,#openIss,#recent,.stat[data-go]){
+  background:linear-gradient(180deg,color-mix(in srgb,var(--sec) 9%,var(--card2)),color-mix(in srgb,var(--sec) 5%,var(--card)))}
+:is(#todayCard,#visCard,.vis-week,#quick,#custs,#chemHome,#latest,#find,#openIss,#recent) > h2{color:var(--sec)}
+:is(#todayCard,#visCard,.vis-week,#quick,#custs,#chemHome,#latest,#find,#openIss,#recent) > h2::before{background:var(--sec)}
+:is(#todayCard,#visCard,.vis-week,#quick,#custs,#chemHome,#latest,#find,#openIss,#recent) > h2 .sub{color:var(--muted)}
+.stat[data-go]::after{background:var(--sec);opacity:.9} .stat[data-go] .lb{color:color-mix(in srgb,var(--sec) 70%,var(--fg))}
+.stat.warn[data-go]::after{background:linear-gradient(90deg,var(--warn),var(--bad))}
+.stat[data-go]:hover,.stat[data-go]:focus-visible{border-color:var(--sec)}
+/* 来客・予定: bigger titles (user request 2026-11-26) */
+#visCard > h2,.vis-week > h2{font-size:21px;letter-spacing:.02em}
+#visCard > h2::before,.vis-week > h2::before{height:21px;width:4px}
+#visCard .vis-it .x,.vis-week .vis-it .x{font-size:15.5px}
+#visCard .vis-day .dt,.vis-week .vis-day .dt{font-size:14.5px}</style>
 </head>
 <body>
 <div class="perf" aria-hidden="true"></div>
@@ -582,7 +606,7 @@ const matchFilt = p => (!FILT.cust || p.customer===FILT.cust) && (!FILT.proc || 
 const fmtAt = iso => { const d = new Date(iso); if(isNaN(d)) return esc(iso||""); const p = n => String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
 
 /* ---------- chrome / lock ---------- */
-let THEME = ls.get("karte.theme") || "dark";
+let THEME = ls.get("karte.theme") || "light";   /* default light since 2026-11-26 (user: dark is hard to read) */
 const SUN = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`;
 const MOON = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>`;
 document.getElementById("themeBtn").addEventListener("click", ()=>{ THEME = THEME==="dark" ? "light" : "dark"; ls.set("karte.theme", THEME); applyChrome(); });
@@ -1826,10 +1850,10 @@ function todayCardHTML(){
 /* ---------- 来客予定 (visitors.enc.json, 2026-11-23)
    Imported from the weekly "Visitors schedule WKxx-yy.pptx" on the server by visitor\visitor_update.ps1 (weekdays 8:00 / 12:00 / 17:00).
    {built, from, files, weeks:[{wk, mon:"yyyy-MM-dd", file, fileTime, others:[file], days:[{d, items:[{t:"13:00"|"", x:"text", k:"event"|"out"|"leave"}]}]}]}
-   Texts stay as written in the slide (English), in both languages. */
+   Texts are English as written in the slide; Japanese mode shows x_ja (AI translation from visitor\visitor_ja.json, 2026-11-26) when present, Thai mode keeps English. */
 let VIS = null;
 const VT = {
-  ja:{ title:"来客・予定", sub:"サーバーの「Visitors schedule」（PowerPoint）から取り込んでいます。入力は今までどおり PowerPoint へ。",
+  ja:{ title:"来客・予定", sub:"サーバーの「Visitors schedule」（PowerPoint）から取り込んでいます。入力は今までどおり PowerPoint へ（英語のままで大丈夫。日本語表示では AI の訳を出しています）。",
     home:"今週・来週の来客・予定", seeAll:"すべて見る →", today:"今日", thisWeek:"今週", nextWeek:"来週", past:"過去の週",
     none:"今週・来週の予定は、まだありません。", empty:"—", noWeek:"この週の予定は、まだ入っていません。",
     kinds:{event:"来客・会議", out:"外出・訪問", leave:"休み"}, src:"元ファイル", upd:"保存", built:"最終取り込み",
@@ -1857,7 +1881,7 @@ function vItems(items){
   // visitors and meetings first (by time), then visits outside, then leave
   const rank = {event:0, out:1, leave:2};
   const its = (items||[]).slice().sort((a,b)=> (rank[a.k]??0)-(rank[b.k]??0) || String(a.t||"99").padStart(5,"0").localeCompare(String(b.t||"99").padStart(5,"0")));
-  return `<ul class="vis-it">${its.map(it=>`<li class="${["event","out","leave"].includes(it.k)?it.k:"event"}">${it.t?`<span class="tm">${esc(it.t)}</span>`:""}<span class="tag">${esc(vt("kinds")[it.k]||vt("kinds").event)}</span><span class="x">${esc(it.x)}</span></li>`).join("")}</ul>`;
+  return `<ul class="vis-it">${its.map(it=>`<li class="${["event","out","leave"].includes(it.k)?it.k:"event"}">${it.t?`<span class="tm">${esc(it.t)}</span>`:""}<span class="tag">${esc(vt("kinds")[it.k]||vt("kinds").event)}</span><span class="x"${LANG==="ja"&&it.x_ja?` title="${esc(it.x)}"`:""}>${esc(LANG==="ja"&&it.x_ja?it.x_ja:it.x)}</span></li>`).join("")}</ul>`;
 }
 function vDayRow(d, td){
   const has = (d.items||[]).length;
