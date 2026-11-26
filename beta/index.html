@@ -181,6 +181,28 @@ td.num,th.num{text-align:right}
 .today .go{flex:0 0 auto;font-size:12px;color:var(--accent);align-self:center}
 #todayCard .tabs{margin:2px 0 8px}
 #todayCard .tabs button{font-size:13.5px;padding:6px 10px}
+/* menu (2026-11-26): big buttons on the start page, one hue per part (same hues as the section colors) */
+.menu{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:4px 0 14px}
+@media (max-width:620px){.menu{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.mbtn{min-height:112px;padding:12px 11px 10px}.mbtn .mn{font-size:15px}.mbtn .ms{font-size:11.5px}.mbtn .mi,.mbtn .mi svg{width:26px;height:26px}}
+.mbtn{--sec:var(--accent);position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;min-height:124px;padding:14px 14px 12px;text-decoration:none;color:var(--fg);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--sec) 14%,var(--card2)),color-mix(in srgb,var(--sec) 7%,var(--card)));
+  border:1px solid color-mix(in srgb,var(--sec) 38%,var(--line));border-left:5px solid var(--sec);border-radius:14px;box-shadow:var(--shadow);transition:transform .15s,border-color .15s}
+[data-theme="light"] .mbtn{background:linear-gradient(180deg,color-mix(in srgb,var(--sec) 10%,var(--card2)),color-mix(in srgb,var(--sec) 5%,var(--card)))}
+.mbtn:hover,.mbtn:focus-visible{transform:translateY(-2px);border-color:var(--sec);outline:none}
+.mbtn .mi{position:absolute;top:12px;left:12px;width:30px;height:30px;color:var(--sec)}
+.mbtn .mi svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.mbtn .mk{position:absolute;top:12px;right:12px;font-size:13px;font-weight:700;padding:1px 9px;border-radius:999px;background:var(--sec);color:#fff;font-family:var(--mono)}
+[data-theme="dark"] .mbtn .mk{color:#0a0d12}
+.mbtn .mn{font-size:17px;font-weight:700;color:var(--sec);line-height:1.3}
+.mbtn .ms{font-size:12px;color:var(--muted)}
+.m-today{--sec:#f09595} .m-vis{--sec:#afa9ec} .m-find{--sec:#85b7eb} .m-chem{--sec:#5dcaa5} .m-issues{--sec:#f0997b} .m-recent{--sec:#97c459} .m-ai{--sec:#ed93b1} .m-docs{--sec:#fac775}
+[data-theme="light"] .m-today{--sec:#a32d2d} [data-theme="light"] .m-vis{--sec:#534ab7} [data-theme="light"] .m-find{--sec:#185fa5} [data-theme="light"] .m-chem{--sec:#0f6e56}
+[data-theme="light"] .m-issues{--sec:#993c1d} [data-theme="light"] .m-recent{--sec:#3b6d11} [data-theme="light"] .m-ai{--sec:#993556} [data-theme="light"] .m-docs{--sec:#854f0b}
+#backbar{margin:0 0 12px}
+.backmenu{font:inherit;font-size:14px;font-weight:600;color:var(--accent);background:var(--card);border:1px solid var(--line2);border-radius:999px;padding:7px 16px;cursor:pointer;box-shadow:var(--shadow)}
+.backmenu:hover{border-color:var(--accent)}
+#docsCard{border-left:5px solid #fac775} [data-theme="light"] #docsCard{border-left-color:#854f0b}
+
 /* visitors: visitor schedule (visitors.enc.json, imported from the Visitors schedule PPTX) */
 #visCard{border-color:color-mix(in srgb,var(--accent) 25%,var(--line))}
 .vis-days{display:flex;flex-direction:column}
@@ -401,6 +423,7 @@ a.chip{text-decoration:none}
   <form class="search" id="form" hidden><svg class="sicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" autocomplete="off" aria-label="search"><button type="submit" id="qbtn"></button></form>
   <p class="hint" id="hint"></p>
 </header>
+<nav id="backbar" hidden><button type="button" id="backBtn" class="backmenu"></button></nav>
 <main id="main"></main>
 <footer id="foot"></footer>
 </div>
@@ -646,7 +669,7 @@ async function unlock(pw){
   applyChrome(); route();
   await loadField(); route(true);
   loadChem().then(()=>{ if(!location.hash || location.hash.startsWith("#chem")) route(true); }).catch(()=>{});
-  loadToday().then(()=>{ if(!location.hash) route(true); }).catch(()=>{});
+  loadToday().then(()=>{ if(!location.hash || location.hash.startsWith("#s/")) route(true); }).catch(()=>{});
   loadVisitors().then(()=>{ if(!location.hash || location.hash.startsWith("#visitors")) route(true); }).catch(()=>{});
 }
 
@@ -1354,8 +1377,71 @@ function wireFind(){
   const a = document.getElementById("addProd"); if(a) a.addEventListener("click",()=>{ PFORM = {isNew:true, data:{status:"サンプル"}}; route(true); const x = document.getElementById("pfId"); if(x) x.focus(); });
   wireProductForm();
 }
+/* ---------- メニュー画面 (2026-11-26, user request): no hash → big buttons (renderMenu); #s/<key> → only that part of the old home
+   (renderHome renders everything as before, then secTrim() keeps the cards in SECS[SEC]). #s/docs = flow charts / documents. ---------- */
+let SEC = "";
+const SECS = { today:["todayCard"], find:["custs","find","latest"], issues:["openIss"], recent:["recent"], ai:["quick"] };
+const MT = {
+  ja:{ back:"← メニュー", today:"今日確認すべきこと", todaySub:"LINE・メール", vis:"来客・予定", visSub:"今週・来週", find:"顧客・製品を探す", findSub:n=>`${n} 製品`,
+    chem:"薬液の記録", chemSub:n=>n==null?"pH・滴定・在庫":`規格外 ${n}`, issues:"問題・不良", issuesSub:n=>`未完了 ${n}`, recent:"現場の記録", recentSub:n=>`今週 ${n} 件`,
+    ai:"AIにお願い", aiSub:"写真・書類を送る／問題を登録", docs:"フローチャート・資料", docsSub:"工程フロー・槽配置", nToday:n=>`今日 ${n}`, empty:"表示するものはありません。" },
+  th:{ back:"← เมนู", today:"สิ่งที่ต้องตรวจสอบวันนี้", todaySub:"LINE・อีเมล", vis:"ผู้มาเยือน・กำหนดการ", visSub:"สัปดาห์นี้・สัปดาห์หน้า", find:"ค้นหาลูกค้า・ผลิตภัณฑ์", findSub:n=>`${n} ผลิตภัณฑ์`,
+    chem:"บันทึกน้ำยาเคมี", chemSub:n=>n==null?"pH・ไทเทรต・สต็อก":`นอกสเปก ${n}`, issues:"ปัญหา・ของเสีย", issuesSub:n=>`ยังไม่เสร็จ ${n}`, recent:"บันทึกหน้างาน", recentSub:n=>`สัปดาห์นี้ ${n} รายการ`,
+    ai:"ขอให้ AI ช่วย", aiSub:"ส่งรูป・เอกสาร／บันทึกปัญหา", docs:"ผังกระบวนการ・เอกสาร", docsSub:"ผังกระบวนการ・ผังบ่อ", nToday:n=>`วันนี้ ${n}`, empty:"ไม่มีข้อมูลที่จะแสดง" }
+};
+const mt = k => MT[LANG][k];
+const MICON = {
+  today:'<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
+  vis:'<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16"/>',
+  find:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+  chem:'<path d="M9 3h6M10 3v6L5 19a1.5 1.5 0 0 0 1.3 2h11.4a1.5 1.5 0 0 0 1.3-2L14 9V3"/><path d="M7.5 14h9"/>',
+  issues:'<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>',
+  recent:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/>',
+  ai:'<path d="M4 20l1.5-4A8 8 0 1 1 9 19.5z"/><path d="M9 11h.01M12 11h.01M15 11h.01"/>',
+  docs:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>'
+};
+function setBack(show){
+  const b = document.getElementById("backbar"); if(!b) return;
+  b.hidden = !show; document.getElementById("backBtn").textContent = mt("back");
+}
+function renderMenu(){
+  document.body.classList.add("is-home"); setBack(false);
+  const oi = openIssues().length + openFieldIssues().length;
+  const weekAgo = new Date(Date.now() - 7*864e5).toISOString();
+  const nWeek = FIELD.entries.filter(e=>!e.deleted && String(e.createdAt||e.at||"") >= weekAgo).length;
+  let tdN = null; try{ if(TODAY){ const d0 = todayDays()[0]; tdN = d0 && d0.date===today() ? (d0.items||[]).length : 0; } }catch(e){}
+  let visN = null; if(VIS){ const td = today(); visN = 0; for(const w of VIS.weeks||[]) for(const d of w.days||[]) if(d.d===td) visN += (d.items||[]).length; }
+  let chemN = null; try{ if(CHEM){ const d = CHEM.days.ph[CHEM.days.ph.length-1]; chemN = CHEM.ph.filter(r=>r.d===d && r.ng).length; } }catch(e){}
+  const B = (href, key, sub, badge, warn) => `<a class="mbtn m-${key}" href="${href}"><span class="mi"><svg viewBox="0 0 24 24" aria-hidden="true">${MICON[key]}</svg></span>${badge!=null && badge!=="" ? `<span class="mk${warn?" w":""}">${esc(badge)}</span>` : ""}<span class="mn">${esc(mt(key))}</span><span class="ms">${esc(sub)}</span></a>`;
+  main.innerHTML = `<nav class="menu" aria-label="menu">
+    ${B("#s/today", "today", mt("todaySub"), tdN ? tdN : "", tdN > 0)}
+    ${B("#visitors", "vis", mt("visSub"), visN ? mt("nToday")(visN) : "")}
+    ${B("#s/find", "find", mt("findSub")(PRODUCTS.length), "")}
+    ${B("#chem", "chem", mt("chemSub")(chemN), chemN ? chemN : "", chemN > 0)}
+    ${B("#s/issues", "issues", mt("issuesSub")(oi), oi ? oi : "", oi > 0)}
+    ${B("#s/recent", "recent", mt("recentSub")(nWeek), "")}
+    ${B("#s/ai", "ai", mt("aiSub"), "")}
+    ${B("#s/docs", "docs", mt("docsSub"), "")}
+  </nav>`;
+}
+function secTrim(){
+  const keep = SECS[SEC] || [];
+  [...main.children].forEach(el=>{ if(!keep.includes(el.id) && !el.classList.contains("okmsg")) el.remove(); });
+  if(!main.children.length) main.innerHTML = `<div class="card"><p class="empty">${esc(mt("empty"))}</p></div>`;
+}
+function renderDocsPage(){
+  setBack(true);
+  main.innerHTML = `<div class="card" id="docsCard"><h2>${esc(mt("docs"))}</h2><p class="sub" style="margin:0 0 8px">${esc(t("docsSub"))}</p><div id="docs" class="docs"><div class="loading">${esc(t("loading"))}</div></div></div>`;
+  renderDocs();
+}
+document.getElementById("backBtn").addEventListener("click", ()=>{
+  document.getElementById("q").value = ""; SEC = "";
+  if(location.hash) history.replaceState(null, "", location.pathname);
+  lastRoute = ""; route(); window.scrollTo(0, 0);
+});
+
 function renderHome(q){
-  document.body.classList.add("is-home");
+  document.body.classList.add("is-home"); setBack(!!SEC || !!(q||"").trim());
   const words = (q||"").trim().toLowerCase().split(/\s+/).filter(Boolean);
   if(words.length){
     const hay = p => [p.id, p.oldNo, p.name, p.model, p.finish, p.color, procOf(p), p.material, p.thickness, p.masking, (byC[p.customer]||{}).name, (byC[p.customer]||{}).fullName, p.customer].join(" ").toLowerCase();
@@ -1365,6 +1451,7 @@ function renderHome(q){
     const c = document.getElementById("fClear"); if(c) c.addEventListener("click",()=>{ FILT = {cust:"", proc:"", mat:"", mask:"", status:""}; renderHome(q); });
     return;
   }
+  if(!SEC){ renderMenu(); return; }
   const recent = FIELD.entries.filter(e=>!e.deleted).sort(byNew).slice(0,8);
   const oi = openIssues(), ofi = openFieldIssues();
   const regForm = (FORM && FORM.pickProduct) ? formHTML() : (EDIT ? `<div class="addbar"><button type="button" class="btn small" id="regIssue">${esc(t("registerIssue"))}</button></div>` : "");
@@ -1392,6 +1479,7 @@ function renderHome(q){
   const rb = document.getElementById("regIssue");
   if(rb) rb.addEventListener("click", ()=>{ FORM = {pid:null, pickProduct:true, type:"issue", date:today(), files:[]}; renderHome(""); });
   wireFind(); wireScanForm(); wireForm(); wireEntries(main); wireQuick();
+  if(SEC) secTrim();
 }
 /* Product register / edit. Saved as overlays in FIELD.products (+ FIELD.productLog); prices are never editable here. */
 const PF_KEYS = ["name","customer","model","oldNo","process","color","finish","material","thickness","masking","area_mm2","status","drawingPath"];
@@ -2399,11 +2487,13 @@ function chemRefWire(){
 let lastRoute = "";
 function route(keepScroll){
   if(!DATA) return;
+  setBack(false);
   const h = decodeURIComponent(location.hash.slice(1));
   if(!EDIT){ renderEditLogin("", true); return; }
   if(EDIT.mustSet){ renderSetPin(); return; }
   document.getElementById("form").hidden = false;
-  document.body.classList.remove("is-home");
+  document.body.classList.remove("is-home"); setBack(!!h);
+  const isNew = h !== lastRoute;
   if(h !== lastRoute){ FORM = null; PFORM = null; SFORM = null; if(lastRoute) TAB = "info"; lastRoute = h; if(!keepScroll) window.scrollTo(0,0); }
   const p = byP[h] || PRODUCTS.find(x=>x.oldNo===h) || (/[A-Z]$/i.test(h) ? byP[h.slice(0,-1)] : null);
   if(h==="staff"){ renderStaff(); logView("staff", ""); }
@@ -2415,12 +2505,13 @@ function route(keepScroll){
   else if(h.startsWith("c/") && byC[h.slice(2)]){ renderCustomer(byC[h.slice(2)]); logView("c", h.slice(2)); }
   else if(h.startsWith("i/") && byI[h.slice(2)]){ renderIssue(byI[h.slice(2)]); logView("i", h.slice(2)); }
   else if(h.startsWith("e/") && entryById(h.slice(2))){ renderEntry(entryById(h.slice(2))); logView("e", h.slice(2)); }
+  else if(h.startsWith("s/")){ SEC = h.slice(2); if(SEC==="ai" && isNew && typeof QF!=="undefined") QF.mode = "ai"; if(SEC==="docs") renderDocsPage(); else renderHome(""); logView("home", SEC); }
   else if(p){ document.getElementById("q").value = ""; renderProduct(p); }
-  else { renderHome(document.getElementById("q").value); logView("home", ""); }
+  else { SEC = ""; renderHome(document.getElementById("q").value); logView("home", ""); }
   if(FLASH){ main.insertAdjacentHTML("afterbegin", `<p class="okmsg">${esc(FLASH)}</p>`); FLASH = ""; }
 }
-document.getElementById("form").addEventListener("submit",e=>{ e.preventDefault(); const v=document.getElementById("q").value.trim(); const exact=PRODUCTS.find(p=>p.id.toLowerCase()===v.toLowerCase()); if(exact){ location.hash=encodeURIComponent(exact.id); } else { if(location.hash) history.replaceState(null,"",location.pathname); lastRoute=""; renderHome(v); } });
-document.getElementById("q").addEventListener("input",e=>{ if(location.hash){ history.replaceState(null,"",location.pathname); lastRoute=""; } renderHome(e.target.value); });
+document.getElementById("form").addEventListener("submit",e=>{ e.preventDefault(); const v=document.getElementById("q").value.trim(); const exact=PRODUCTS.find(p=>p.id.toLowerCase()===v.toLowerCase()); if(exact){ location.hash=encodeURIComponent(exact.id); } else { if(location.hash) history.replaceState(null,"",location.pathname); lastRoute=""; SEC=""; renderHome(v); } });
+document.getElementById("q").addEventListener("input",e=>{ if(location.hash){ history.replaceState(null,"",location.pathname); lastRoute=""; SEC=""; } renderHome(e.target.value); });
 window.addEventListener("hashchange",()=>route());
 TAB = ls.get("karte.tab2") || "info";
 (async()=>{ applyChrome(); const saved = ls.get("karte.pw");
