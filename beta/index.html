@@ -1404,8 +1404,7 @@ function setBack(show){
   const b = document.getElementById("backbar"); if(!b) return;
   b.hidden = !show; document.getElementById("backBtn").textContent = mt("back");
 }
-function renderMenu(){
-  document.body.classList.add("is-home"); setBack(false);
+function menuHTML(){
   const oi = openIssues().length + openFieldIssues().length;
   const weekAgo = new Date(Date.now() - 7*864e5).toISOString();
   const nWeek = FIELD.entries.filter(e=>!e.deleted && String(e.createdAt||e.at||"") >= weekAgo).length;
@@ -1413,7 +1412,7 @@ function renderMenu(){
   let visN = null; if(VIS){ const td = today(); visN = 0; for(const w of VIS.weeks||[]) for(const d of w.days||[]) if(d.d===td) visN += (d.items||[]).length; }
   let chemN = null; try{ if(CHEM){ const d = CHEM.days.ph[CHEM.days.ph.length-1]; chemN = CHEM.ph.filter(r=>r.d===d && r.ng).length; } }catch(e){}
   const B = (href, key, sub, badge, warn) => `<a class="mbtn m-${key}" href="${href}"><span class="mi"><svg viewBox="0 0 24 24" aria-hidden="true">${MICON[key]}</svg></span>${badge!=null && badge!=="" ? `<span class="mk${warn?" w":""}">${esc(badge)}</span>` : ""}<span class="mn">${esc(mt(key))}</span><span class="ms">${esc(sub)}</span></a>`;
-  main.innerHTML = `<nav class="menu" aria-label="menu">
+  return `<nav class="menu" aria-label="menu">
     ${B("#s/today", "today", mt("todaySub"), tdN ? tdN : "", tdN > 0)}
     ${B("#visitors", "vis", mt("visSub"), visN ? mt("nToday")(visN) : "")}
     ${B("#s/find", "find", mt("findSub")(PRODUCTS.length), "")}
@@ -1451,7 +1450,6 @@ function renderHome(q){
     const c = document.getElementById("fClear"); if(c) c.addEventListener("click",()=>{ FILT = {cust:"", proc:"", mat:"", mask:"", status:""}; renderHome(q); });
     return;
   }
-  if(!SEC){ renderMenu(); return; }
   const recent = FIELD.entries.filter(e=>!e.deleted).sort(byNew).slice(0,8);
   const oi = openIssues(), ofi = openFieldIssues();
   const regForm = (FORM && FORM.pickProduct) ? formHTML() : (EDIT ? `<div class="addbar"><button type="button" class="btn small" id="regIssue">${esc(t("registerIssue"))}</button></div>` : "");
@@ -1480,6 +1478,7 @@ function renderHome(q){
   if(rb) rb.addEventListener("click", ()=>{ FORM = {pid:null, pickProduct:true, type:"issue", date:today(), files:[]}; renderHome(""); });
   wireFind(); wireScanForm(); wireForm(); wireEntries(main); wireQuick();
   if(SEC) secTrim();
+  else { const st = main.querySelector(".stats"); if(st) st.remove(); main.insertAdjacentHTML("afterbegin", menuHTML()); }   /* 2026-11-26: menu on top, the usual home below (user request) */
 }
 /* Product register / edit. Saved as overlays in FIELD.products (+ FIELD.productLog); prices are never editable here. */
 const PF_KEYS = ["name","customer","model","oldNo","process","color","finish","material","thickness","masking","area_mm2","status","drawingPath"];
