@@ -463,7 +463,7 @@ a.chip{text-decoration:none}
 </div>
 
 <script>
-const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", chem:"chem.enc.json", today:"today.enc.json", visitors:"visitors.enc.json", overtime:"overtime.enc.json", repoDir:"beta/", build:"2026-11-27" };
+const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", chem:"chem.enc.json", today:"today.enc.json", visitors:"visitors.enc.json", overtime:"overtime.enc.json", repoDir:"beta/", build:"2026-11-28" };
 let PW = null, DATA = null, FIELD = {entries:[]}, FLOWDOCS = null, FLOW_LOADING = null, EDIT = null;
 let CUSTOMERS = [], PRODUCTS = [], ISSUES = [], EVENTS = [], FLOWSTEPS = [], CAUTIONS = [];
 let byP = {}, byC = {}, byI = {};
@@ -490,7 +490,7 @@ const T = {
     priceT:"価格", current:"今の単価", since:"いつから", fixed:"固定価格", sampleClass:"サンプル品の価格区分", history:"価格の経緯", volume:"直近12か月の数量", perPc:"B/個",
     quote:"見積", profit:"利益", lot:"ロット", total:"一式", basis:"根拠", book:"見積ブック", tiers:"処理数量別の参考単価（合計 個/回）", tierCol:"1 回の処理数量", alt:"他案・下限", prev:"前回の見積",
     similar:"似ている図面",
-    flowTitle:"標準の工程（FF Black）", flowSub:"枠工程は 1 回あたりの時間。工程順は現場の指示書を優先してください。", docsTitle:"公式フローチャート", docsSub:"指で拡大できます。NSP 向け黒アルマイト（Line 2/2）の標準工程です。", loading:"読み込み中…", loadFail:"読み込みに失敗しました。通信状態を確認して開き直してください。", zoom:"拡大", unzoom:"元に戻す", page:"ページ",
+    flowTitle:"標準の工程（FF Black）", flowSub:"枠工程は 1 回あたりの時間。工程順は現場の指示書を優先してください。", docsTitle:"公式フローチャート", docsSub:"指で拡大できます。この会社・製品の工程フローです。", noFlow:"この会社・製品の公式フローチャートはまだ登録されていません。", dwgTitle:"図面", dwgOpen:"図面を見る", dwgClose:"閉じる", dwgConf:"機密の表示がある図面なので、画像は載せていません。下の保存場所で見てください。", loading:"読み込み中…", loadFail:"読み込みに失敗しました。通信状態を確認して開き直してください。", zoom:"拡大", unzoom:"元に戻す", page:"ページ",
     issueMaster:"登録済みの問題", fieldRec:"現場の記録", cautions:"この仕上げで注意する点", noIssue:"記録はありません。",
     addIssue:"＋ 問題・不良を記録", addAction:"＋ 対策・処置を記録", addMemo:"＋ メモ・注意点を書く",
     types:{issue:"問題・不良",action:"対策・処置",memo:"作業メモ・注意点",scan:"AIで読む資料",receipt:"受入・現品票",inspection:"検査表",event:"できごと"},
@@ -523,7 +523,7 @@ const T = {
     priceT:"", current:"", since:"", fixed:"", sampleClass:"", history:"", volume:"", perPc:"",
     quote:"", profit:"", lot:"ล็อต", total:"", basis:"", book:"", tiers:"", tierCol:"", alt:"", prev:"",
     similar:"แบบที่คล้ายกัน",
-    flowTitle:"ขั้นตอนมาตรฐาน (FF Black)", flowSub:"งานต่อรอบ = เวลาต่อ 1 รอบ ลำดับจริงให้ยึดตามใบสั่งงานหน้างาน", docsTitle:"แผนผังกระบวนการอย่างเป็นทางการ", docsSub:"ใช้นิ้วขยายได้ ขั้นตอนมาตรฐานชุบดำสำหรับ NSP (Line 2/2)", loading:"กำลังโหลด…", loadFail:"โหลดไม่สำเร็จ กรุณาตรวจสอบสัญญาณแล้วเปิดใหม่", zoom:"ขยาย", unzoom:"ย่อกลับ", page:"หน้า",
+    flowTitle:"ขั้นตอนมาตรฐาน (FF Black)", flowSub:"งานต่อรอบ = เวลาต่อ 1 รอบ ลำดับจริงให้ยึดตามใบสั่งงานหน้างาน", docsTitle:"แผนผังกระบวนการอย่างเป็นทางการ", docsSub:"ใช้นิ้วขยายได้ ผังกระบวนการของบริษัท/ชิ้นงานนี้", noFlow:"ยังไม่มีผังกระบวนการของบริษัท/ชิ้นงานนี้", dwgTitle:"แบบ", dwgOpen:"ดูแบบ", dwgClose:"ปิด", dwgConf:"แบบนี้มีเครื่องหมายลับ จึงไม่แสดงรูป กรุณาดูที่ตำแหน่งไฟล์ด้านล่าง", loading:"กำลังโหลด…", loadFail:"โหลดไม่สำเร็จ กรุณาตรวจสอบสัญญาณแล้วเปิดใหม่", zoom:"ขยาย", unzoom:"ย่อกลับ", page:"หน้า",
     issueMaster:"ปัญหาที่ลงทะเบียนไว้", fieldRec:"บันทึกจากหน้างาน", cautions:"ข้อควรระวังสำหรับผิวเคลือบนี้", noIssue:"ยังไม่มีบันทึก",
     addIssue:"＋ บันทึกปัญหา/ของเสีย", addAction:"＋ บันทึกการแก้ไข", addMemo:"＋ เขียนบันทึก/ข้อควรระวัง",
     types:{issue:"ปัญหา/ของเสีย",action:"การแก้ไข",memo:"บันทึกงาน/ข้อควรระวัง",scan:"เอกสารให้ AI อ่าน",receipt:"รับเข้า・ป้ายสินค้า",inspection:"ตารางตรวจสอบ",event:"เหตุการณ์"},
@@ -1702,7 +1702,7 @@ function renderProduct(p){
   const issEnt = ents.filter(e=>e.type==="issue"||e.type==="action"), memoEnt = ents.filter(e=>!(e.type==="issue"||e.type==="action"));
   const masterIss = (p.issueIds||[]).map(id=>byI[id]).filter(Boolean);
   const chip = (k, v) => v!=null && v!=="" ? `<span class="chip"><b>${esc(t("chips")[k])}</b>${v}</span>` : "";
-  const counts = {issues: issEnt.filter(e=>!e.deleted).length + masterIss.length, memo: memoEnt.filter(e=>!e.deleted).length, docs:(p.docs||[]).length};
+  const counts = {issues: issEnt.filter(e=>!e.deleted).length + masterIss.length, memo: memoEnt.filter(e=>!e.deleted).length, docs:(p.docs||[]).length + (p.drawings||[]).length};
   const formFor = kinds => (FORM && FORM.pid===p.id && !FORM.parent && !FORM.pickProduct && kinds.includes(FORM.type)) ? formHTML() : (EDIT ? addButtons(kinds) : "");
   const panels = {
     info: () => `${(PFORM && !PFORM.isNew && PFORM.pid===p.id) ? productFormHTML() : (EDIT ? `<div class="addbar"><button type="button" class="btn small ghost" id="editProd">${esc(t("editProduct"))}</button></div>` : "")}
@@ -1719,7 +1719,7 @@ function renderProduct(p){
       <h3>${esc(t("fieldRec"))}</h3>${issEnt.length?issEnt.map(e=>entryCard(e,false)).join(""):`<p class="empty">${esc(p.issuesNote ? tx(p,"issuesNote") : t("noIssue"))}</p>`}`,
     memo: () => `${formFor(["memo"])}${memoEnt.length?memoEnt.map(e=>entryCard(e,false)).join(""):`<p class="empty">${esc(t("noIssue"))}</p>`}
       ${(p.flowSteps && CAUTIONS.length)?`<h3>${esc(t("cautions"))}</h3><ul class="bul">${CAUTIONS.map(x=>`<li>${esc(JA()?x.ja:x.th)}</li>`).join("")}</ul>`:""}`,
-    docs: () => `${(p.received||p.rev||p.areaFormula||p.quotedAt)?`<dl class="kv" style="margin-bottom:12px">${p.quotedAt?`<dt>${esc(t("quotedAt"))}</dt><dd class="num">${esc(p.quotedAt)}</dd>`:""}${p.received?`<dt>${esc(t("received"))}</dt><dd>${esc(p.received)}</dd>`:""}${p.rev?`<dt>${esc(t("rev"))}</dt><dd>${esc(p.rev)}</dd>`:""}${p.areaFormula?`<dt>${esc(t("areaF"))}</dt><dd class="num">${esc(p.areaFormula)}</dd>`:""}</dl>`:""}${docList(p.docs)}${changeLogHTML(p.id)}`
+    docs: () => `${(p.received||p.rev||p.areaFormula||p.quotedAt)?`<dl class="kv" style="margin-bottom:12px">${p.quotedAt?`<dt>${esc(t("quotedAt"))}</dt><dd class="num">${esc(p.quotedAt)}</dd>`:""}${p.received?`<dt>${esc(t("received"))}</dt><dd>${esc(p.received)}</dd>`:""}${p.rev?`<dt>${esc(t("rev"))}</dt><dd>${esc(p.rev)}</dd>`:""}${p.areaFormula?`<dt>${esc(t("areaF"))}</dt><dd class="num">${esc(p.areaFormula)}</dd>`:""}</dl>`:""}${dwgHTML(p)}${docList(p.docs)}${changeLogHTML(p.id)}`
   };
   if(!panels[TAB]) TAB = "info";
   logView("p", p.id, TAB);
@@ -1733,10 +1733,10 @@ function renderProduct(p){
   main.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{ TAB=b.dataset.tab; ls.set("karte.tab2",TAB); renderProduct(p); }));
   main.querySelectorAll("[data-add]").forEach(b=>b.addEventListener("click",()=>{ FORM = {pid:p.id, type:b.dataset.add, date:today(), files:[]}; renderProduct(p); const tx_ = document.getElementById("fText"); if(tx_) tx_.focus(); }));
   vlProductCard(p);
-  if(TAB==="flow") renderDocs();
+  if(TAB==="flow") renderDocs(p);
   const ep = document.getElementById("editProd");
   if(ep) ep.addEventListener("click", ()=>{ PFORM = {isNew:false, pid:p.id, data:{...p, drawingPath:((p.docs||[])[0]||{}).path||""}}; renderProduct(p); });
-  wireProductForm(); wireForm(); wireEntries(main); wireCopy(main);
+  wireProductForm(); wireForm(); wireEntries(main); wireCopy(main); wireDwg(main);
 }
 const PF_LABEL = {name:"pfName", customer:"pfCust", model:"pfModel", oldNo:"pfOld", process:"pfProc", color:"pfColor", finish:"pfFinish", material:"pfMat", thickness:"pfThick", masking:"pfMask", area_mm2:"pfArea", status:"pfStatus", drawingPath:"pfPath", price:"priceT", size:"pfSize", finishSpec:"finishSpec"};
 function changeLogHTML(pid){
@@ -1750,11 +1750,35 @@ async function loadFlowDocs(){
   if(!FLOW_LOADING){ FLOW_LOADING = fetchEnc(CONF.flow, false).then(e=>decryptJSON(e, PW)).then(d=>{ FLOWDOCS = d.docs; return FLOWDOCS; }).catch(err=>{ FLOW_LOADING=null; throw err; }); }
   return FLOW_LOADING;
 }
-function renderDocs(){
-  loadFlowDocs().then(docs=>{ const b = document.getElementById("docs"); if(!b) return;
-    b.innerHTML = docs.map((d,i)=>`<div class="doc"><h4>${esc(d.title[LANG]||d.title.ja)}</h4><div class="pages">${d.pages.map((p,j)=>`<div><div class="zoomwrap"><img src="${p}" alt="${esc(d.id)} p${j+1}" loading="lazy"></div><div class="pagebar"><span>${esc(t("page"))} ${j+1}/${d.pages.length}</span><button type="button" class="zoombtn">${esc(t("zoom"))}</button></div></div>`).join("")}</div></div>`).join("");
+/* 2026-11-28: flow docs carry for:{customers:[],products:[]}. A product shows only its own; the docs page shows all with the company tag. */
+const flowFor = (d,p) => !!(d.for && (((d.for.products||[]).includes(p.id)) || ((d.for.customers||[]).includes(p.customer))));
+const flowTag = d => { const c = ((d.for||{}).customers||[]).map(id => { const x = CUSTOMERS.find(y=>y.id===id); return x ? tx(x,"name") : id; }); const pr = (d.for||{}).products||[]; return [...c, ...pr].map(s=>`<span class="tag">${esc(s)}</span>`).join(" "); };
+function renderDocs(p){
+  loadFlowDocs().then(all=>{ const b = document.getElementById("docs"); if(!b) return;
+    const docs = p ? all.filter(d=>flowFor(d,p)) : all;
+    if(!docs.length){ b.innerHTML = `<p class="empty">${esc(t("noFlow"))}</p>`; return; }
+    b.innerHTML = docs.map((d,i)=>`<div class="doc"><h4>${esc(d.title[LANG]||d.title.ja)}${p?"":" "+flowTag(d)}</h4><div class="pages">${d.pages.map((p,j)=>`<div><div class="zoomwrap"><img src="${p}" alt="${esc(d.id)} p${j+1}" loading="lazy"></div><div class="pagebar"><span>${esc(t("page"))} ${j+1}/${d.pages.length}</span><button type="button" class="zoombtn">${esc(t("zoom"))}</button></div></div>`).join("")}</div></div>`).join("");
     b.querySelectorAll(".zoombtn").forEach(btn=>btn.addEventListener("click",()=>{ const img = btn.closest("div").previousElementSibling.querySelector("img"); const z = img.classList.toggle("zoomed"); btn.textContent = z ? t("unzoom") : t("zoom"); }));
   }).catch(()=>{ const b = document.getElementById("docs"); if(b) b.innerHTML = `<p class="note">${esc(t("loadFail"))}</p>`; });
+}
+
+/* ---------- 製品の図面（2026-11-28：見積依頼メールの添付図面。画像は <repoDir>dwg/<id>.enc.json、conf は機密表示ありで画像なし） ---------- */
+function dwgHTML(p){
+  const ds = p.drawings || [];
+  if(!ds.length) return "";
+  return `<h3 style="margin-top:0">${esc(t("dwgTitle"))}</h3><ul class="doclist" style="margin-bottom:14px">${ds.map(d=>`<li><div style="font-size:14px">${esc(tx(d,"title"))}${d.pages>1?` <span class="meta">（${d.pages} ${esc(t("page"))}）</span>`:""}</div>${d.conf?`<div class="meta" style="font-size:12.5px;margin-top:3px">🔒 ${esc(t("dwgConf"))}</div>`:`<button type="button" class="btn small" data-dwg="${esc(d.id)}" style="margin-top:6px">${esc(t("dwgOpen"))}</button><div class="doc dwg-img" data-dwgbox="${esc(d.id)}" style="margin-top:8px"></div>`}</li>`).join("")}</ul>`;
+}
+function wireDwg(root){
+  root.querySelectorAll("[data-dwg]").forEach(btn=>btn.addEventListener("click", ()=>{
+    const id = btn.dataset.dwg, box = root.querySelector(`[data-dwgbox="${CSS.escape(id)}"]`); if(!box) return;
+    if(box.innerHTML){ box.innerHTML = ""; btn.textContent = t("dwgOpen"); return; }
+    box.innerHTML = `<div class="loading">${esc(t("loading"))}</div>`; btn.textContent = t("dwgClose");
+    fetchEnc(`dwg/${encodeURIComponent(id)}.enc.json`, false).then(e=>{ if(!e) throw new Error("404"); return decryptJSON(e, PW); }).then(d=>{
+      const pg = d.pages || [];
+      box.innerHTML = pg.map((b64,j)=>`<div><div class="zoomwrap"><img src="data:image/jpeg;base64,${b64}" alt="${esc(id)} p${j+1}"></div><div class="pagebar"><span>${esc(t("page"))} ${j+1}/${pg.length}</span><button type="button" class="zoombtn">${esc(t("zoom"))}</button></div></div>`).join("");
+      box.querySelectorAll(".zoombtn").forEach(z=>z.addEventListener("click",()=>{ const img = z.closest("div").previousElementSibling.querySelector("img"); const on = img.classList.toggle("zoomed"); z.textContent = on ? t("unzoom") : t("zoom"); }));
+    }).catch(()=>{ box.innerHTML = `<p class="note">${esc(t("loadFail"))}</p>`; });
+  }));
 }
 
 /* ---------- ホームの記録欄（問題を記録する／AIにお願い） ---------- */
