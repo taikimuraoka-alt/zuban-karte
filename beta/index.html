@@ -179,6 +179,14 @@ td.num,th.num{text-align:right}
 .today .meta{font-size:12px;color:var(--muted);margin-top:3px;overflow-wrap:anywhere}
 .today .src{display:inline-block;font-size:11px;padding:0 7px;border-radius:999px;border:1px solid var(--line2);margin-right:4px}
 .today .go{flex:0 0 auto;font-size:12px;color:var(--accent);align-self:center}
+.today .td-det summary{list-style:none;cursor:pointer}
+.today .td-det summary::-webkit-details-marker{display:none}
+.today .td-det summary:hover,.today .td-det summary:focus-visible{background:var(--soft);outline:none}
+.today .td-det[open] summary{background:var(--soft)}
+.today .td-det[open] .go{visibility:hidden}
+.today .td-body{margin:4px 0 8px 36px;padding:10px 12px;border-left:3px solid var(--line2);background:color-mix(in srgb,var(--soft) 50%,transparent);border-radius:0 8px 8px 0}
+.today .td-text{font-size:13.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.today .td-body .btn{margin-top:8px;display:inline-block;text-decoration:none}
 #todayCard .tabs{margin:2px 0 8px}
 #todayCard .tabs button{font-size:13.5px;padding:6px 10px}
 /* menu (2026-11-26): big buttons on the start page, one hue per part (same hues as the section colors) */
@@ -1920,8 +1928,8 @@ function entryAIExtra(e){
    2026-11-26: the previous 2 days are kept in history; the 今日 / 昨日 / おととい buttons switch the list (TDSEL = date shown, "" = today). */
 let TODAY = null, TDSEL = "";
 const TD = {
-  ja:{ title:"今日確認すべきこと", upd:s=>`${s} 更新`, n:n=>`${n} 件`, empty:"今日確認することは、まだありません。", hint:"LINE（品質・社内グループ）とメールの確認のたびに、大事な順に並べ直します。毎日0時に新しくなります（昨日・おとといの分は上のボタンで見られます）。", line:"LINE", mail:"メール", open:"記録 →", prio:{red:"至急",yellow:"要確認",green:"参考"}, rel:["今日","昨日","おととい"], pastEmpty:"この日の確認事項はありませんでした。", pastNote:d=>`${d} の一覧です（その日の最後の更新の内容）。`, dow:["日","月","火","水","木","金","土"] },
-  th:{ title:"สิ่งที่ต้องตรวจสอบวันนี้", upd:s=>`อัปเดต ${s}`, n:n=>`${n} รายการ`, empty:"วันนี้ยังไม่มีเรื่องที่ต้องตรวจสอบ", hint:"เรียงลำดับใหม่ตามความสำคัญทุกครั้งที่ตรวจ LINE (กลุ่มคุณภาพ・กลุ่มบริษัท) และอีเมล รีเซ็ตทุกวันเวลา 0:00 (ดูของเมื่อวานและเมื่อวานซืนได้จากปุ่มด้านบน)", line:"LINE", mail:"อีเมล", open:"บันทึก →", prio:{red:"ด่วน",yellow:"ต้องตรวจสอบ",green:"ข้อมูล"}, rel:["วันนี้","เมื่อวาน","เมื่อวานซืน"], pastEmpty:"ไม่มีเรื่องที่ต้องตรวจสอบในวันนั้น", pastNote:d=>`รายการของวันที่ ${d} (ข้อมูลอัปเดตล่าสุดของวันนั้น)`, dow:["อา.","จ.","อ.","พ.","พฤ.","ศ.","ส."] }
+  ja:{ title:"今日確認すべきこと", upd:s=>`${s} 更新`, n:n=>`${n} 件`, empty:"今日確認することは、まだありません。", hint:"LINE（品質・社内グループ）とメールの確認のたびに、大事な順に並べ直します。毎日0時に新しくなります（昨日・おとといの分は上のボタンで見られます）。", line:"LINE", mail:"メール", open:"記録 →", more:"詳細 ▾", openOt:"残業予定を見る →", openVis:"来客・予定を見る →", openChem:"薬液の記録を見る →", prio:{red:"至急",yellow:"要確認",green:"参考"}, rel:["今日","昨日","おととい"], pastEmpty:"この日の確認事項はありませんでした。", pastNote:d=>`${d} の一覧です（その日の最後の更新の内容）。`, dow:["日","月","火","水","木","金","土"] },
+  th:{ title:"สิ่งที่ต้องตรวจสอบวันนี้", upd:s=>`อัปเดต ${s}`, n:n=>`${n} รายการ`, empty:"วันนี้ยังไม่มีเรื่องที่ต้องตรวจสอบ", hint:"เรียงลำดับใหม่ตามความสำคัญทุกครั้งที่ตรวจ LINE (กลุ่มคุณภาพ・กลุ่มบริษัท) และอีเมล รีเซ็ตทุกวันเวลา 0:00 (ดูของเมื่อวานและเมื่อวานซืนได้จากปุ่มด้านบน)", line:"LINE", mail:"อีเมล", open:"บันทึก →", more:"รายละเอียด ▾", openOt:"ดูตารางโอที →", openVis:"ดูผู้มาเยือน・กำหนดการ →", openChem:"ดูบันทึกน้ำยาเคมี →", prio:{red:"ด่วน",yellow:"ต้องตรวจสอบ",green:"ข้อมูล"}, rel:["วันนี้","เมื่อวาน","เมื่อวานซืน"], pastEmpty:"ไม่มีเรื่องที่ต้องตรวจสอบในวันนั้น", pastNote:d=>`รายการของวันที่ ${d} (ข้อมูลอัปเดตล่าสุดของวันนั้น)`, dow:["อา.","จ.","อ.","พ.","พฤ.","ศ.","ส."] }
 };
 const td = k => TD[LANG][k];
 async function loadToday(){
@@ -1953,10 +1961,15 @@ function todayCardHTML(){
   const items = sel.items||[];
   const hm = s => { const m = String(s||"").match(/(\d{1,2}):(\d{2})/); return m ? `${+m[1]}:${m[2]}` : ""; };
   const li = it => {
-    const ref = String(it.ref||""), href = /^e:/.test(ref) && entryById(ref.slice(2)) ? `#e/${encodeURIComponent(ref.slice(2))}` : (/^i:/.test(ref) && byI[ref.slice(2)] ? `#i/${encodeURIComponent(ref.slice(2))}` : "");
+    // 2026-11-27: ref may also point to a page ("page:overtime" / "page:visitors" / "page:chem[/…]"); an item with "detail" opens in place (tap to expand)
+    const ref = String(it.ref||""), pg = ref.match(/^page:(overtime|visitors|chem(?:\/[\w-]+)?)$/);
+    const href = /^e:/.test(ref) && entryById(ref.slice(2)) ? `#e/${encodeURIComponent(ref.slice(2))}` : (/^i:/.test(ref) && byI[ref.slice(2)] ? `#i/${encodeURIComponent(ref.slice(2))}` : (pg ? `#${pg[1]}` : ""));
+    const openTx = pg ? (pg[1]==="overtime" ? td("openOt") : pg[1]==="visitors" ? td("openVis") : td("openChem")) : td("open");
     const pr = ["red","yellow","green"].includes(it.prio) ? it.prio : "green";
     const meta = [`<span class="src">${esc(it.src==="mail" ? td("mail") : td("line"))}</span>${esc(td("prio")[pr])}`, it.group, hm(it.at), it.who].filter(Boolean).map((s,i)=>i?esc(s):s).join(" ・ ");
-    const body = `<span class="rk" aria-hidden="true"></span><span class="tb"><div class="tt">${esc(tx(it,"title"))}</div>${tx(it,"note")?`<div class="nt">${esc(tx(it,"note"))}</div>`:""}<div class="meta">${meta}</div></span>${href?`<span class="go">${esc(td("open"))}</span>`:""}`;
+    const det = tx(it,"detail");
+    const body = `<span class="rk" aria-hidden="true"></span><span class="tb"><div class="tt">${esc(tx(it,"title"))}</div>${tx(it,"note")?`<div class="nt">${esc(tx(it,"note"))}</div>`:""}<div class="meta">${meta}</div></span>${det?`<span class="go">${esc(td("more"))}</span>`:href?`<span class="go">${esc(openTx)}</span>`:""}`;
+    if(det) return `<li class="${pr}"><details class="td-det"><summary class="ti">${body}</summary><div class="td-body"><div class="td-text">${esc(det)}</div>${href?`<a class="btn small" href="${href}">${esc(openTx)}</a>`:""}</div></details></li>`;
     return `<li class="${pr}">${href ? `<a class="ti" href="${href}">${body}</a>` : `<div class="ti">${body}</div>`}</li>`;
   };
   const tabs = days.length > 1 ? `<div class="tabs" role="tablist">${days.map(d=>{ const L = tdLabel(d.date); return `<button type="button" role="tab" data-tday="${esc(d.date)}" aria-selected="${d===sel}" title="${esc(L.md)}">${esc(L.rel)}<span class="cnt">${(d.items||[]).length}</span></button>`; }).join("")}</div>` : "";
