@@ -203,6 +203,28 @@ td.num,th.num{text-align:right}
 .backmenu:hover{border-color:var(--accent)}
 #docsCard{border-left:5px solid #fac775} [data-theme="light"] #docsCard{border-left-color:#854f0b}
 
+/* overtime: overtime / holiday-work schedule (overtime.enc.json, read from the PDF shared in LINE), 2026-11-27 */
+.m-ot{--sec:#e9a35c} [data-theme="light"] .m-ot{--sec:#9a5b13}
+#otHead{border-left:5px solid #e9a35c} [data-theme="light"] #otHead{border-left-color:#9a5b13}
+#otHead input{width:100%;max-width:320px}
+.ot-h{margin:18px 4px 8px;font-size:14px;color:var(--muted)}
+.ot-day h2{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.ot-day.is-today{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 6%,var(--card))}
+.ot-now{font-size:11px;font-weight:600;padding:0 8px;border-radius:999px;background:var(--accent);color:#fff}
+.ot-tot{margin-left:auto;font-size:13px;font-weight:600;color:var(--accent)}
+.ot-gs{display:flex;flex-direction:column;gap:10px}
+.ot-g{padding:8px 0 0;border-top:1px solid var(--line)}
+.ot-g:first-child{border-top:0;padding-top:0}
+.ot-task{font-weight:600;font-size:14px;margin:0 0 5px}
+.ot-part{font-size:10.5px;padding:0 7px;border-radius:999px;border:1px solid var(--line2);color:var(--muted);font-weight:600}
+.ot-n{font-size:12px;color:var(--muted);font-weight:400}
+.ot-names{display:flex;flex-wrap:wrap;gap:5px}
+.ot-nm{font-size:13px;padding:2px 9px;border-radius:999px;background:var(--soft);border:1px solid var(--line)}
+.ot-nm.hit{background:color-mix(in srgb,var(--warn) 25%,var(--card));border-color:var(--warn);font-weight:600}
+.ot-src{margin:10px 0 0;font-size:11.5px}
+.ot-img{margin-top:8px}
+.ot-img img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:6px;margin:0 0 6px;background:#fff}
+
 /* visitors: visitor schedule (visitors.enc.json, imported from the Visitors schedule PPTX) */
 #visCard{border-color:color-mix(in srgb,var(--accent) 25%,var(--line))}
 .vis-days{display:flex;flex-direction:column}
@@ -433,7 +455,7 @@ a.chip{text-decoration:none}
 </div>
 
 <script>
-const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", chem:"chem.enc.json", today:"today.enc.json", visitors:"visitors.enc.json", repoDir:"beta/", build:"2026-11-27" };
+const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", chem:"chem.enc.json", today:"today.enc.json", visitors:"visitors.enc.json", overtime:"overtime.enc.json", repoDir:"beta/", build:"2026-11-27" };
 let PW = null, DATA = null, FIELD = {entries:[]}, FLOWDOCS = null, FLOW_LOADING = null, EDIT = null;
 let CUSTOMERS = [], PRODUCTS = [], ISSUES = [], EVENTS = [], FLOWSTEPS = [], CAUTIONS = [];
 let byP = {}, byC = {}, byI = {};
@@ -663,7 +685,7 @@ function renderLock(msg){
   document.getElementById("lockForm").addEventListener("submit", async e => { e.preventDefault(); const pw = document.getElementById("pw").value; document.getElementById("err").textContent = t("checking"); try{ await unlock(pw); ls.set("karte.pw", pw); }catch(_){ document.getElementById("err").textContent = t("wrong"); } });
   setTimeout(()=>{ const p=document.getElementById("pw"); if(p) p.focus(); }, 50);
 }
-function lock(){ ls.del("karte.pw"); ls.del("karte.editpw"); ls.del("karte.vlpw"); VLPRIV = null; VLPKCS8 = null; VL = null; VL_LOADING = null; PW=null; DATA=null; EDIT=null; FIELD={entries:[]}; FLOWDOCS=null; FLOW_LOADING=null; CHEM=null; CHEM_LOADING=null; TODAY=null; VIS=null; KEYS.clear(); renderLock(""); }
+function lock(){ ls.del("karte.pw"); ls.del("karte.editpw"); ls.del("karte.vlpw"); VLPRIV = null; VLPKCS8 = null; VL = null; VL_LOADING = null; PW=null; DATA=null; EDIT=null; FIELD={entries:[]}; FLOWDOCS=null; FLOW_LOADING=null; CHEM=null; CHEM_LOADING=null; TODAY=null; VIS=null; OT=null; KEYS.clear(); renderLock(""); }
 async function unlock(pw){
   if(!(window.crypto && crypto.subtle)) throw new Error("no webcrypto");
   const e = await fetchEnc(CONF.data, true); if(!e) throw new Error("no data");
@@ -675,6 +697,7 @@ async function unlock(pw){
   loadChem().then(()=>{ if(!location.hash || location.hash.startsWith("#chem")) route(true); }).catch(()=>{});
   loadToday().then(()=>{ if(!location.hash || location.hash.startsWith("#s/")) route(true); }).catch(()=>{});
   loadVisitors().then(()=>{ if(!location.hash || location.hash.startsWith("#visitors")) route(true); }).catch(()=>{});
+  loadOvertime().then(()=>{ if(!location.hash || location.hash.startsWith("#overtime")) route(true); }).catch(()=>{});
 }
 
 /* ---------- edit mode ---------- */
@@ -1052,6 +1075,7 @@ function vlLabel(e){
   if(e.k==="e"){ const x = entryById(e.id); return {href:`#e/${encodeURIComponent(e.id)}`, text:`記録：${x?(x.title||firstLine(x.text)||e.id):e.id}`, sub:""}; }
   if(e.k==="chem") return {href:`#chem${e.id?"/"+e.id:""}`, text:`薬液の記録${e.id?`（${e.id}）`:""}`, sub:""};
   if(e.k==="visitors") return {href:"#visitors", text:"来客・予定", sub:""};
+  if(e.k==="overtime") return {href:"#overtime", text:"残業予定", sub:""};
   if(e.k==="home") return {href:"#", text:"ホーム", sub:""};
   if(e.k==="staff") return {href:"#staff", text:"担当者の管理", sub:""};
   return {href:"#", text:`${e.k} ${e.id}`, sub:""};
@@ -1113,7 +1137,7 @@ function renderViewlog(msg, isErr){
       <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end">
         <label class="field" style="flex:1 1 140px;margin:0">人<select id="vfWho">${opt("","全員",VLF.who)}${names.map(n=>opt(n,n,VLF.who)).join("")}</select></label>
         <label class="field" style="flex:1 1 110px;margin:0">期間<select id="vfDays">${opt("1","24時間",VLF.days)}${opt("7","7日",VLF.days)}${opt("30","30日",VLF.days)}${opt("90","90日",VLF.days)}${opt("","すべて",VLF.days)}</select></label>
-        <label class="field" style="flex:1 1 110px;margin:0">ページ<select id="vfKind">${opt("","すべて",VLF.kind)}${opt("p","製品",VLF.kind)}${opt("c","会社",VLF.kind)}${opt("i","問題",VLF.kind)}${opt("e","記録",VLF.kind)}${opt("chem","薬液",VLF.kind)}${opt("visitors","来客予定",VLF.kind)}${opt("home","ホーム",VLF.kind)}</select></label>
+        <label class="field" style="flex:1 1 110px;margin:0">ページ<select id="vfKind">${opt("","すべて",VLF.kind)}${opt("p","製品",VLF.kind)}${opt("c","会社",VLF.kind)}${opt("i","問題",VLF.kind)}${opt("e","記録",VLF.kind)}${opt("chem","薬液",VLF.kind)}${opt("visitors","来客予定",VLF.kind)}${opt("overtime","残業予定",VLF.kind)}${opt("home","ホーム",VLF.kind)}</select></label>
         <label class="field" style="flex:2 1 160px;margin:0">図番・品名<input id="vfQ" type="text" value="${esc(VLF.q)}" placeholder="例 T150173630"></label>
         <button type="button" class="btn small ghost" id="vfReload">読み込み直す</button></div>
       <p class="sub" style="margin:10px 0 0">記録 ${base.length} 件・${plist.length} 人${pending?` ・ この端末で未送信 ${pending} 件`:""}。スマホからは数分ごと（画面を閉じたとき）に送られます。</p></div>
@@ -1386,10 +1410,10 @@ function wireFind(){
 let SEC = "";
 const SECS = { today:["todayCard"], find:["custs","find","latest"], issues:["openIss"], recent:["recent"], ai:["quick"] };
 const MT = {
-  ja:{ back:"← メニュー", today:"今日確認すべきこと", todaySub:"LINE・メール", vis:"来客・予定", visSub:"今週・来週", find:"顧客・製品を探す", findSub:n=>`${n} 製品`,
+  ja:{ back:"← メニュー", today:"今日確認すべきこと", todaySub:"LINE・メール", vis:"来客・予定", visSub:"今週・来週", ot:"残業・休日出勤", find:"顧客・製品を探す", findSub:n=>`${n} 製品`,
     chem:"薬液の記録", chemSub:n=>n==null?"pH・滴定・在庫":`規格外 ${n}`, issues:"問題・不良", issuesSub:n=>`未完了 ${n}`, recent:"現場の記録", recentSub:n=>`今週 ${n} 件`,
     ai:"AIにお願い", aiSub:"写真・書類を送る／問題を登録", docs:"フローチャート・資料", docsSub:"工程フロー・槽配置", nToday:n=>`今日 ${n}`, empty:"表示するものはありません。" },
-  th:{ back:"← เมนู", today:"สิ่งที่ต้องตรวจสอบวันนี้", todaySub:"LINE・อีเมล", vis:"ผู้มาเยือน・กำหนดการ", visSub:"สัปดาห์นี้・สัปดาห์หน้า", find:"ค้นหาลูกค้า・ผลิตภัณฑ์", findSub:n=>`${n} ผลิตภัณฑ์`,
+  th:{ back:"← เมนู", today:"สิ่งที่ต้องตรวจสอบวันนี้", todaySub:"LINE・อีเมล", vis:"ผู้มาเยือน・กำหนดการ", visSub:"สัปดาห์นี้・สัปดาห์หน้า", ot:"ล่วงเวลา・วันหยุด", find:"ค้นหาลูกค้า・ผลิตภัณฑ์", findSub:n=>`${n} ผลิตภัณฑ์`,
     chem:"บันทึกน้ำยาเคมี", chemSub:n=>n==null?"pH・ไทเทรต・สต็อก":`นอกสเปก ${n}`, issues:"ปัญหา・ของเสีย", issuesSub:n=>`ยังไม่เสร็จ ${n}`, recent:"บันทึกหน้างาน", recentSub:n=>`สัปดาห์นี้ ${n} รายการ`,
     ai:"ขอให้ AI ช่วย", aiSub:"ส่งรูป・เอกสาร／บันทึกปัญหา", docs:"ผังกระบวนการ・เอกสาร", docsSub:"ผังกระบวนการ・ผังบ่อ", nToday:n=>`วันนี้ ${n}`, empty:"ไม่มีข้อมูลที่จะแสดง" }
 };
@@ -1397,6 +1421,7 @@ const mt = k => MT[LANG][k];
 const MICON = {
   today:'<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
   vis:'<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16"/>',
+  ot:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/>',
   find:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
   chem:'<path d="M9 3h6M10 3v6L5 19a1.5 1.5 0 0 0 1.3 2h11.4a1.5 1.5 0 0 0 1.3-2L14 9V3"/><path d="M7.5 14h9"/>',
   issues:'<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>',
@@ -1419,6 +1444,7 @@ function menuHTML(){
   return `<nav class="menu" aria-label="menu">
     ${B("#s/today", "today", mt("todaySub"), tdN ? tdN : "", tdN > 0)}
     ${B("#visitors", "vis", mt("visSub"), visN ? mt("nToday")(visN) : "")}
+    ${B("#overtime", "ot", otMenuSub(), otMenuBadge())}
     ${B("#s/find", "find", mt("findSub")(PRODUCTS.length), "")}
     ${B("#chem", "chem", mt("chemSub")(chemN), chemN ? chemN : "", chemN > 0)}
     ${B("#s/issues", "issues", mt("issuesSub")(oi), oi ? oi : "", oi > 0)}
@@ -1939,6 +1965,92 @@ function todayCardHTML(){
     ${tabs}
     ${items.length ? `<ol class="list today">${items.map(li).join("")}</ol>` : `<p class="empty">${esc(isToday ? td("empty") : td("pastEmpty"))}</p>`}
     <p class="sub" style="margin:8px 0 0">${esc(isToday ? td("hint") : td("pastNote")(lb.md))}</p></div>`;
+}
+
+/* ---------- 残業予定 (overtime.enc.json, 2026-11-27)
+   Overtime / holiday-work schedules shared as PDF in the LINE groups. The LINE task reads each PDF and publishes it with overtime\ot_publish.ps1.
+   {built, sheets:[{id, file, by, group, posted:"yyyy-MM-dd HH:mm", title, pages, days:[{d:"yyyy-MM-dd", total, groups:[{task, part:""|"QA"|"Main", names:[...]}]}]}]}
+   The page images of the original PDF are in ot/<id>.enc.json ({pages:[base64 jpeg]}), loaded only when "元の予定表" is opened.
+   Names and tasks stay as written in the PDF (English) in both languages. */
+let OT = null;
+const OTIMG = {};
+const OTT = {
+  ja:{ title:"残業・休日出勤の予定", sub:"LINE で共有された予定表（PDF）を読み取って載せています。名前・作業は予定表の書き方のままです。違っていたら元の予定表で確認してください。",
+    upcoming:"これからの予定", past:"過去の予定表", none:"これからの残業・休日出勤の予定は、まだありません。", today:"今日", total:n=>`合計 ${n} 人`, ppl:n=>`${n} 人`,
+    src:"元の予定表", open:"元の予定表を見る", close:"閉じる", posted:"共有", by:"送った人", loading:"読み込み中…", loadFail:"読み込めませんでした。",
+    built:"最終更新", dow:["日","月","火","水","木","金","土"], findName:"名前で探す", hitNone:"その名前は見つかりません。" },
+  th:{ title:"ตารางทำงานล่วงเวลา・วันหยุด", sub:"อ่านจากตารางงาน (PDF) ที่แชร์ใน LINE ชื่อและงานเขียนตามตารางต้นฉบับ หากไม่ตรงกรุณาตรวจสอบจากตารางต้นฉบับ",
+    upcoming:"กำหนดการที่จะถึง", past:"ตารางที่ผ่านมา", none:"ยังไม่มีกำหนดการทำงานล่วงเวลา・วันหยุดที่จะถึง", today:"วันนี้", total:n=>`รวม ${n} คน`, ppl:n=>`${n} คน`,
+    src:"ตารางต้นฉบับ", open:"ดูตารางต้นฉบับ", close:"ปิด", posted:"แชร์", by:"ผู้ส่ง", loading:"กำลังโหลด…", loadFail:"โหลดไม่สำเร็จ",
+    built:"อัปเดตล่าสุด", dow:["อา.","จ.","อ.","พ.","พฤ.","ศ.","ส."], findName:"ค้นหาด้วยชื่อ", hitNone:"ไม่พบชื่อนี้" }
+};
+const ott = k => OTT[LANG][k];
+let OTQ = "";
+async function loadOvertime(){
+  const e = await fetchEnc(CONF.overtime, true);
+  OT = e ? await decryptJSON(e, PW) : {sheets:[]};
+  return OT;
+}
+const otDay = s => { const d = new Date(+s.slice(0,4), +s.slice(5,7)-1, +s.slice(8,10)); return LANG==="ja" ? `${+s.slice(5,7)}/${+s.slice(8,10)}（${ott("dow")[d.getDay()]}）` : `${ott("dow")[d.getDay()]} ${+s.slice(8,10)}/${+s.slice(5,7)}`; };
+function otUpcoming(){
+  const td = today(), out = [];
+  for(const s of (OT && OT.sheets) || []) for(const d of s.days||[]) if(d.d >= td) out.push({s, d});
+  return out.sort((a,b)=>a.d.d.localeCompare(b.d.d) || String(b.s.posted).localeCompare(String(a.s.posted)));
+}
+function otGroups(d){
+  const q = OTQ.trim().toLowerCase();
+  return `<div class="ot-gs">${(d.groups||[]).filter(g=>(g.names||[]).length).map(g=>`<div class="ot-g"><div class="ot-task">${esc(g.task||"")}${g.part?` <span class="ot-part">${esc(g.part)}</span>`:""} <span class="ot-n">${esc(ott("ppl")((g.names||[]).length))}</span></div>
+    <div class="ot-names">${(g.names||[]).map(n=>`<span class="ot-nm${q && n.toLowerCase().includes(q)?" hit":""}">${esc(n)}</span>`).join("")}</div></div>`).join("")}</div>`;
+}
+function otDayCard(s, d){
+  const td = today(), tot = d.total != null ? d.total : (d.groups||[]).reduce((a,g)=>a+(g.names||[]).length, 0);
+  return `<div class="card ot-day${d.d===td?" is-today":""}"><h2>${esc(otDay(d.d))}${d.d===td?` <span class="ot-now">${esc(ott("today"))}</span>`:""} <span class="ot-tot">${esc(ott("total")(tot))}</span></h2>
+    ${otGroups(d)}
+    <p class="sub ot-src">${esc(ott("src"))}: ${esc(s.file||"")}（${esc(ott("posted"))} ${esc(s.posted||"")}${s.by?` ・ ${esc(ott("by"))} ${esc(s.by)}`:""}） <button type="button" class="linkbtn" data-otimg="${esc(s.id)}">${esc(ott("open"))}</button></p>
+    <div class="ot-img" id="otimg-${esc(s.id)}-${esc(d.d)}" hidden></div></div>`;
+}
+async function otShowImages(id, box){
+  if(!box.hidden){ box.hidden = true; box.innerHTML = ""; return; }
+  box.hidden = false; box.innerHTML = `<p class="note">${esc(ott("loading"))}</p>`;
+  try{
+    if(!OTIMG[id]){ const e = await fetchEnc(`ot/${encodeURIComponent(id)}.enc.json`, false); OTIMG[id] = (await decryptJSON(e, PW)).pages || []; }
+    box.innerHTML = OTIMG[id].map(b=>`<img src="data:image/jpeg;base64,${b}" alt="">`).join("") + `<p><button type="button" class="linkbtn" data-otclose="1">${esc(ott("close"))}</button></p>`;
+    box.querySelector("[data-otclose]").addEventListener("click", ()=>{ box.hidden = true; box.innerHTML = ""; });
+  }catch(err){ box.innerHTML = `<p class="note">${esc(ott("loadFail"))}</p>`; }
+}
+function renderOvertime(){
+  if(!OT){
+    main.innerHTML = `<div class="card"><p class="note">${esc(ott("loading"))}</p></div>`;
+    loadOvertime().then(()=>{ if(location.hash.startsWith("#overtime")) route(true); }).catch(()=>{ main.innerHTML = `<div class="card"><p class="note">${esc(ott("loadFail"))}</p></div>`; });
+    return;
+  }
+  const up = otUpcoming(), td = today();
+  const past = ((OT.sheets)||[]).filter(s=>!(s.days||[]).some(d=>d.d >= td)).sort((a,b)=>String(b.posted).localeCompare(String(a.posted)));
+  const q = OTQ.trim().toLowerCase();
+  const hasHit = !q || up.some(x=>(x.d.groups||[]).some(g=>(g.names||[]).some(n=>n.toLowerCase().includes(q))));
+  main.innerHTML = `<div class="card" id="otHead"><h2>${esc(ott("title"))} <span class="sub">${OT.built?esc(ott("built"))+" "+esc(OT.built.slice(5,16).replace("-","/")):""}</span></h2>
+      <p class="sub" style="margin:0 0 8px">${esc(ott("sub"))}</p>
+      <label class="field" style="margin:0">${esc(ott("findName"))}<input id="otQ" type="search" value="${esc(OTQ)}" autocomplete="off"></label>
+      ${hasHit?"":`<p class="note">${esc(ott("hitNone"))}</p>`}</div>
+    <h3 class="ot-h">${esc(ott("upcoming"))}</h3>
+    ${up.length ? up.map(x=>otDayCard(x.s, x.d)).join("") : `<div class="card"><p class="empty">${esc(ott("none"))}</p></div>`}
+    ${past.length?`<h3 class="ot-h">${esc(ott("past"))}</h3>${past.slice(0,8).map(s=>(s.days||[]).map(d=>otDayCard(s, d)).join("")).join("")}`:""}`;
+  main.querySelectorAll("[data-otimg]").forEach(b=>b.addEventListener("click", ()=>{
+    const box = b.closest(".ot-day").querySelector(".ot-img"); otShowImages(b.dataset.otimg, box);
+  }));
+  const qi = document.getElementById("otQ");
+  qi.addEventListener("input", ()=>{ OTQ = qi.value; const pos = qi.selectionStart; renderOvertime(); const n = document.getElementById("otQ"); n.focus(); try{ n.setSelectionRange(pos, pos); }catch(e){} });
+}
+function otMenuBadge(){
+  if(!OT) return "";
+  const td = today(); let n = 0;
+  for(const s of OT.sheets||[]) for(const d of s.days||[]) if(d.d===td) n += d.total != null ? d.total : (d.groups||[]).reduce((a,g)=>a+(g.names||[]).length, 0);
+  return n ? ott("ppl")(n) : "";
+}
+function otMenuSub(){
+  const up = OT ? otUpcoming() : [];
+  if(!up.length) return LANG==="ja" ? "LINEの予定表" : "ตารางจาก LINE";
+  return [...new Set(up.map(x=>x.d.d))].slice(0,3).map(d=>LANG==="ja" ? otDay(d).replace(/（.*）/, "") : `${+d.slice(8,10)}/${+d.slice(5,7)}`).join("・");
 }
 
 /* ---------- 来客予定 (visitors.enc.json, 2026-11-23)
@@ -2775,6 +2887,7 @@ function route(keepScroll){
   else if(h==="mypin") renderSetPin();
   else if(h==="chem" || h.startsWith("chem/")){ renderChem(h.slice(5)); logView("chem", h.slice(5)); }
   else if(h==="visitors"){ renderVisitors(); logView("visitors", ""); }
+  else if(h==="overtime"){ renderOvertime(); logView("overtime", ""); }
   else if(h.startsWith("c/") && byC[h.slice(2)]){ renderCustomer(byC[h.slice(2)]); logView("c", h.slice(2)); }
   else if(h.startsWith("i/") && byI[h.slice(2)]){ renderIssue(byI[h.slice(2)]); logView("i", h.slice(2)); }
   else if(h.startsWith("e/") && entryById(h.slice(2))){ renderEntry(entryById(h.slice(2))); logView("e", h.slice(2)); }
