@@ -1224,7 +1224,7 @@ function tableHTML(tb){
 }
 function scanItem(e){
   const p = byP[e.product];
-  return `<li><a href="#e/${encodeURIComponent(e.id)}">${scanTag(e)} ${esc(t("kinds")[e.kind]||e.kind||"")}${e.text?` ・ ${esc(firstLine(e.text))}`:""}<div class="meta">${esc(e.date||"")} ・ ${esc(e.author||"")}${p?` ・ ${esc(p.id)}`:""}${(e.photos||[]).length?` ・ ${e.photos.length} ${esc(t("photoLoad"))}`:""}${(e.files||[]).length?` ・ ${esc(t("attachments"))} ${e.files.length}`:""}</div></a></li>`;
+  return `<li><a href="#e/${encodeURIComponent(e.id)}">${scanTag(e)} ${esc(t("kinds")[e.kind]||e.kind||"")}${e.text?` ・ ${esc(firstLine(tx(e,"text")))}`:""}<div class="meta">${esc(e.date||"")} ・ ${esc(e.author||"")}${p?` ・ ${esc(p.id)}`:""}${(e.photos||[]).length?` ・ ${e.photos.length} ${esc(t("photoLoad"))}`:""}${(e.files||[]).length?` ・ ${esc(t("attachments"))} ${e.files.length}`:""}</div></a></li>`;
 }
 function scanCardHTML(){
   const scans = FIELD.entries.filter(e=>e.type==="scan" && !e.deleted).sort(byNew);
@@ -1297,12 +1297,12 @@ function wireFiles(root){
 }
 function fieldIssueItem(e){
   const p = byP[e.product];
-  return `<li><a href="#e/${encodeURIComponent(e.id)}"><span class="tag issue" style="margin-left:0">${esc(t("fieldTag"))}</span> ${esc(e.title || firstLine(e.text))} ${statusTag(entryStatus(e))}<div class="meta">${esc(e.date||"")}${p?` ・ ${esc(p.id)} ${esc(tx(p,"name"))}`:""} ・ ${esc(e.author||"")}</div></a></li>`;
+  return `<li><a href="#e/${encodeURIComponent(e.id)}"><span class="tag issue" style="margin-left:0">${esc(t("fieldTag"))}</span> ${esc(tx(e,"title") || firstLine(tx(e,"text")))} ${statusTag(entryStatus(e))}<div class="meta">${esc(e.date||"")}${p?` ・ ${esc(p.id)} ${esc(tx(p,"name"))}`:""} ・ ${esc(e.author||"")}</div></a></li>`;
 }
 function entryCard(e, showProduct){
   const p = byP[e.product];
   return `<div class="entry${e.deleted?" deleted":""}" data-entry="${esc(e.id)}"><div class="head"><span class="tag ${esc(e.type)}">${esc(t("types")[e.type]||e.type)}</span>${e.type==="issue"&&!e.deleted?statusTag(entryStatus(e)):""}${e.type==="scan"?`<span>${esc(t("kinds")[e.kind]||e.kind||"")}</span>${scanTag(e)}`:""}<span>${esc(e.date)}</span><span>${esc(t("by"))}: ${esc(e.author)}</span>${e.fromScan?`<a class="prod" href="#e/${encodeURIComponent(e.fromScan)}">${esc(t("fromScan"))}</a>`:""}${e.lot?`<span>${esc(t("fLot"))} ${esc(e.lot)}</span>`:""}${e.qty?`<span>${esc(t("fQty"))} ${fmt(e.qty)}</span>`:""}${showProduct && p?`<a class="prod" href="#${encodeURIComponent(p.id)}">${esc(p.id)}</a>`:""}${e.deleted?`<span>${esc(t("undone"))}</span>`:""}<a class="more" href="#e/${encodeURIComponent(e.id)}">${esc(t("more"))}</a></div>
-    ${e.title?`<div class="etitle">${esc(e.title)}</div>`:""}${e.text?`<p class="txt"><a class="txtlink" href="#e/${encodeURIComponent(e.id)}">${esc(e.text)}</a></p>`:""}${tableHTML(e.table)}${(e.photos||[]).length?`<div class="photos">${e.photos.map(id=>`<button type="button" class="ph" data-photo="${esc(id)}">${esc(t("photoLoad"))}</button>`).join("")}</div><div class="bigphoto"></div>`:""}
+    ${e.title?`<div class="etitle">${esc(tx(e,"title"))}</div>`:""}${e.text?`<p class="txt"><a class="txtlink" href="#e/${encodeURIComponent(e.id)}">${esc(tx(e,"text"))}</a></p>`:""}${tableHTML(e.table)}${(e.photos||[]).length?`<div class="photos">${e.photos.map(id=>`<button type="button" class="ph" data-photo="${esc(id)}">${esc(t("photoLoad"))}</button>`).join("")}</div><div class="bigphoto"></div>`:""}
     ${(EDIT && !e.deleted)?`<div class="actions"><button type="button" class="linkbtn" data-undo="${esc(e.id)}">${esc(t("undo"))}</button></div>`:""}</div>`;
 }
 /* Two-step button instead of confirm(): some in-app browsers suppress dialogs. First press arms it for 5 s. */
@@ -1580,14 +1580,14 @@ function renderIssue(i){
 }
 function renderEntry(e){
   const p = byP[e.product], c = byC[p ? p.customer : e.customer], key = "e:"+e.id;
-  const parent = e.parent ? (e.parent.startsWith("i:") ? (byI[e.parent.slice(2)] ? `<a href="#i/${encodeURIComponent(e.parent.slice(2))}">${esc(e.parent.slice(2))} ${esc(tx(byI[e.parent.slice(2)],"title"))}</a>` : esc(e.parent)) : (entryById(e.parent.slice(2)) ? `<a href="#e/${encodeURIComponent(e.parent.slice(2))}">${esc(entryById(e.parent.slice(2)).title || firstLine(entryById(e.parent.slice(2)).text))}</a>` : esc(e.parent))) : "";
+  const parent = e.parent ? (e.parent.startsWith("i:") ? (byI[e.parent.slice(2)] ? `<a href="#i/${encodeURIComponent(e.parent.slice(2))}">${esc(e.parent.slice(2))} ${esc(tx(byI[e.parent.slice(2)],"title"))}</a>` : esc(e.parent)) : (entryById(e.parent.slice(2)) ? `<a href="#e/${encodeURIComponent(e.parent.slice(2))}">${esc(tx(entryById(e.parent.slice(2)),"title") || firstLine(tx(entryById(e.parent.slice(2)),"text")))}</a>` : esc(e.parent))) : "";
   const row = (k, v) => v ? `<dt>${esc(t(k))}</dt><dd>${v}</dd>` : "";
   main.innerHTML = `<a class="back" href="${p?`#${encodeURIComponent(p.id)}`:"#"}">${esc(t("back"))}${p?` ${esc(p.id)}`:""}</a>
     <div class="card${e.deleted?" entry deleted":""}" data-entry="${esc(e.id)}"><div class="sub">${esc(t("detail"))}</div>
       <div class="title" style="margin-top:4px"><span class="tag ${esc(e.type)}" style="margin-left:0">${esc(t("types")[e.type]||e.type)}</span>${e.type==="issue"?statusTag(entryStatus(e)):""}${e.type==="scan"?scanTag(e):""}${e.deleted?`<span class="tag">${esc(t("undone"))}</span>`:""}</div>
-      <div class="name" style="font-size:18px;font-weight:500;margin-top:6px">${esc(e.title || firstLine(e.text) || (e.type==="scan" ? t("kinds")[e.kind] : ""))}</div>
+      <div class="name" style="font-size:18px;font-weight:500;margin-top:6px">${esc(tx(e,"title") || firstLine(tx(e,"text")) || (e.type==="scan" ? t("kinds")[e.kind] : ""))}</div>
       <dl class="kv" style="margin-top:12px">${row("product", p?`<a href="#${encodeURIComponent(p.id)}" class="num">${esc(p.id)}</a> ${esc(tx(p,"name"))}`:"")}${row("customer", c?esc(tx(c,"name")):"")}${row("parentIssue", parent)}${row("scanKind", e.type==="scan" ? esc(t("kinds")[e.kind]||e.kind||"") : "")}${row("fromScan", e.fromScan ? `<a href="#e/${encodeURIComponent(e.fromScan)}">${esc(t("scanCard"))}</a>` : "")}${row("fDate", esc(e.date))}${row("fLot", e.lot?esc(e.lot):"")}${row("fQty", e.qty?fmt(e.qty):"")}${row("author", esc(e.author))}${row("createdAt", fmtAt(e.createdAt))}</dl>
-      ${e.text?`<p class="txt" style="white-space:pre-wrap;overflow-wrap:anywhere;margin:14px 0 0;font-size:15.5px">${esc(e.text)}</p>`:""}${tableHTML(e.table)}${filesHTML(e.files)}
+      ${e.text?`<p class="txt" style="white-space:pre-wrap;overflow-wrap:anywhere;margin:14px 0 0;font-size:15.5px">${esc(tx(e,"text"))}</p>`:""}${tableHTML(e.table)}${filesHTML(e.files)}
       ${(e.photos||[]).length?`<div class="bimgs">${e.photos.map(id=>`<div data-bimg="${esc(id)}"><div class="wait">${esc(t("loading"))}</div></div>`).join("")}</div>`:""}
       ${(EDIT && !e.deleted)?`<div class="actions" style="margin-top:12px"><button type="button" class="linkbtn" data-undo="${esc(e.id)}">${esc(t("undo"))}</button></div>`:""}</div>
     ${entryAIExtra(e)}
@@ -1813,7 +1813,7 @@ function quickCardHTML(){
 function aiListHTML(){
   const scans = FIELD.entries.filter(e=>e.type==="scan" && !e.deleted).sort(byNew);
   const pending = scans.filter(e=>e.scanStatus!=="取込済"), done = scans.filter(e=>e.scanStatus==="取込済").slice(0,5);
-  const li = e => `<li><a href="#e/${encodeURIComponent(e.id)}">${scanTag(e)} ${esc(t("kinds")[e.kind]||e.kind||"")}${e.text?` ・ ${esc(firstLine(e.text))}`:""}<div class="meta">${esc(e.date||"")} ・ ${esc(e.author||"")}${e.product?` ・ ${esc(e.product)}`:""}</div>${e.reply?`<div class="qreply">${esc(firstLine(tx(e,"reply")))}</div>`:""}</a></li>`;
+  const li = e => `<li><a href="#e/${encodeURIComponent(e.id)}">${scanTag(e)} ${esc(t("kinds")[e.kind]||e.kind||"")}${e.text?` ・ ${esc(firstLine(tx(e,"text")))}`:""}<div class="meta">${esc(e.date||"")} ・ ${esc(e.author||"")}${e.product?` ・ ${esc(e.product)}`:""}</div>${e.reply?`<div class="qreply">${esc(firstLine(tx(e,"reply")))}</div>`:""}</a></li>`;
   return `<h3>${esc(qt("aiPending"))}</h3>${pending.length?`<ul class="list">${pending.map(li).join("")}</ul>`:`<p class="sub" style="margin:0">${esc(qt("noReq"))}</p>`}${done.length?`<h3>${esc(qt("aiDone"))}</h3><ul class="list">${done.map(li).join("")}</ul>`:""}`;
 }
 function wireQuick(){
