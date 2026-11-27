@@ -412,7 +412,10 @@ a.chip{text-decoration:none}
 #visCard > h2,.vis-week > h2{font-size:21px;letter-spacing:.02em}
 #visCard > h2::before,.vis-week > h2::before{height:21px;width:4px}
 #visCard .vis-it .x,.vis-week .vis-it .x{font-size:15.5px}
-#visCard .vis-day .dt,.vis-week .vis-day .dt{font-size:14.5px}</style>
+#visCard .vis-day .dt,.vis-week .vis-day .dt{font-size:14.5px}/* bath state on the processing day (issue page) 2026-11-27 */
+.ctbl .cacen{outline:2px solid var(--accent);outline-offset:-2px}
+.cacenb{font-weight:700;text-decoration:underline}
+</style>
 </head>
 <body>
 <div class="perf" aria-hidden="true"></div>
@@ -430,7 +433,7 @@ a.chip{text-decoration:none}
 </div>
 
 <script>
-const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", chem:"chem.enc.json", today:"today.enc.json", visitors:"visitors.enc.json", repoDir:"beta/", build:"2026-11-26" };
+const CONF = { data:"data.enc.json", flow:"../flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", chem:"chem.enc.json", today:"today.enc.json", visitors:"visitors.enc.json", repoDir:"beta/", build:"2026-11-27" };
 let PW = null, DATA = null, FIELD = {entries:[]}, FLOWDOCS = null, FLOW_LOADING = null, EDIT = null;
 let CUSTOMERS = [], PRODUCTS = [], ISSUES = [], EVENTS = [], FLOWSTEPS = [], CAUTIONS = [];
 let byP = {}, byC = {}, byI = {};
@@ -1568,10 +1571,12 @@ function renderIssue(i){
     <div class="card"><div class="title"><span class="no">${esc(i.id)}</span>${statusTag(issueStatus(i))}</div><div class="name" style="font-size:17px;font-weight:500;margin-top:4px">${esc(tx(i,"title"))}</div><div class="sub">${esc(i.date||"")}${i.customer?` ・ ${esc((byC[i.customer]||{}).name||i.customer)}`:""}</div>
       <dl class="kv" style="margin-top:12px">${["symptom","cause","action"].map(k=>i[k]?`<dt>${esc(t(k))}${jaNote}</dt><dd style="white-space:pre-wrap">${esc(tx(i,k))}</dd>`:"").join("")}</dl></div>
     <div class="card">${statusPanel("i:"+i.id)}</div>
+    <div class="card" data-chemat></div>
     <div class="card">${linkedPanel("i:"+i.id, (i.products||[]).find(id=>byP[id]) || "", i.customer)}</div>
     ${ps.length?`<div class="card"><h2>${esc(t("related"))}</h2><ul class="list">${ps.map(productItem).join("")}</ul></div>`:""}
     ${(i.docs||[]).length?`<div class="card"><h2>${esc(t("docs"))}</h2>${docList(i.docs)}</div>`:""}`;
   wireCopy(main); wireStatus(); wireLinked(); wireForm(); wireEntries(main);
+  chemAtMount(main, i, "i");
 }
 function renderEntry(e){
   const p = byP[e.product], c = byC[p ? p.customer : e.customer], key = "e:"+e.id;
@@ -1586,10 +1591,11 @@ function renderEntry(e){
       ${(e.photos||[]).length?`<div class="bimgs">${e.photos.map(id=>`<div data-bimg="${esc(id)}"><div class="wait">${esc(t("loading"))}</div></div>`).join("")}</div>`:""}
       ${(EDIT && !e.deleted)?`<div class="actions" style="margin-top:12px"><button type="button" class="linkbtn" data-undo="${esc(e.id)}">${esc(t("undo"))}</button></div>`:""}</div>
     ${entryAIExtra(e)}
-    ${(e.type==="issue" && !e.deleted)?`<div class="card">${statusPanel(key)}</div><div class="card">${linkedPanel(key, e.product, e.customer)}</div>`:""}
+    ${(e.type==="issue" && !e.deleted)?`<div class="card">${statusPanel(key)}</div><div class="card" data-chemat></div><div class="card">${linkedPanel(key, e.product, e.customer)}</div>`:""}
     ${(e.type==="scan" && (e.results||[]).length)?`<div class="card"><h2>${esc(t("results"))}</h2><ul class="list">${e.results.map(r=>r.kind==="product" ? (byP[r.id] ? productItem(byP[r.id]) : "") : (entryById(r.id) ? `<li style="border:0">${entryCard(entryById(r.id), true)}</li>` : "")).join("")}</ul></div>`:""}`;
   main.querySelectorAll("[data-bimg]").forEach(async box => { const url = await photoURL(box.dataset.bimg).catch(()=>null); box.innerHTML = url ? `<img src="${url}" alt="">` : `<div class="wait">${esc(t("photoWait"))}</div>`; });
   wireFiles(main); wireStatus(); wireLinked(); wireForm(); wireEntries(main);
+  if(e.type==="issue" && !e.deleted) chemAtMount(main, e, "e");
 }
 function priceBlock(p){
   const pr = p.price; if(!pr) return "";
@@ -2619,6 +2625,135 @@ function wkWire(){
   main.querySelectorAll("[data-wkopen]").forEach(r=>r.addEventListener("click",e=>{ e.preventDefault(); e.stopPropagation(); const id = r.dataset.wkopen; CH.wkOpen = CH.wkOpen===id ? "" : id; if(location.hash !== "#chem/wk") history.replaceState(null, "", "#chem/wk"); CH.tab = "wk"; route(true); setTimeout(()=>{ const el = main.querySelector(`tr[data-wkopen="${CSS.escape(id)}"]`); if(el && CH.wkOpen) el.scrollIntoView({behavior:"smooth", block:"center"}); }, 30); }));
   main.querySelectorAll("[data-wkjump]").forEach(a=>a.addEventListener("click",e=>{ e.preventDefault(); const el = main.querySelector(`[data-wkln="${CSS.escape(a.dataset.wkjump)}"]`); if(el) el.scrollIntoView({behavior:"smooth", block:"start"}); }));
   main.querySelectorAll("[data-tinkey]").forEach(b=>b.addEventListener("click",()=>{ CH.tinKey = b.dataset.tinkey; route(true); }));
+}
+/* ----- 処理日の液の状態（不良記録・問題の画面）: ロット番号 YYMMDD-NN の日付を処理日とみなし、その日と前後2日の pH・滴定・封孔温度・週の分析を出す。
+   直近2か月は chem.enc.json、それより前は chem_hist.enc.json（chem\chem_hist.ps1）。顧客・品番→ラインは chem.enc.json の ref.lines（chem\ref\proc_lines.json）。2026-11-27 ----- */
+let CHEM_HIST = null, CHEM_HIST_LOADING = null;
+const CA_ST = {};   // per record: {line, date, ngOnly}
+const CAT = {
+  ja:{ h:"処理日の液の状態", sub:"ロット番号の日付を処理日とみなして、その日と前後2日の記録を出しています（赤＝規格外）。", lot:"ロット", date:"処理日", line:"ライン",
+    pickLine:"この顧客・品番の処理ラインがまだ登録されていません。ラインを選んでください。", mapped:"登録済みのライン", noLot:"本文にロット番号（例 261028-03）が無いので、記録の日付を基準にしています。日付は変えられます。",
+    ph:"pH（10:00 ／ 15:00）", tit:"滴定（濃度 g/L）", temp:"封孔の温度 °C（実測）", wk:"週の分析・補給・建浴（前後10日）", ngSum:n=>`規格外 ${n} 件`, noNg:"この期間に規格外はありません。",
+    none:"この期間の記録はありません。", loading:"薬液の記録を読み込み中…", fail:"薬液の記録を読み込めませんでした。", noTemp:"この期間の温度の記録はありません（記録表は 2026年7月から）。",
+    ngOnly:"規格外のある槽だけ", all:"すべての槽", open:"薬液ページで見る →", tank:"槽", spec:"規格", add:"補給", ev:"記事", before:d=>`${d} より前の記録はありません。`,
+    caution:"液の状態は原因の候補を探すためのものです。処理した時刻・ラインは作業日報で確かめてください。" },
+  th:{ h:"สภาพน้ำยาในวันที่ผลิต", sub:"ถือว่าวันที่ในเลขล็อตเป็นวันที่ผลิต แสดงบันทึกของวันนั้นและก่อน-หลัง 2 วัน (สีแดง = นอกสเป็ก)", lot:"ล็อต", date:"วันที่ผลิต", line:"ไลน์",
+    pickLine:"ยังไม่ได้ลงทะเบียนไลน์ที่ใช้ผลิตของลูกค้า/ชิ้นงานนี้ กรุณาเลือกไลน์", mapped:"ไลน์ที่ลงทะเบียนไว้", noLot:"ไม่พบเลขล็อต (เช่น 261028-03) จึงใช้วันที่ของบันทึกเป็นเกณฑ์ เปลี่ยนวันที่ได้",
+    ph:"pH (10:00 / 15:00)", tit:"ไตเตรท (ความเข้มข้น g/L)", temp:"อุณหภูมิซีล °C (วัดจริง)", wk:"วิเคราะห์รายสัปดาห์・เติม・ทำบ่อใหม่ (ก่อน-หลัง 10 วัน)", ngSum:n=>`นอกสเป็ก ${n} รายการ`, noNg:"ช่วงนี้ไม่มีค่านอกสเป็ก",
+    none:"ไม่มีบันทึกในช่วงนี้", loading:"กำลังโหลดบันทึกน้ำยา…", fail:"โหลดบันทึกน้ำยาไม่สำเร็จ", noTemp:"ไม่มีบันทึกอุณหภูมิในช่วงนี้ (เริ่มบันทึกตั้งแต่ ก.ค. 2026)",
+    ngOnly:"เฉพาะบ่อที่นอกสเป็ก", all:"ทุกบ่อ", open:"ดูหน้าน้ำยา →", tank:"บ่อ", spec:"สเป็ก", add:"เติม", ev:"บันทึก", before:d=>`ไม่มีบันทึกก่อน ${d}`,
+    caution:"สภาพน้ำยาใช้เพื่อหาสาเหตุที่เป็นไปได้ กรุณายืนยันเวลาและไลน์ที่ผลิตจากรายงานประจำวัน" }
+};
+const cat = k => CAT[LANG][k];
+async function loadChemHist(){
+  if(CHEM_HIST) return CHEM_HIST;
+  if(!CHEM_HIST_LOADING){ CHEM_HIST_LOADING = fetchEnc("chem_hist.enc.json", false).then(e=>e ? decryptJSON(e, PW) : {from:"", ph:[], tit:[], ff:[], temp:[]}).then(d=>{ CHEM_HIST = d; return d; }).catch(err=>{ CHEM_HIST_LOADING = null; throw err; }); }
+  return CHEM_HIST_LOADING;
+}
+const caDay = (d, n) => { const x = new Date(d+"T00:00:00Z"); x.setUTCDate(x.getUTCDate()+n); return x.toISOString().slice(0,10); };
+/* lot numbers like 261028-03 -> 2026-10-28 */
+function caLots(texts){
+  const out = [], seen = new Set();
+  for(const s of texts){ const re = /(?:^|[^\d])(2\d)(\d\d)(\d\d)-(\d{1,2})(?!\d)/g; let m;
+    while((m = re.exec(String(s||"")))){ const mo = +m[2], da = +m[3]; if(mo<1||mo>12||da<1||da>31) continue;
+      const lot = `${m[1]}${m[2]}${m[3]}-${m[4]}`; if(seen.has(lot)) continue; seen.add(lot); out.push({lot, d:`20${m[1]}-${m[2]}-${m[3]}`}); } }
+  return out;
+}
+function caLineFor(product, customer){
+  const map = ((CHEM && CHEM.ref && CHEM.ref.lines) || {}).map || [];
+  return (product && (map.find(x=>x.product===product)||{}).line) || (customer && (map.find(x=>x.customer===customer)||{}).line) || "";
+}
+function caSrc(rec, kind){
+  if(kind==="e"){ const p = byP[rec.product]; return {key:"e:"+rec.id, product:rec.product||"", customer:(p&&p.customer)||rec.customer||"", texts:[rec.lot, rec.title, rec.text], date:rec.date||""}; }
+  return {key:"i:"+rec.id, product:(rec.products||[])[0]||"", customer:rec.customer||"", texts:[rec.title, rec.symptom, rec.cause, rec.action], date:rec.date||""};
+}
+/* mount the card: <div data-chemat> inside root */
+function chemAtMount(root, rec, kind){
+  const box = root.querySelector("[data-chemat]"); if(!box) return;
+  const src = caSrc(rec, kind);
+  box.innerHTML = `<h2>${esc(cat("h"))}</h2><p class="empty">${esc(cat("loading"))}</p>`;
+  loadChem().then(()=>chemAtDraw(box, src)).catch(()=>{ box.innerHTML = `<h2>${esc(cat("h"))}</h2><p class="note">${esc(cat("fail"))}</p>`; });
+}
+function chemAtDraw(box, src){
+  if(!box.isConnected) return;
+  const lots = caLots(src.texts);
+  const st = CA_ST[src.key] || (CA_ST[src.key] = { line: caLineFor(src.product, src.customer), date: (lots[0]||{}).d || src.date || "", ngOnly:false });
+  const D = st.date, needHist = D && caDay(D,-10) < CHEM.from;
+  if(needHist && !CHEM_HIST){
+    box.innerHTML = `<h2>${esc(cat("h"))}</h2><p class="empty">${esc(cat("loading"))}</p>`;
+    loadChemHist().then(()=>chemAtDraw(box, src)).catch(()=>{ box.innerHTML = `<h2>${esc(cat("h"))}</h2><p class="note">${esc(cat("fail"))}</p>`; });
+    return;
+  }
+  const mapped = caLineFor(src.product, src.customer);
+  const lineBtns = LINES.map(l=>`<button type="button" class="btn small${l===st.line?"":" ghost"}" data-caline="${esc(l)}">${esc(l)}</button>`).join(" ");
+  const lotBtns = lots.map(x=>`<button type="button" class="btn small${x.d===D?"":" ghost"}" data-cadate="${esc(x.d)}">${esc(cat("lot"))} ${esc(x.lot)}</button>`).join(" ");
+  let body = "";
+  if(!st.line) body = `<p class="note">${esc(cat("pickLine"))}</p>`;
+  else if(D) body = chemAtBody(st, D);
+  box.innerHTML = `<h2>${esc(cat("h"))}</h2><p class="sub" style="margin:0 0 8px">${esc(cat("sub"))}</p>
+    ${lots.length?"":`<p class="note">${esc(cat("noLot"))}</p>`}
+    <div class="daybar" style="margin:6px 0">${lotBtns} <label class="sub">${esc(cat("date"))} <input type="date" data-cadatein value="${esc(D)}" style="font:inherit;font-family:var(--mono);padding:5px 8px;border:1px solid var(--line2);border-radius:10px;background:var(--card);color:var(--fg)"></label></div>
+    <div class="daybar" style="margin:6px 0"><span class="sub">${esc(cat("line"))}${mapped?`（${esc(cat("mapped"))}：${esc(mapped)}）`:""}</span> ${lineBtns}</div>
+    ${body}`;
+  box.querySelectorAll("[data-caline]").forEach(b=>b.onclick=()=>{ st.line = b.dataset.caline; chemAtDraw(box, src); });
+  box.querySelectorAll("[data-cadate]").forEach(b=>b.onclick=()=>{ st.date = b.dataset.cadate; chemAtDraw(box, src); });
+  const di = box.querySelector("[data-cadatein]"); if(di) di.onchange=()=>{ if(/^\d{4}-\d\d-\d\d$/.test(di.value)){ st.date = di.value; chemAtDraw(box, src); } };
+  box.querySelectorAll("[data-cang]").forEach(b=>b.onclick=()=>{ st.ngOnly = !st.ngOnly; chemAtDraw(box, src); });
+}
+function caRows(kind, from, to){
+  const cut = CHEM.from, a = [];
+  if(CHEM_HIST) for(const r of CHEM_HIST[kind]||[]) if(r.d < cut && r.d >= from && r.d <= to) a.push(r);
+  for(const r of CHEM[kind]||[]) if(r.d >= from && r.d <= to) a.push(r);
+  return a;
+}
+function chemAtBody(st, D){
+  const line = st.line, days = [-2,-1,0,1,2].map(n=>caDay(D,n)), from = days[0], to = days[4];
+  const head = `<tr><th>${esc(cat("tank"))}</th><th>${esc(cat("spec"))}</th>${days.map(d=>`<th class="num${d===D?" cacen":""}">${esc(md(d))}</th>`).join("")}</tr>`;
+  const ng = [];
+  /* pH */
+  const ph = caRows("ph", from, to).filter(r=>r.l===line);
+  const phRows = {}; for(const r of ph){ const k = `${r.k}|${r.e||0}`; (phRows[k] = phRows[k] || {k:r.k, e:r.e, c:r.c, s:r.s, lo:r.lo, hi:r.hi, by:{}}).by[r.d] = r; if(r.d===D){ phRows[k].c = r.c; phRows[k].s = r.s; phRows[k].lo = r.lo; phRows[k].hi = r.hi; } }
+  const phList = Object.values(phRows).sort((a,b)=>tankNo(a.k)-tankNo(b.k) || (a.e||0)-(b.e||0));
+  for(const x of phList) for(const d of days){ const r = x.by[d]; if(!r) continue; for(const v of [r.a, r.b]) if(outOf(v, r.lo, r.hi)){ ng.push({d, t:`${x.k} ${x.c} pH ${v}`, s:specTx(r.s, r.lo, r.hi)}); break; } }
+  const phTbl = phList.filter(x=>!st.ngOnly || days.some(d=>x.by[d] && (outOf(x.by[d].a,x.by[d].lo,x.by[d].hi) || outOf(x.by[d].b,x.by[d].lo,x.by[d].hi)))).map(x=>`<tr><td class="tk nowrap">${esc(x.k)}${x.e?` <span class="tag st">${esc(ct("oldNo"))}</span>`:""}<div class="meta">${esc(x.c||"")}</div></td><td class="nowrap">${esc(specTx(x.s,x.lo,x.hi))}</td>${days.map(d=>{ const r = x.by[d]; if(!r) return `<td class="num${d===D?" cacen":""}">–</td>`;
+    const bad = outOf(r.a,r.lo,r.hi) || outOf(r.b,r.lo,r.hi); return `<td class="num nowrap${bad?" ng":""}${d===D?" cacen":""}">${[r.a,r.b].map(v=>isNum(v)?v:"–").join(" / ")}</td>`; }).join("")}</tr>`).join("");
+  /* titration */
+  const tit = caRows("tit", from, to).filter(r=>r.ln===line);
+  const tRows = {}; for(const r of tit){ const k = `${r.g}|${r.tk}|${r.e||0}`; (tRows[k] = tRows[k] || {g:r.g, tk:r.tk, c:r.c, s:r.s, lo:r.lo, hi:r.hi, by:{}}).by[r.d] = r; if(r.c) tRows[k].c = r.c; }
+  const tList = Object.values(tRows).sort((a,b)=>tankNo(a.tk)-tankNo(b.tk));
+  for(const x of tList) for(const d of days){ const r = x.by[d]; if(r && outOf(r.v, r.lo, r.hi)) ng.push({d, t:`${x.tk} ${x.c||(ct("groups")[x.g]||x.g)} ${Math.round(r.v*100)/100} g/L`, s:specTx(r.s, r.lo, r.hi)}); }
+  const tTbl = tList.filter(x=>!st.ngOnly || days.some(d=>x.by[d] && outOf(x.by[d].v,x.by[d].lo,x.by[d].hi))).map(x=>`<tr><td class="tk nowrap">${esc(x.tk)}<div class="meta">${esc(x.c||ct("groups")[x.g]||x.g)}</div></td><td class="nowrap">${esc(specTx(x.s,x.lo,x.hi))}</td>${days.map(d=>{ const r = x.by[d]; if(!r) return `<td class="num${d===D?" cacen":""}">–</td>`;
+    return `<td class="num${outOf(r.v,r.lo,r.hi)?" ng":""}${d===D?" cacen":""}">${isNum(r.v)?Math.round(r.v*100)/100:"–"}</td>`; }).join("")}</tr>`).join("");
+  /* sealing temperature: keys like "LINE 2-2 Tank 21" */
+  const tp = line.replace("/","-") + " ";
+  const temp = caRows("temp", from, to).filter(r=>String(r.k).startsWith(tp));
+  const mRows = {}; for(const r of temp){ (mRows[r.k] = mRows[r.k] || {k:r.k, lo:r.lo, hi:r.hi, by:{}}); (mRows[r.k].by[r.d] = mRows[r.k].by[r.d] || []).push(r); }
+  const mList = Object.values(mRows);
+  for(const x of mList) for(const d of days) for(const r of (x.by[d]||[]).sort((a,b)=>String(a.tm).localeCompare(String(b.tm)))) if(outOf(r.m, r.lo, r.hi)) ng.push({d, t:`${x.k.slice(tp.length)} ${r.tm} ${r.m}°C`, s:`${r.lo}〜${r.hi}`});
+  const mTbl = mList.map(x=>`<tr><td class="tk nowrap">${esc(x.k.slice(tp.length))}</td><td class="nowrap">${x.lo}〜${x.hi}</td>${days.map(d=>{ const rs = (x.by[d]||[]).sort((a,b)=>String(a.tm).localeCompare(String(b.tm)));
+    if(!rs.length) return `<td class="num${d===D?" cacen":""}">–</td>`; return `<td class="num nowrap${d===D?" cacen":""}" style="line-height:1.5">${rs.map(r=>`<span class="sub">${esc(r.tm)}</span> <span class="${outOf(r.m,r.lo,r.hi)?"ngv":""}">${isNum(r.m)?r.m:"–"}</span>`).join("<br>")}</td>`; }).join("")}</tr>`).join("");
+  /* weekly analysis (Suthep): only what ref.wk still holds */
+  const wk = ((CHEM.ref && CHEM.ref.wk) || {}).s || [], w0 = caDay(D,-10), w1 = caDay(D,10);
+  const wkHtml = wk.filter(s=>s.ln===line).map(s=>{
+    const its = (s.it||[]).map(it=>{ const pts = (it.p||[]).filter(p=>p[0]>=w0 && p[0]<=w1); if(!pts.length) return "";
+      pts.forEach(p=>{ if(outOf(p[1], it.lo, it.hi)) ng.push({d:p[0], t:`${s.tk||""} ${s.c||s.sh} ${it.k} ${p[1]} ${it.u||""}`, s:`${it.lo}〜${it.hi}`}); });
+      return `<div class="meta">${esc(it.k)} ${esc(it.u||"")} <small>(${esc(cat("spec"))} ${isNum(it.lo)?`${it.lo}〜${it.hi}`:"–"})</small>：${pts.map(p=>`<span class="nowrap${p[0]===D?" cacenb":""}">${esc(md(p[0]))}=<span class="${outOf(p[1],it.lo,it.hi)?"ngv":""}">${esc(p[1])}</span>${p[2]?` <small>(${esc(cat("add"))} ${esc(p[2])})</small>`:""}</span>`).join("　")}</div>`; }).join("");
+    const evs = (s.ev||[]).filter(e=>e[0]>=w0 && e[0]<=w1).map(e=>`<div class="meta">${esc(cat("ev"))} ${esc(md(e[0]))}：${esc(e.slice(1).filter(Boolean).join(" "))}</div>`).join("");
+    const ads = (s.ad||[]).filter(e=>e[0]>=w0 && e[0]<=w1).map(e=>`${esc(md(e[0]))} ${esc(e[1])}${esc(e[2]||"")}`).join("、");
+    if(!its && !evs && !ads) return "";
+    return `<div class="wkitem"><b class="nowrap">${esc(s.tk||"")} ${esc(s.c||s.sh)}</b>${its}${ads?`<div class="meta">${esc(cat("add"))}：${ads}</div>`:""}${evs}</div>`; }).join("");
+  ng.sort((a,b)=>a.d.localeCompare(b.d));
+  const tbl = (rows) => `<div class="tblwrap"><table class="ctbl">${head}${rows}</table></div>`;
+  const histFrom = CHEM_HIST && CHEM_HIST.from ? CHEM_HIST.from : CHEM.from;
+  return `${from < histFrom ? `<p class="note">${esc(cat("before")(histFrom))}</p>` : ""}
+    <div class="cstat">${ng.length?`<span class="ngv">${esc(cat("ngSum")(ng.length))}</span>`:`<span class="okv">${esc(cat("noNg"))}</span>`}</div>
+    ${ng.length?`<ul class="list" style="margin:0 0 8px">${ng.slice(0,14).map(x=>`<li style="padding:5px 2px"><span class="num">${esc(md(x.d))}</span> ${esc(x.t)} <small class="sub">(${esc(cat("spec"))} ${esc(x.s)})</small></li>`).join("")}${ng.length>14?`<li class="sub" style="padding:5px 2px">… +${ng.length-14}</li>`:""}</ul>`:""}
+    <div class="actions" style="margin:4px 0 6px"><button type="button" class="btn small ghost" data-cang>${esc(st.ngOnly?cat("all"):cat("ngOnly"))}</button> <a class="btn small ghost" href="#chem/ph/${esc(D)}" style="text-decoration:none">${esc(cat("open"))}</a></div>
+    <h3>${esc(cat("temp"))}</h3>${mList.length?tbl(mTbl):`<p class="empty">${esc(cat("noTemp"))}</p>`}
+    <h3>${esc(cat("ph"))}</h3>${phTbl?tbl(phTbl):`<p class="empty">${esc(cat("none"))}</p>`}
+    <h3>${esc(cat("tit"))}</h3>${tTbl?tbl(tTbl):`<p class="empty">${esc(cat("none"))}</p>`}
+    <h3>${esc(cat("wk"))}</h3>${wkHtml||`<p class="empty">${esc(cat("none"))}</p>`}
+    <p class="sub" style="margin-top:10px">${esc(cat("caution"))}</p>`;
 }
 
 /* ---------- routing ---------- */
