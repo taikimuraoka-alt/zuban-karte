@@ -464,7 +464,7 @@ a.chip{text-decoration:none}
 
 <script>
 const CONF = { data:"data.enc.json", flow:"flow.enc.json", field:"field.enc.json", photos:"photos/", editkey:"editkey.enc.json", chem:"chem.enc.json", today:"today.enc.json", visitors:"visitors.enc.json", overtime:"overtime.enc.json", repoDir:"beta/", build:"2026-11-28" };
-let PW = null, DATA = null, FIELD = {entries:[]}, FLOWDOCS = null, FLOW_LOADING = null, EDIT = null;
+let PW = null, DATA = null, FIELD = {entries:[]}, FLOWDOCS = null, FLOW_LOADING = null, FLOWPG = {}, EDIT = null;
 let CUSTOMERS = [], PRODUCTS = [], ISSUES = [], EVENTS = [], FLOWSTEPS = [], CAUTIONS = [];
 let byP = {}, byC = {}, byI = {};
 let LANG = "ja"; try{ LANG = localStorage.getItem("karte.lang") || "ja" }catch(e){}
@@ -490,7 +490,7 @@ const T = {
     priceT:"価格", current:"今の単価", since:"いつから", fixed:"固定価格", sampleClass:"サンプル品の価格区分", history:"価格の経緯", volume:"直近12か月の数量", perPc:"B/個",
     quote:"見積", profit:"利益", lot:"ロット", total:"一式", basis:"根拠", book:"見積ブック", tiers:"処理数量別の参考単価（合計 個/回）", tierCol:"1 回の処理数量", alt:"他案・下限", prev:"前回の見積",
     similar:"似ている図面",
-    flowTitle:"標準の工程（FF Black）", flowSub:"枠工程は 1 回あたりの時間。工程順は現場の指示書を優先してください。", docsTitle:"公式フローチャート", docsSub:"指で拡大できます。この会社・製品の工程フローです。", noFlow:"この会社・製品の公式フローチャートはまだ登録されていません。", dwgTitle:"図面", dwgOpen:"図面を見る", dwgClose:"閉じる", dwgConf:"機密の表示がある図面なので、画像は載せていません。下の保存場所で見てください。", loading:"読み込み中…", loadFail:"読み込みに失敗しました。通信状態を確認して開き直してください。", zoom:"拡大", unzoom:"元に戻す", page:"ページ",
+    flowTitle:"標準の工程（FF Black）", flowSub:"枠工程は 1 回あたりの時間。工程順は現場の指示書を優先してください。", docsTitle:"公式フローチャート", docsSub:"指で拡大できます。この会社・製品の工程フローです。", noFlow:"この会社・製品の公式フローチャートはまだ登録されていません。", flowOpen:"開く", dwgTitle:"図面", dwgOpen:"図面を見る", dwgClose:"閉じる", dwgConf:"機密の表示がある図面なので、画像は載せていません。下の保存場所で見てください。", loading:"読み込み中…", loadFail:"読み込みに失敗しました。通信状態を確認して開き直してください。", zoom:"拡大", unzoom:"元に戻す", page:"ページ",
     issueMaster:"登録済みの問題", fieldRec:"現場の記録", cautions:"この仕上げで注意する点", noIssue:"記録はありません。",
     addIssue:"＋ 問題・不良を記録", addAction:"＋ 対策・処置を記録", addMemo:"＋ メモ・注意点を書く",
     types:{issue:"問題・不良",action:"対策・処置",memo:"作業メモ・注意点",scan:"AIで読む資料",receipt:"受入・現品票",inspection:"検査表",event:"できごと"},
@@ -523,7 +523,7 @@ const T = {
     priceT:"", current:"", since:"", fixed:"", sampleClass:"", history:"", volume:"", perPc:"",
     quote:"", profit:"", lot:"ล็อต", total:"", basis:"", book:"", tiers:"", tierCol:"", alt:"", prev:"",
     similar:"แบบที่คล้ายกัน",
-    flowTitle:"ขั้นตอนมาตรฐาน (FF Black)", flowSub:"งานต่อรอบ = เวลาต่อ 1 รอบ ลำดับจริงให้ยึดตามใบสั่งงานหน้างาน", docsTitle:"แผนผังกระบวนการอย่างเป็นทางการ", docsSub:"ใช้นิ้วขยายได้ ผังกระบวนการของบริษัท/ชิ้นงานนี้", noFlow:"ยังไม่มีผังกระบวนการของบริษัท/ชิ้นงานนี้", dwgTitle:"แบบ", dwgOpen:"ดูแบบ", dwgClose:"ปิด", dwgConf:"แบบนี้มีเครื่องหมายลับ จึงไม่แสดงรูป กรุณาดูที่ตำแหน่งไฟล์ด้านล่าง", loading:"กำลังโหลด…", loadFail:"โหลดไม่สำเร็จ กรุณาตรวจสอบสัญญาณแล้วเปิดใหม่", zoom:"ขยาย", unzoom:"ย่อกลับ", page:"หน้า",
+    flowTitle:"ขั้นตอนมาตรฐาน (FF Black)", flowSub:"งานต่อรอบ = เวลาต่อ 1 รอบ ลำดับจริงให้ยึดตามใบสั่งงานหน้างาน", docsTitle:"แผนผังกระบวนการอย่างเป็นทางการ", docsSub:"ใช้นิ้วขยายได้ ผังกระบวนการของบริษัท/ชิ้นงานนี้", noFlow:"ยังไม่มีผังกระบวนการของบริษัท/ชิ้นงานนี้", flowOpen:"เปิด", dwgTitle:"แบบ", dwgOpen:"ดูแบบ", dwgClose:"ปิด", dwgConf:"แบบนี้มีเครื่องหมายลับ จึงไม่แสดงรูป กรุณาดูที่ตำแหน่งไฟล์ด้านล่าง", loading:"กำลังโหลด…", loadFail:"โหลดไม่สำเร็จ กรุณาตรวจสอบสัญญาณแล้วเปิดใหม่", zoom:"ขยาย", unzoom:"ย่อกลับ", page:"หน้า",
     issueMaster:"ปัญหาที่ลงทะเบียนไว้", fieldRec:"บันทึกจากหน้างาน", cautions:"ข้อควรระวังสำหรับผิวเคลือบนี้", noIssue:"ยังไม่มีบันทึก",
     addIssue:"＋ บันทึกปัญหา/ของเสีย", addAction:"＋ บันทึกการแก้ไข", addMemo:"＋ เขียนบันทึก/ข้อควรระวัง",
     types:{issue:"ปัญหา/ของเสีย",action:"การแก้ไข",memo:"บันทึกงาน/ข้อควรระวัง",scan:"เอกสารให้ AI อ่าน",receipt:"รับเข้า・ป้ายสินค้า",inspection:"ตารางตรวจสอบ",event:"เหตุการณ์"},
@@ -693,7 +693,7 @@ function renderLock(msg){
   document.getElementById("lockForm").addEventListener("submit", async e => { e.preventDefault(); const pw = document.getElementById("pw").value; document.getElementById("err").textContent = t("checking"); try{ await unlock(pw); ls.set("karte.pw", pw); }catch(_){ document.getElementById("err").textContent = t("wrong"); } });
   setTimeout(()=>{ const p=document.getElementById("pw"); if(p) p.focus(); }, 50);
 }
-function lock(){ ls.del("karte.pw"); ls.del("karte.editpw"); ls.del("karte.vlpw"); VLPRIV = null; VLPKCS8 = null; VL = null; VL_LOADING = null; PW=null; DATA=null; EDIT=null; FIELD={entries:[]}; FLOWDOCS=null; FLOW_LOADING=null; CHEM=null; CHEM_LOADING=null; TODAY=null; VIS=null; OT=null; KEYS.clear(); renderLock(""); }
+function lock(){ ls.del("karte.pw"); ls.del("karte.editpw"); ls.del("karte.vlpw"); VLPRIV = null; VLPKCS8 = null; VL = null; VL_LOADING = null; PW=null; DATA=null; EDIT=null; FIELD={entries:[]}; FLOWDOCS=null; FLOW_LOADING=null; FLOWPG={}; CHEM=null; CHEM_LOADING=null; TODAY=null; VIS=null; OT=null; KEYS.clear(); renderLock(""); }
 async function unlock(pw){
   if(!(window.crypto && crypto.subtle)) throw new Error("no webcrypto");
   const e = await fetchEnc(CONF.data, true); if(!e) throw new Error("no data");
@@ -1757,9 +1757,26 @@ function renderDocs(p){
   loadFlowDocs().then(all=>{ const b = document.getElementById("docs"); if(!b) return;
     const docs = p ? all.filter(d=>flowFor(d,p)) : all;
     if(!docs.length){ b.innerHTML = `<p class="empty">${esc(t("noFlow"))}</p>`; return; }
-    b.innerHTML = docs.map((d,i)=>`<div class="doc"><h4>${esc(d.title[LANG]||d.title.ja)}${p?"":" "+flowTag(d)}</h4><div class="pages">${d.pages.map((p,j)=>`<div><div class="zoomwrap"><img src="${p}" alt="${esc(d.id)} p${j+1}" loading="lazy"></div><div class="pagebar"><span>${esc(t("page"))} ${j+1}/${d.pages.length}</span><button type="button" class="zoombtn">${esc(t("zoom"))}</button></div></div>`).join("")}</div></div>`).join("");
-    b.querySelectorAll(".zoombtn").forEach(btn=>btn.addEventListener("click",()=>{ const img = btn.closest("div").previousElementSibling.querySelector("img"); const z = img.classList.toggle("zoomed"); btn.textContent = z ? t("unzoom") : t("zoom"); }));
+    /* 2026-11-28: beta's flow.enc.json is an index (pages = page count); each doc's images are in flow/<id>.enc.json and load only when shown.
+       Product tab: its docs load at once. Docs page: each doc has an "open" button. An old combined file (pages = array) still works. */
+    const n = d => Array.isArray(d.pages) ? d.pages.length : (d.pages||0);
+    b.innerHTML = docs.map(d=>`<div class="doc" data-fdoc="${esc(d.id)}"><h4>${esc(d.title[LANG]||d.title.ja)}${p?"":" "+flowTag(d)}${n(d)?` <span class="meta">（${n(d)} ${esc(t("page"))}）</span>`:""}</h4>${p?"":`<button type="button" class="btn small" data-fopen="${esc(d.id)}">${esc(t("flowOpen"))}</button>`}<div class="pages"></div></div>`).join("");
+    if(p) docs.forEach(d=>fillFlowDoc(b,d));
+    b.querySelectorAll("[data-fopen]").forEach(btn=>btn.addEventListener("click",()=>{ const d = docs.find(x=>x.id===btn.dataset.fopen); btn.remove(); if(d) fillFlowDoc(b,d); }));
   }).catch(()=>{ const b = document.getElementById("docs"); if(b) b.innerHTML = `<p class="note">${esc(t("loadFail"))}</p>`; });
+}
+function flowPages(d){
+  if(Array.isArray(d.pages)) return Promise.resolve(d.pages);
+  if(!FLOWPG[d.id]) FLOWPG[d.id] = fetchEnc(`flow/${encodeURIComponent(d.id)}.enc.json`, false).then(e=>{ if(!e) throw new Error("404"); return decryptJSON(e, PW); }).then(x=>x.pages||[]).catch(err=>{ delete FLOWPG[d.id]; throw err; });
+  return FLOWPG[d.id];
+}
+function fillFlowDoc(b, d){
+  const box = b.querySelector(`[data-fdoc="${CSS.escape(d.id)}"] .pages`); if(!box) return;
+  box.innerHTML = `<div class="loading">${esc(t("loading"))}</div>`;
+  flowPages(d).then(pg=>{
+    box.innerHTML = pg.map((src,j)=>`<div><div class="zoomwrap"><img src="${src}" alt="${esc(d.id)} p${j+1}" loading="lazy"></div><div class="pagebar"><span>${esc(t("page"))} ${j+1}/${pg.length}</span><button type="button" class="zoombtn">${esc(t("zoom"))}</button></div></div>`).join("");
+    box.querySelectorAll(".zoombtn").forEach(btn=>btn.addEventListener("click",()=>{ const img = btn.closest("div").previousElementSibling.querySelector("img"); const z = img.classList.toggle("zoomed"); btn.textContent = z ? t("unzoom") : t("zoom"); }));
+  }).catch(()=>{ box.innerHTML = `<p class="note">${esc(t("loadFail"))}</p>`; });
 }
 
 /* ---------- 製品の図面（2026-11-28：見積依頼メールの添付図面。画像は <repoDir>dwg/<id>.enc.json、conf は機密表示ありで画像なし） ---------- */
